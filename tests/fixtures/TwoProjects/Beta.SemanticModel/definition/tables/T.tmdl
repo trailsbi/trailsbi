@@ -1,0 +1,9 @@
+table T
+
+	column C
+		dataType: string
+		sourceColumn: C
+
+	partition T = m
+		mode: import
+		source = #table({"C"}, {{"x"}})

@@ -1,0 +1,4 @@
+include README.md CHANGELOG.md CONTRIBUTING.md SECURITY.md LICENSE NOTICE
+recursive-include tests *.py *.json *.tmdl *.pbism *.pbir *.pbip *.bim
+recursive-include tools *.py *.js
+recursive-include docs *.svg

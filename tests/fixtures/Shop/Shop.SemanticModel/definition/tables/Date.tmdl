@@ -1,0 +1,15 @@
+table Date
+	dataCategory: Time
+
+	column Date
+		dataType: dateTime
+		isKey
+		sourceColumn: Date
+
+	column Year = YEAR('Date'[Date])
+		dataType: int64
+		summarizeBy: none
+
+	partition Date = calculated
+		mode: import
+		source = CALENDARAUTO()

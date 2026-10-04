@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__ – Trails for Power BI</title>
+<link rel="icon" href="__FAVICON__">
+<style>__STYLES__</style>
+</head>
+<body>
+<noscript><style>#boot{display:none}</style></noscript>
+<div id="boot" role="status" aria-live="polite"__BOOT__>
+  <div class="boot-card">
+    <svg class="boot-logo" viewBox="__LOGOVB__" role="img" aria-label="TrailsBI">__LOGO__</svg>
+    <p class="boot-tag">__TAGLINE__</p>
+    <h2>__TITLE__</h2>
+    <div class="boot-bar"><i id="bootFill"></i></div>
+    <p id="bootStep">Loading…</p>
+  </div>
+</div>
+<header>
+  <div class="brand"><a class="logo-link" href="https://trailsbi.com" target="_blank" rel="noopener noreferrer" title="Trails for Power BI · trailsbi.com"><svg class="logo" viewBox="__LOGOVB__" role="img" aria-label="TrailsBI">__LOGO__</svg></a><span class="bsep" aria-hidden="true"></span><h1>__TITLE__</h1></div>
+  <div class="gsearch" role="search">
+    <span id="gIcon"></span>
+    <input type="search" id="q" placeholder="Search" aria-label="Search" title="Enter jumps to the next match · Esc clears">
+    <span id="hits" aria-live="polite"></span>
+    <kbd>/</kbd>
+  </div>
+  <div class="hright"><p id="meta"></p>
+    <button id="aboutBtn" title="About Trails for Power BI" aria-label="About Trails for Power BI" aria-haspopup="dialog"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="7.25" y="7" width="1.5" height="4.6" rx=".7" fill="currentColor"/><circle cx="8" cy="4.9" r=".95" fill="currentColor"/></svg></button></div>
+</header>
+<dialog id="about" aria-labelledby="aboutTitle">
+  <div class="ab-head"><svg class="logo" viewBox="__LOGOVB__" role="img" aria-label="TrailsBI" id="aboutTitle">__LOGO__</svg>
+    <button class="ab-x" id="aboutClose" aria-label="Close">&times;</button></div>
+  <p class="ab-tag">__TAGLINE__</p>
+  <dl>
+    <dt>Version</dt><dd>Trails for Power BI __VERSION__</dd>
+    <dt>Licence</dt><dd>Apache License 2.0. Provided as is, without warranty of any kind.</dd>
+    <dt>Your data</dt><dd>Runs entirely on your machine. Nothing is uploaded, collected or sent anywhere.</dd>
+    <dt>Sharing</dt><dd>This page contains your model's table, column and measure names, DAX and data-source addresses. Share it only where that is allowed. For pictures you post publicly, export diagrams with <b>Hide table and column names</b>.</dd>
+    <dt>Trademarks</dt><dd>Power BI is a trademark of Microsoft. TrailsBI is not affiliated with or endorsed by Microsoft.</dd>
+  </dl>
+  <div class="ab-foot"><a href="https://trailsbi.com" target="_blank" rel="noopener noreferrer">trailsbi.com</a><a href="https://github.com/trailsbi" target="_blank" rel="noopener noreferrer">github.com/trailsbi</a><span>&copy; 2026 TrailsBI</span></div>
+</dialog>
+
+<div class="shell">
+<nav class="rail" aria-label="Views">
+  <button data-tab="graph" class="on" aria-current="page"><span class="rail-ic" data-icon="nav_lineage"></span>Lineage</button>
+  <button data-tab="model"><span class="rail-ic" data-icon="nav_model"></span>Model</button>
+  <button data-tab="report"><span class="rail-ic" data-icon="nav_report"></span>Reports</button>
+  <button data-tab="health"><span class="rail-ic" data-icon="nav_health"><span class="rail-filter"></span></span>Health</button>
+  <button data-tab="ai"><span class="rail-ic" data-icon="nav_ai"><span class="rail-filter"></span></span>AI Readiness</button>
+</nav>
+<div class="views">
+  <div class="toolbar" id="toolbar">
+    <div class="types" id="types" role="group" aria-label="Show types"></div>
+    <div class="types" id="mdTypes" role="group" aria-label="Show object kinds" hidden></div>
+    <span class="spacer"></span>
+    <div class="menu" id="viewBox">
+      <button class="tbtn" id="viewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="viewPop"></button>
+      <div class="pop" id="viewPop" role="dialog" aria-label="View options" hidden>
+        <h5>View options</h5>
+        <label><input type="checkbox" id="optAuto" checked> Hide auto date tables</label>
+        <label><input type="checkbox" id="optUnused"> Hide unused data columns</label>
+        <label><input type="checkbox" id="optHidden"> Hide hidden objects</label>
+        <label><input type="checkbox" id="optHome"> Show measures under their home table</label>
+      </div>
+    </div>
+    <div class="seg" id="mdModeSeg" role="group" aria-label="Model view" hidden>
+      <button id="mdList" aria-pressed="true">Details</button>
+      <button id="mdDiag" aria-pressed="false">Diagram</button>
+    </div>
+    <div class="hfilter" id="filterBar" hidden></div>
+    <div class="menu" id="mdViewBox" hidden>
+      <button class="tbtn" id="mdViewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="mdViewPop"></button>
+      <div class="pop" id="mdViewPop" role="dialog" aria-label="Model view options" hidden>
+        <h5>View options</h5>
+        <label><input type="checkbox" id="mdShowAuto"> Show auto date tables</label>
+        <label class="mdlist"><input type="checkbox" id="mdShowRel"> Show relationships</label>
+        <label class="mdlist"><input type="checkbox" id="mdShowRoles"> Show roles &amp; permissions</label>
+        <label class="mdlist"><input type="checkbox" id="mdHoverActions" checked> Show actions on hover only</label>
+      </div>
+    </div>
+    <div class="seg" id="densitySeg" role="group" aria-label="Card detail">
+      <button id="dCompact" aria-pressed="true">Compact</button>
+      <button id="dDetailed" aria-pressed="false">Detailed</button>
+    </div>
+  </div>
+
+<section class="tab on" id="tab-graph">
+  <div class="split">
+    <div class="canvas-wrap">
+      <div id="canvas"><svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <div class="zoom" role="group" aria-label="Zoom">
+        <button id="zFit" class="zfit" aria-label="Fit to screen" title="Fit to screen"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/></svg></button>
+        <button id="zOut" aria-label="Zoom out" title="Zoom out">−</button>
+        <button id="zLevel" title="Reset zoom to 100%">100%</button>
+        <button id="zIn" aria-label="Zoom in" title="Zoom in">+</button>
+      </div>
+    </div>
+    <aside class="side" id="side">
+      <div class="side-head">
+        <span class="side-title">Details</span>
+        <button class="side-btn side-hide" id="sideHide" aria-controls="panel" aria-expanded="true"
+                title="Hide details pane" aria-label="Hide details pane"></button>
+      </div>
+      <div id="panel" class="pane"></div>
+      <button class="side-rail side-show" id="sideShow" aria-controls="panel" aria-expanded="false"
+              title="Show details pane" aria-label="Show details pane">
+        <span class="side-show-ic" id="sideShowIcon"></span>
+        <span class="rail-label"><span>Details</span><span class="rail-item" id="railItem"></span></span>
+      </button>
+    </aside>
+  </div>
+</section>
+<section class="tab" id="tab-report"><div class="doc"><div id="reportDoc"></div></div></section>
+<section class="tab" id="tab-model"><div class="split">
+  <div class="canvas-wrap">
+    <div class="doc" id="modelScroll"><div id="modelDoc"></div><div id="mdDiagram" hidden></div></div>
+    <div class="zoom" id="mdZoom" role="group" aria-label="Zoom" hidden>
+      <button id="mdZFit" class="zfit" aria-label="Fit to screen" title="Fit to screen"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5V2h3.5M10.5 2H14v3.5M14 10.5V14h-3.5M5.5 14H2v-3.5"/></svg></button>
+      <button id="mdZOut" aria-label="Zoom out" title="Zoom out">−</button>
+      <button id="mdZLevel" title="Reset zoom to 100%">100%</button>
+      <button id="mdZIn" aria-label="Zoom in" title="Zoom in">+</button>
+    </div>
+  </div>
+  <aside class="side" id="mdSide" hidden>
+    <div class="side-head">
+      <span class="side-title">Details</span>
+      <button class="side-btn side-hide" aria-controls="mdPanel" aria-expanded="true"
+              title="Hide details pane" aria-label="Hide details pane"></button>
+    </div>
+    <div id="mdPanel" class="pane"></div>
+    <button class="side-rail side-show" aria-controls="mdPanel" aria-expanded="false"
+            title="Show details pane" aria-label="Show details pane">
+      <span class="side-show-ic"></span>
+      <span class="rail-label"><span>Details</span></span>
+    </button>
+  </aside>
+</div></section>
+<section class="tab" id="tab-health"><div class="doc"><div id="healthDoc"></div></div></section>
+<section class="tab" id="tab-ai"><div class="doc"><div id="aiDoc"></div></div></section>
+</div>
+</div>
+
+<script id="icons" type="application/json">__ICONS__</script>
+<script id="data" type="application/json">__DATA__</script>
+<script>
+(function () {
+"use strict";
+__SCRIPT__})();
+</script>
+</body>
+</html>

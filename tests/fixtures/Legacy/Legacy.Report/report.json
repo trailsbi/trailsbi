@@ -1,0 +1,22 @@
+{
+  "config": "{}",
+  "sections": [
+    {
+      "name": "s1",
+      "displayName": "Orders",
+      "ordinal": 0,
+      "width": 1280,
+      "height": 720,
+      "visualContainers": [
+        {
+          "x": 10,
+          "y": 10,
+          "width": 600,
+          "height": 400,
+          "config": "{\"name\": \"v1\", \"singleVisual\": {\"visualType\": \"barChart\", \"projections\": {\"Y\": [{\"queryRef\": \"Orders.Units\"}], \"Category\": [{\"queryRef\": \"Customer.Name\"}]}, \"prototypeQuery\": {\"Version\": 2, \"From\": [{\"Name\": \"o\", \"Entity\": \"Orders\", \"Type\": 0}, {\"Name\": \"c\", \"Entity\": \"Customer\", \"Type\": 0}], \"Select\": [{\"Measure\": {\"Expression\": {\"SourceRef\": {\"Source\": \"o\"}}, \"Property\": \"Units\"}, \"Name\": \"Orders.Units\"}, {\"Column\": {\"Expression\": {\"SourceRef\": {\"Source\": \"c\"}}, \"Property\": \"Name\"}, \"Name\": \"Customer.Name\"}]}}}",
+          "filters": "[]"
+        }
+      ]
+    }
+  ]
+}

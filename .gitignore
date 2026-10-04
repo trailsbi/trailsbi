@@ -1,0 +1,25 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Generated pages and exports
+TrailsBI Report - *.html
+
+# Power BI projects other than the test fixtures: they hold your data and tenant details
+*.pbix
+*.pbit
+.pbi/
+
+# Keep real Power BI projects out of the repository; only the synthetic test fixtures belong here.
+*.pbip
+*.SemanticModel/
+*.Report/
+!tests/fixtures/*/*.pbip
+!tests/fixtures/*/*.SemanticModel/
+!tests/fixtures/*/*.Report/
+uv.lock

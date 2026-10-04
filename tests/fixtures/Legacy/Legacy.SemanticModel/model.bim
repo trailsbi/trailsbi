@@ -1,0 +1,88 @@
+{
+  "name": "Legacy",
+  "compatibilityLevel": 1550,
+  "model": {
+    "culture": "en-US",
+    "tables": [
+      {
+        "name": "Orders",
+        "columns": [
+          {
+            "name": "Qty",
+            "dataType": "int64",
+            "sourceColumn": "Qty"
+          },
+          {
+            "name": "CustomerId",
+            "dataType": "int64",
+            "sourceColumn": "CustomerId",
+            "isHidden": true
+          }
+        ],
+        "measures": [
+          {
+            "name": "Units",
+            "expression": "SUM(Orders[Qty])"
+          },
+          {
+            "name": "Units x2",
+            "expression": [
+              "[Units]",
+              "* 2"
+            ]
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Orders",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": [
+                "let",
+                "    Source = Csv.Document(File.Contents(\"C:\\\\data\\\\orders.csv\"))",
+                "in",
+                "    Source"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Customer",
+        "columns": [
+          {
+            "name": "CustomerId",
+            "dataType": "int64",
+            "sourceColumn": "CustomerId",
+            "isKey": true
+          },
+          {
+            "name": "Name",
+            "dataType": "string",
+            "sourceColumn": "Name"
+          }
+        ],
+        "partitions": [
+          {
+            "name": "Customer",
+            "mode": "import",
+            "source": {
+              "type": "m",
+              "expression": "let\n    Source = Excel.Workbook(File.Contents(\"C:\\\\data\\\\customers.xlsx\"))\nin\n    Source"
+            }
+          }
+        ]
+      }
+    ],
+    "relationships": [
+      {
+        "name": "r1",
+        "fromTable": "Orders",
+        "fromColumn": "CustomerId",
+        "toTable": "Customer",
+        "toColumn": "CustomerId"
+      }
+    ]
+  }
+}
