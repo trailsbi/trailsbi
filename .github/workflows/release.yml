@@ -1,0 +1,76 @@
+name: Release
+
+# Push a tag such as v1.0.0 to publish that version. The tag must match
+# VERSION in src/trailsbi/brand.py and have a section in CHANGELOG.md.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Tag matches the version
+        run: python tools/release_prep.py check "${GITHUB_REF_NAME}"
+      - name: Tests
+        run: |
+          python -m pip install . pytest build twine
+          python -m pytest -q
+      - name: README images for PyPI
+        run: python tools/release_prep.py readme "${GITHUB_REF_NAME}"
+      - name: Build wheel, sdist and trailsbi.pyz
+        run: |
+          python -m build
+          python tools/build_pyz.py
+          python -m twine check --strict dist/*.whl dist/*.tar.gz
+          python dist/trailsbi.pyz tests/fixtures/Shop -o "${RUNNER_TEMP}/shop.html"
+      - name: Checksums
+        working-directory: dist
+        run: sha256sum *.whl *.tar.gz trailsbi.pyz > SHA256SUMS.txt && cat SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          if-no-files-found: error
+
+  pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/trailsbi/
+    permissions:
+      id-token: write # trusted publishing: no API token is stored anywhere
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Keep only the files PyPI accepts
+        run: rm -f dist/trailsbi.pyz dist/SHA256SUMS.txt
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 tools/release_prep.py notes "${GITHUB_REF_NAME#v}" > notes.md
+          gh release create "${GITHUB_REF_NAME}" dist/* --title "TrailsBI ${GITHUB_REF_NAME#v}" --notes-file notes.md

@@ -10,4 +10,4 @@ MARK_SVG = '<path fill="#13203B" d="M38.4 72.2 38.5 71.6 38.4 71.1 38.0 70.6 37.
 FAVICON = "data:image/svg+xml," + __import__("urllib.parse").parse.quote(
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + MARK_VB + '">' + MARK_SVG + "</svg>"
 )
-VERSION = "0.9.0"
+VERSION = "1.0.0"
