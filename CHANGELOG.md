@@ -2,6 +2,13 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.0.1 - 2026-10-06
+
+- Install with uv as well as pip: `uv tool install trailsbi`
+- Help for Windows when pip installs the `trailsbi` command outside PATH (Microsoft Store or install
+  manager Python): add the Scripts folder to your user PATH once.
+  Guide at https://trailsbi.com/setup/
+
 ## 1.0.0 - 2026-10-04
 
 First public release.

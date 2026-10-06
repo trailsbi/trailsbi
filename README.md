@@ -60,6 +60,12 @@ no sign-in, no upload, no telemetry.
    pip install trailsbi
    ```
 
+   Or
+
+   ```
+   uv tool install trailsbi
+   ```
+
 3. Run it on your project:
 
    ```
@@ -83,15 +89,19 @@ trailsbi [PROJECT] [-o OUTPUT] [--open]
 
 TrailsBI builds one project per run. To cover several reports, run it once for each.
 
-### Without pip
+### Single file
 
-Where pip is not available, download `trailsbi.pyz` from the
-[latest release](https://github.com/trailsbi/trailsbi/releases/latest) and run it with
-Python:
+Each [release](https://github.com/trailsbi/trailsbi/releases/latest) also has `trailsbi.pyz`, the whole
+tool in one file: `python trailsbi.pyz "D:\Reports\Sales"`.
 
-```
-python trailsbi.pyz "D:\Reports\Sales\Sales.pbip"
-```
+## Common Installation Issues
+
+### 1. Windows: "'trailsbi' is not recognized"
+
+When Python comes from the Microsoft Store or the Python install manager, pip puts the `trailsbi` command in a Scripts folder that is not on your PATH. pip warns about it during the install, and running `trailsbi "pbip-project-path"` returns `'trailsbi' is not recognized`.
+
+Fix:
+  - Add that Scripts folder to your own PATH once. [Setup](https://trailsbi.com/setup/)
 
 ## Privacy and security
 
