@@ -1,0 +1,78 @@
+name: Bug report
+description: TrailsBI crashed, warned unexpectedly, or the page shows something wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. **This repository is public.** Please do not paste table, column,
+        measure, server or file names from a client or employer project, and never attach
+        `cache.abf` or a `.pbi` folder. Renaming things to `Table1`, `Measure1` and so on is fine:
+        the shape of the problem is what helps.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you ran, what you expected, and what happened instead.
+      placeholder: |
+        Ran trailsbi on a project with a calculation group. The Model view shows no measures.
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: Terminal output
+      description: The full output, including any error or warning. Remove names you cannot share.
+      render: shell
+  - type: input
+    id: version
+    attributes:
+      label: TrailsBI version
+      description: Output of `trailsbi --version`
+      placeholder: Trails for Power BI 1.0.1
+    validations:
+      required: true
+  - type: input
+    id: python
+    attributes:
+      label: Python version
+      description: Output of `python --version`
+      placeholder: Python 3.13.2
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installed with
+      options:
+        - pip
+        - uv
+        - trailsbi.pyz
+    validations:
+      required: true
+  - type: checkboxes
+    id: format
+    attributes:
+      label: Project format
+      description: Tick what applies, if you know.
+      options:
+        - label: Semantic model saved as TMDL (a `definition` folder)
+        - label: Semantic model saved as `model.bim`
+        - label: Report saved as PBIR (a `definition` folder with `pages`)
+        - label: Report saved as a single `report.json`
+        - label: Report is live-connected to a published semantic model
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else
+      description: Screenshots of the TrailsBI page help, with names blurred if needed.

@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest something TrailsBI should show, check or do
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to do
+      description: The task or question you have about your report or semantic model.
+      placeholder: I want to see which visuals break if I rename a column.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would help
+      description: How you picture it working in TrailsBI. A sketch or screenshot is welcome.
+  - type: dropdown
+    id: view
+    attributes:
+      label: Closest view
+      options:
+        - Lineage
+        - Model
+        - Reports
+        - Health
+        - AI Readiness
+        - Command line
+        - Something new

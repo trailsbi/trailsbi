@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Installed, but Windows says 'trailsbi' is not recognized"
+    url: https://trailsbi.com/setup/
+    about: A one-time PATH fix, no admin rights needed.
+  - name: Report a security problem
+    url: https://github.com/trailsbi/trailsbi/security/advisories/new
+    about: Please report privately, not as a public issue.
+  - name: See TrailsBI on Microsoft's sample reports
+    url: https://trailsbi.com/samples/
+    about: Every view, on five public Power BI samples.
