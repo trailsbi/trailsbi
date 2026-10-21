@@ -13,6 +13,7 @@ import re
 from collections import defaultdict
 from pathlib import Path
 
+from .embed import is_embedded_bim_table, is_embedded_tmdl
 from .tmdl import parse_tmdl_text, split_col_ref
 from .utils import as_text, is_auto_table, read_json, read_text, unquote
 
@@ -561,7 +562,10 @@ def bpa_inventory_tmdl(def_dir: Path) -> dict:
         if f.parent.name.lower() == "cultures":
             continue
         try:
-            roots = parse_tmdl_text(read_text(f))
+            text = read_text(f)
+            if is_embedded_tmdl(text):
+                continue
+            roots = parse_tmdl_text(text)
         except Exception:
             continue
         for o in roots:
@@ -725,6 +729,8 @@ def bpa_inventory_bim(path: Path) -> dict:
         return {a.get("name", ""): str(a.get("value", "")) for a in (o.get("annotations") or [])}
 
     for t in mdl.get("tables") or []:
+        if is_embedded_bim_table(t):
+            continue
         parts = t.get("partitions") or []
         is_calc = any((p.get("source") or {}).get("type") == "calculated" for p in parts)
         cg = t.get("calculationGroup")

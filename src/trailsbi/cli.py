@@ -1,5 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
-"""Command line entry point: ``trailsbi [PROJECT] [-o OUTPUT] [--open]``."""
+"""Command line entry point: ``trailsbi [PROJECT] [-o OUTPUT] [--open] [--embed]``."""
 
 from __future__ import annotations
 
@@ -12,11 +12,12 @@ from pathlib import Path
 
 from .ai_readiness import ai_readiness
 from .brand import PRODUCT, VERSION
+from .embed import EmbedError, adopt, embed
 from .graph import build_graph, downstream_counts
 from .health import health
 from .model import Model, load_model_dir, model_diagram
 from .project import Project, ProjectError, resolve_project
-from .render import render_html
+from .render import page_data, render_html
 from .report import load_report_dir
 from .utils import WARNINGS, warn
 
@@ -60,6 +61,13 @@ def build_parser() -> argparse.ArgumentParser:
         "in the current folder)",
     )
     ap.add_argument("--open", action="store_true", help="open the page in your browser")
+    ap.add_argument(
+        "--embed",
+        action="store_true",
+        help="write the report data into the project's semantic model as a hidden TrailsBI table, "
+        "for the TrailsBI visual to show inside Power BI. Close the project in Power BI Desktop "
+        "first. The HTML page is then written only when -o or --open is given.",
+    )
     return ap
 
 
@@ -131,11 +139,17 @@ def _output_path(output, name: str, when: _dt.datetime) -> Path:
     return out / default if out.is_dir() else out
 
 
-def run(project_path=".", output=None, open_page=False) -> Path:
-    """Builds the page for one project and returns where it was written."""
+def run(project_path=".", output=None, open_page=False, embed_data=False) -> Path | None:
+    """Builds the page for one project and returns where it was written.
+
+    With `embed_data`, also writes the page data into the project's semantic model; the
+    page itself is then written only when `output` or `open_page` asks for it.
+    """
     WARNINGS.clear()
     started = _dt.datetime.now()
     project = resolve_project(project_path)
+    if embed_data:
+        adopt(project.model_dir)  # an unmarked TrailsBI table from the preview: leave it out from now on
     print(f"Scanning: {project.name}")
     models, reports = _load(project)
 
@@ -180,11 +194,27 @@ def run(project_path=".", output=None, open_page=False) -> Path:
         ],
     }
 
+    blob = page_data(graph, pages, sections, meta, ai_rules)
+    print("\n" + _summary(counts, graph, sections))
+
+    if embed_data:
+        path, n, new = embed(project.model_dir, blob)
+        label, rel = project.label(project.model_dir)
+        print(
+            f"\n{'Added' if new else 'Updated'} the TrailsBI table in {rel} "
+            f"({n} {'part' if n == 1 else 'parts'}, {len(blob):,} characters): {path.name}"
+        )
+        print(
+            "  Open the project in Power BI Desktop and refresh the TrailsBI table (Home > Refresh).\n"
+            "  It holds this report's names, DAX and data source addresses: anyone who can see the\n"
+            "  model can read them through the TrailsBI visual."
+        )
+        if not (output or open_page):
+            return None
+
     out = _output_path(output, project.name, started)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(render_html(graph, pages, sections, meta, ai_rules), encoding="utf-8")
-
-    print("\n" + _summary(counts, graph, sections))
+    out.write_text(render_html(graph, pages, sections, meta, ai_rules, blob), encoding="utf-8")
     print(f"\nWrote {out}")
     if open_page:
         webbrowser.open(out.resolve().as_uri())
@@ -194,8 +224,8 @@ def run(project_path=".", output=None, open_page=False) -> Path:
 def main(argv=None) -> int:
     """Runs the command line and returns the exit code.
 
-    0: the page was written. 1: a file could not be read or written.
-    2: the path does not lead to exactly one project.
+    0: the page was written (or, with --embed, the table). 1: a file could not be read or written.
+    2: the path does not lead to exactly one project, or --embed could not write the table.
     """
     args = build_parser().parse_args(argv)
     # A Windows console or pipe may not be able to show every character in a
@@ -204,8 +234,8 @@ def main(argv=None) -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="replace")
     try:
-        run(args.project, args.output, args.open)
-    except ProjectError as exc:
+        run(args.project, args.output, args.open, args.embed)
+    except (ProjectError, EmbedError) as exc:
         print(f"\n{exc}", file=sys.stderr)
         return 2
     except OSError as exc:

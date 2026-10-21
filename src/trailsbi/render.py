@@ -45,8 +45,8 @@ def _json_for_script(value) -> str:
     return json.dumps(value, ensure_ascii=False).replace("<", "\\u003c")
 
 
-def render_html(G, pages, sections, meta, ai_rules=None) -> str:
-    """The finished page for one lineage graph and its findings."""
+def page_data(G, pages, sections, meta, ai_rules=None) -> str:
+    """Everything the page shows, as the JSON it carries (and the TrailsBI visual reads)."""
     edges = [[a, b, ", ".join(sorted(r for r in roles if r))] for (a, b), roles in G.edges.items()]
     data = {
         "nodes": list(G.nodes.values()),
@@ -56,7 +56,13 @@ def render_html(G, pages, sections, meta, ai_rules=None) -> str:
         "ai": ai_rules or [],
         "meta": meta,
     }
-    blob = _json_for_script(data)
+    return _json_for_script(data)
+
+
+def render_html(G, pages, sections, meta, ai_rules=None, blob=None) -> str:
+    """The finished page for one lineage graph and its findings."""
+    if blob is None:
+        blob = page_data(G, pages, sections, meta, ai_rules)
     big = len(G.nodes) > _SPLASH_NODES or len(blob) > _SPLASH_BYTES
     values = {
         "TITLE": meta["name"].replace("&", "&amp;").replace("<", "&lt;"),

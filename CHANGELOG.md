@@ -2,6 +2,14 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.1.0 - 2026-10-22
+
+- `--embed` writes the page data into the project's semantic model as a hidden `TrailsBI` table
+  (TMDL or model.bim), for the [TrailsBI visual](https://github.com/trailsbi/trailsbi-visual)
+  to show the report inside Power BI. Running it again replaces the table. Without `-o` or
+  `--open`, no HTML page is written.
+- The `TrailsBI` table and the TrailsBI visual are left out of the analysis.
+
 ## 1.0.1 - 2026-10-06
 
 - Install with uv as well as pip: `uv tool install trailsbi`

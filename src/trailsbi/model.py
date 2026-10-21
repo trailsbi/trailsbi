@@ -9,6 +9,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from .bpa import bpa_inventory_bim, bpa_inventory_tmdl
+from .embed import is_embedded_bim_table, is_embedded_tmdl
 from .tmdl import parse_tmdl_text, split_col_ref
 from .utils import as_text, is_auto_table, read_json, read_text, truthy, unquote, warn
 
@@ -159,7 +160,10 @@ def load_tmdl_folder(def_dir, model):
         if "cultures" in (part.lower() for part in f.parts):
             continue
         try:
-            _ingest_tmdl(parse_tmdl_text(read_text(f)), model)
+            text = read_text(f)
+            if is_embedded_tmdl(text):
+                continue
+            _ingest_tmdl(parse_tmdl_text(text), model)
         except Exception as exc:  # keep going on odd files
             warn(f"Skipped {f.name}: {exc}")
 
@@ -168,6 +172,8 @@ def load_bim(path, model):
     data = read_json(path) or {}
     m = data.get("model", data)
     for tj in m.get("tables", []):
+        if is_embedded_bim_table(tj):
+            continue
         t = model.table(tj["name"])
         t["hidden"] = bool(tj.get("isHidden"))
         t["description"] = as_text(tj.get("description")) or ""
@@ -405,6 +411,8 @@ def outline_tmdl(def_dir):
     for f in dict.fromkeys(sequence):
         try:
             text = read_text(f)
+            if is_embedded_tmdl(text):
+                continue
             if group_of(f) == "cultures":  # keep only the culture declaration
                 first = next((ln for ln in text.splitlines() if ln.strip()), "")
                 text = first
@@ -423,6 +431,8 @@ def outline_bim(path):
         {"k": "model", "n": mdl.get("name") or "Model", "d": 0, "t": "model"},
     ]
     for t in mdl.get("tables") or []:
+        if is_embedded_bim_table(t):
+            continue
         tname = t.get("name", "")
         first = len(out)  # stamped auto below if this is a date table
         parts = t.get("partitions") or []

@@ -7,6 +7,7 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
+from .embed import drop_trailsbi_visuals
 from .utils import loads_maybe, read_json, warn
 
 VISUAL_NAMES = {
@@ -284,8 +285,11 @@ def load_legacy_report(path: Path, report_name: str) -> dict:
 def load_report_dir(rdir: Path) -> dict | None:
     name = rdir.name[: -len(".Report")] if rdir.name.lower().endswith(".report") else rdir.name
     if (rdir / "definition" / "pages").is_dir():
-        return load_pbir(rdir / "definition", name)
-    if (rdir / "report.json").exists():
-        return load_legacy_report(rdir / "report.json", name)
-    warn(f"No report definition found in {rdir}")
-    return None
+        report = load_pbir(rdir / "definition", name)
+    elif (rdir / "report.json").exists():
+        report = load_legacy_report(rdir / "report.json", name)
+    else:
+        warn(f"No report definition found in {rdir}")
+        return None
+    drop_trailsbi_visuals(report)  # the TrailsBI visual shows this analysis; it is not part of it
+    return report

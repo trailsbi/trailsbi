@@ -22,7 +22,9 @@ library. It runs locally and touches nothing it does not need.
 - No network calls of any kind, and no telemetry
 - No installation, registry changes or admin rights
 - No writes to your project folders — the only file it creates is the HTML page,
-  at the path you choose
+  at the path you choose. The one exception is `--embed`, which you run on purpose: it writes
+  the hidden `TrailsBI` table (one `.tmdl` file and a `ref table` line in `model.tmdl`, or one
+  table in `model.bim`) and touches nothing else
 
 ## The output
 

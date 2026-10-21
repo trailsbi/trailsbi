@@ -78,16 +78,39 @@ no sign-in, no upload, no telemetry.
 Options:
 
 ```
-trailsbi [PROJECT] [-o OUTPUT] [--open]
+trailsbi [PROJECT] [-o OUTPUT] [--open] [--embed]
 
   PROJECT       a .pbip file, the folder that holds it, or a .Report folder
                 (default: the current folder, so `trailsbi` alone works inside a project)
   -o, --output  where to write the page: a file name, or a folder for the default name
                 (default: "TrailsBI Report - <project> - <date time>.html" here)
   --open        open the page in your browser when it is ready
+  --embed       write the page data into the project's semantic model, for the
+                TrailsBI visual (see below). Writes the HTML page only with -o or --open
 ```
 
 TrailsBI builds one project per run. To cover several reports, run it once for each.
+
+### See it inside Power BI
+
+The [TrailsBI visual](https://github.com/trailsbi/trailsbi-visual) (preview) shows the same five
+views inside a Power BI report. It reads them from a hidden `TrailsBI` table that `--embed` writes
+into the semantic model:
+
+1. Download `TrailsBI.pbiviz` from the visual's
+   [latest release](https://github.com/trailsbi/trailsbi-visual/releases/latest).
+2. Close the project in Power BI Desktop, then run `trailsbi "D:\Reports\Sales" --embed`.
+3. Open the project and refresh (**Home > Refresh**) so the new table loads.
+4. Import the visual (Visualizations pane: **...** > **Import a visual from a file**) and add it
+   to a page. In the Data pane, right-click and turn on **View hidden**,
+   then drag **TrailsBI > Part** and **TrailsBI > Chunk** onto the visual.
+
+Run `--embed` again whenever the model or report changes, then refresh. It replaces the table
+(even if you renamed it) and never adds a second one. TrailsBI leaves its own table and visual out
+of the analysis.
+
+The table holds the model's names, DAX and data source addresses, so anyone who can open the
+report can read them in the visual. Embed it only where that is allowed.
 
 ### Single file
 
@@ -107,7 +130,8 @@ Fix:
 
 - Reads metadata files only. Never opens `cache.abf` or any imported data.
 - Makes no network calls and sends no telemetry.
-- Read-only: never writes to your project files.
+- Read-only: never writes to your project files, except the `TrailsBI` table when you ask for it
+  with `--embed`.
 - The page is one HTML file with no external scripts, fonts or images.
 
 See [SECURITY.md](SECURITY.md) for details.
