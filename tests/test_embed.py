@@ -229,3 +229,17 @@ def test_first_run_leaves_an_earlier_table_out_of_the_analysis(fixtures, tmp_pat
         r'<script id="data" type="application/json">(.*?)</script>', page.read_text("utf-8"), re.S
     )
     assert json.loads(first.group(1))["meta"]["counts"] == before["meta"]["counts"]
+
+
+def test_no_part_ends_or_starts_with_whitespace():
+    """Power BI trims trailing spaces when it loads text, so a cut next to a space loses it."""
+    blob = ("x" * (CHUNK - 1)) + " y" + ("z" * CHUNK) + "  w" + "end"
+    parts = chunks(blob)
+    assert "".join(parts) == blob
+    assert all(len(p) <= CHUNK for p in parts)
+    assert not any(p[-1].isspace() or p[0].isspace() for p in parts)
+    # real page data, cut many times
+    data = '{"label": "Sales Amount", "x": "a b c d"}' * 5000
+    parts = chunks(data)
+    assert "".join(parts) == data and len(parts) > 5
+    assert not any(p[-1].isspace() or p[0].isspace() for p in parts)

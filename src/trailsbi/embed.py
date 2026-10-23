@@ -66,7 +66,20 @@ def drop_trailsbi_visuals(report: dict) -> None:
 
 
 def chunks(data_json: str) -> list:
-    return [data_json[i : i + CHUNK] for i in range(0, len(data_json), CHUNK)] or [""]
+    """The data in parts of at most CHUNK characters.
+
+    Power BI trims trailing spaces from text when it loads it into the model, so a part
+    must never end with whitespace (a space inside a name would vanish at the cut). Each
+    cut moves back until the characters on both sides of it are not whitespace.
+    """
+    parts, i, n = [], 0, len(data_json)
+    while i < n:
+        j = min(i + CHUNK, n)
+        while i + 1 < j < n and (data_json[j - 1].isspace() or data_json[j].isspace()):
+            j -= 1
+        parts.append(data_json[i:j])
+        i = j
+    return parts or [""]
 
 
 def m_text(value: str) -> str:

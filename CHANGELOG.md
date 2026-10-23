@@ -2,6 +2,13 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.1.1 - 2026-10-23
+
+- `--embed`: the TrailsBI visual could fail with "Cannot read properties of undefined (reading
+  'push')" on larger models. Power BI trims trailing spaces when it loads text, and a part that
+  ended with a space inside a name lost it. Parts now never start or end with whitespace. Run
+  `--embed` again and refresh.
+
 ## 1.1.0 - 2026-10-22
 
 - `--embed` writes the page data into the project's semantic model as a hidden `TrailsBI` table
