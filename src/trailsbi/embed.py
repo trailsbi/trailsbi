@@ -239,7 +239,7 @@ def _embed_tmdl(def_dir: Path, parts: list) -> tuple:
             last = max(i for i, ln in enumerate(lines) if _REF_TABLE.match(ln))
             lines.insert(last + 1, f"ref table {_tmdl_name(name)}")
             _write(model_file, "\n".join(lines), newline, bom)
-    return path, existing is None
+    return path, existing is None, name
 
 
 def _embed_bim(bim: Path, parts: list) -> tuple:
@@ -261,12 +261,14 @@ def _embed_bim(bim: Path, parts: list) -> tuple:
             raise EmbedError(_TAKEN)
     new = at is None
     if new:
-        tables.append(table_bim(TABLE, parts))
+        name = TABLE
+        tables.append(table_bim(name, parts))
     else:
-        tables[at] = table_bim(tables[at].get("name") or TABLE, parts)
+        name = tables[at].get("name") or TABLE
+        tables[at] = table_bim(name, parts)
     tail = text[len(text.rstrip("\n")) :]
     _write(bim, json.dumps(data, indent=2, ensure_ascii=False) + tail, newline, bom)
-    return bim, new
+    return bim, new, name
 
 
 def adopt(model_dir: Path | None) -> bool:
@@ -309,7 +311,7 @@ def adopt(model_dir: Path | None) -> bool:
 def embed(model_dir: Path | None, data_json: str) -> tuple:
     """Writes or replaces the TrailsBI table in the model at `model_dir`.
 
-    Returns (file written, number of chunks, whether the table is new).
+    Returns (file written, number of chunks, whether the table is new, the table's name).
     """
     if model_dir is None:
         raise EmbedError(
@@ -320,11 +322,11 @@ def embed(model_dir: Path | None, data_json: str) -> tuple:
     def_dir = model_dir / "definition"
     bim = model_dir / "model.bim"
     if def_dir.is_dir() and next(def_dir.rglob("*.tmdl"), None) is not None:
-        path, new = _embed_tmdl(def_dir, parts)
+        path, new, name = _embed_tmdl(def_dir, parts)
     elif bim.exists():
-        path, new = _embed_bim(bim, parts)
+        path, new, name = _embed_bim(bim, parts)
     else:
         raise EmbedError(
             f"No TMDL folder or model.bim in {model_dir.name}, so there is nowhere to write the table."
         )
-    return path, len(parts), new
+    return path, len(parts), new, name

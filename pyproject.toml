@@ -47,7 +47,7 @@ version = { attr = "trailsbi.brand.VERSION" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-trailsbi = ["web/*.html", "web/*.css", "web/js/*.js"]
+trailsbi = ["web/*.html", "web/*.css", "web/js/*.js", "visual/*.pbiviz"]
 
 [tool.ruff]
 line-length = 110

@@ -85,8 +85,9 @@ trailsbi [PROJECT] [-o OUTPUT] [--open] [--embed]
   -o, --output  where to write the page: a file name, or a folder for the default name
                 (default: "TrailsBI Report - <project> - <date time>.html" here)
   --open        open the page in your browser when it is ready
-  --embed       write the page data into the project's semantic model, for the
-                TrailsBI visual (see below). Writes the HTML page only with -o or --open
+  --embed       show the report inside Power BI: adds a hidden TrailsBI table to the
+                model and a TrailsBI page with the visual to the report (see below).
+                Writes the HTML page only with -o or --open
 ```
 
 TrailsBI builds one project per run. To cover several reports, run it once for each.
@@ -95,19 +96,27 @@ TrailsBI builds one project per run. To cover several reports, run it once for e
 
 The [TrailsBI visual](https://github.com/trailsbi/trailsbi-visual) (preview) shows the same five
 views inside a Power BI report. It reads them from a hidden `TrailsBI` table that `--embed` writes
-into the semantic model:
+into the semantic model.
 
-1. Download `TrailsBI.pbiviz` from the visual's
-   [latest release](https://github.com/trailsbi/trailsbi-visual/releases/latest).
-2. Close the project in Power BI Desktop, then run `trailsbi "D:\Reports\Sales" --embed`.
-3. Open the project and refresh (**Home > Refresh**) so the new table loads.
-4. Import the visual (Visualizations pane: **...** > **Import a visual from a file**) and add it
-   to a page. In the Data pane, right-click and turn on **View hidden**,
-   then drag **TrailsBI > Part** and **TrailsBI > Chunk** onto the visual.
+1. Close the project in Power BI Desktop, then run:
+   `trailsbi "D:\Reports\Sales" --embed`
+2. Open the project and refresh (**Home > Refresh**) so the new table loads.
+
+It also adds a **TrailsBI** page to the report, hidden in view mode, with the visual on it and its
+fields already set. The visual is saved inside the report, so there is nothing to import.
+
+The page needs a report saved in the PBIR format (Power BI Desktop's default for projects since
+2025). For an older report, `--embed` writes the table and says so; add the visual yourself:
+download `TrailsBI.pbiviz` from the visual's
+[latest release](https://github.com/trailsbi/trailsbi-visual/releases/latest), import it
+(Visualizations pane: **...** > **Import a visual from a file**) and add it to a page. In the Data
+pane, right-click and turn on **View hidden**, then drag **TrailsBI > Part** and **TrailsBI >
+Chunk** onto the visual.
 
 Run `--embed` again whenever the model or report changes, then refresh. It replaces the table
-(even if you renamed it) and never adds a second one. TrailsBI leaves its own table and visual out
-of the analysis.
+(even if you renamed it) and never adds a second one. It keeps the TrailsBI page as you left it
+and brings the visual in the report up to date. TrailsBI leaves its own table, page
+and visual out of the analysis.
 
 The table holds the model's names, DAX and data source addresses, so anyone who can open the
 report can read them in the visual. Embed it only where that is allowed.

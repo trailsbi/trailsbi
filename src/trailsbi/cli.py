@@ -19,6 +19,8 @@ from .model import Model, load_model_dir, model_diagram
 from .project import Project, ProjectError, resolve_project
 from .render import page_data, render_html
 from .report import load_report_dir
+from .report_page import PageError, add_page
+from .report_page import check as check_page
 from .utils import WARNINGS, warn
 
 _COUNT_WORDS = {
@@ -64,9 +66,10 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument(
         "--embed",
         action="store_true",
-        help="write the report data into the project's semantic model as a hidden TrailsBI table, "
-        "for the TrailsBI visual to show inside Power BI. Close the project in Power BI Desktop "
-        "first. The HTML page is then written only when -o or --open is given.",
+        help="show the report inside Power BI: write its data into the project's semantic model as "
+        "a hidden TrailsBI table, and add a hidden TrailsBI page to the report with the TrailsBI "
+        "visual on it. Close the project in Power BI Desktop first. The HTML page is then written "
+        "only when -o or --open is given.",
     )
     return ap
 
@@ -142,13 +145,19 @@ def _output_path(output, name: str, when: _dt.datetime) -> Path:
 def run(project_path=".", output=None, open_page=False, embed_data=False) -> Path | None:
     """Builds the page for one project and returns where it was written.
 
-    With `embed_data`, also writes the page data into the project's semantic model; the
-    page itself is then written only when `output` or `open_page` asks for it.
+    With `embed_data`, also writes the page data into the project's semantic model and adds the
+    TrailsBI page and visual to the report (when the report can take them; otherwise says why).
+    The HTML page itself is then written only when `output` or `open_page` asks for it.
     """
     WARNINGS.clear()
     started = _dt.datetime.now()
     project = resolve_project(project_path)
+    no_page = None
     if embed_data:
+        try:
+            check_page(project.report_dir)  # before anything in the project changes
+        except PageError as exc:
+            no_page = str(exc)
         adopt(project.model_dir)  # an unmarked TrailsBI table from the preview: leave it out from now on
     print(f"Scanning: {project.name}")
     models, reports = _load(project)
@@ -198,7 +207,7 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
     print("\n" + _summary(counts, graph, sections))
 
     if embed_data:
-        path, n, new = embed(project.model_dir, blob)
+        path, n, new, table = embed(project.model_dir, blob)
         label, rel = project.label(project.model_dir)
         print(
             f"\n{'Added' if new else 'Updated'} the TrailsBI table in {rel} "
@@ -209,6 +218,20 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
             "  It holds this report's names, DAX and data source addresses: anyone who can see the\n"
             "  model can read them through the TrailsBI visual."
         )
+        if no_page:
+            print(f"\nDid not add the TrailsBI page to the report: {no_page}")
+        else:
+            done = add_page(project.report_dir, table)
+            _, rrel = project.label(project.report_dir)
+            if done["page"] == "added":
+                print(
+                    f"Added the TrailsBI page (hidden in view mode) to {rrel}, "
+                    f"with the TrailsBI visual {done['visual']}"
+                )
+            else:
+                print(f"The TrailsBI page is already in {rrel}; left as it is")
+                if done["visual_written"]:
+                    print(f"  Updated the TrailsBI visual in the report to {done['visual']}")
         if not (output or open_page):
             return None
 
@@ -235,7 +258,7 @@ def main(argv=None) -> int:
             stream.reconfigure(errors="replace")
     try:
         run(args.project, args.output, args.open, args.embed)
-    except (ProjectError, EmbedError) as exc:
+    except (ProjectError, EmbedError, PageError) as exc:
         print(f"\n{exc}", file=sys.stderr)
         return 2
     except OSError as exc:

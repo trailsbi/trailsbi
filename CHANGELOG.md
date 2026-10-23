@@ -2,6 +2,15 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.2.0 - 2026-10-24
+
+- `--embed` now also adds a **TrailsBI** page to the report, hidden in view mode, with the
+  TrailsBI visual on it and its fields already set. The visual (0.9.2) ships with trailsbi and is
+  saved inside the report the way Power BI Desktop saves a visual imported from a file, so there
+  is nothing to import or drag. Running it again keeps the page as you left it and updates the
+  visual. PBIR reports only: for an older report, `--embed` writes the table and says why it
+  left the page out.
+
 ## 1.1.2 - 2026-10-23
 
 - Recognises the TrailsBI visual's new, shorter ID (from visual 0.9.1) as well as the old one, and leaves both out of the analysis. Without it, the visual's Part and Chunk fields show in Health as fields missing from the model.

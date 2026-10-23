@@ -66,3 +66,10 @@ python tools/build_pyz.py
 ```
 
 writes `dist/trailsbi.pyz`, which runs with `python trailsbi.pyz PROJECT`.
+
+## The bundled visual
+
+`trailsbi --embed` writes the TrailsBI visual into the report from
+`src/trailsbi/visual/TrailsBI.pbiviz`. To ship a newer visual, take the `.pbiviz` from a
+[trailsbi-visual release](https://github.com/trailsbi/trailsbi-visual/releases) and run
+`python tools/update_visual.py TrailsBI.pbiviz`, then name its version in CHANGELOG.md.
