@@ -2,6 +2,10 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.1.2 - 2026-10-23
+
+- Recognises the TrailsBI visual's new, shorter ID (from visual 0.9.1) as well as the old one, and leaves both out of the analysis. Without it, the visual's Part and Chunk fields show in Health as fields missing from the model.
+
 ## 1.1.1 - 2026-10-23
 
 - `--embed`: the TrailsBI visual could fail with "Cannot read properties of undefined (reading

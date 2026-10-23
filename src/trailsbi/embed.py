@@ -22,7 +22,8 @@ from .tmdl import parse_tmdl_text
 TABLE = "TrailsBI"
 MARKER = "TrailsBI_Embedded"
 CHUNK = 30_000
-VISUAL_TYPE_PREFIX = "trailsbivisual"  # the TrailsBI custom visual's type in report files
+# The TrailsBI visual's type in reports is its GUID: trailsbiE7A4C19D (before 0.9.1: trailsbiVisual064B...)
+VISUAL_TYPE_PREFIX = "trailsbi"
 
 _MARKER_TMDL = re.compile(r"^\s*annotation\s+" + MARKER + r"\s*=", re.M)
 _TABLE_LINE = re.compile(r"^table\s+(.+?)\s*$", re.M)

@@ -5,6 +5,8 @@ import json
 import re
 import shutil
 
+import pytest
+
 from trailsbi.cli import main, run
 from trailsbi.embed import CHUNK, MARKER, chunks, m_text
 from trailsbi.tmdl import parse_tmdl_text
@@ -136,7 +138,8 @@ def test_a_table_of_the_same_name_is_not_overwritten(fixtures, tmp_path, capsys)
     assert mine.read_text(encoding="utf-8").startswith("table TrailsBI\n\n\tcolumn X")
 
 
-def test_trailsbi_visual_is_left_out_of_the_report(fixtures, tmp_path, build):
+@pytest.mark.parametrize("vtype", ["trailsbiE7A4C19D", "trailsbiVisual064B12C848DC424EB08BF7A4ED6ACBBB"])
+def test_trailsbi_visual_is_left_out_of_the_report(fixtures, tmp_path, build, vtype):
     proj = copy(fixtures, tmp_path, "Shop")
     _, before = build(proj)
     pages = proj / "Shop.Report/definition/pages"
@@ -144,7 +147,7 @@ def test_trailsbi_visual_is_left_out_of_the_report(fixtures, tmp_path, build):
         "name": "trails",
         "position": {"x": 0, "y": 0, "width": 1280, "height": 720},
         "visual": {
-            "visualType": "trailsbiVisual064B12C848DC424EB08BF7A4ED6ACBBB",
+            "visualType": vtype,
             "query": {
                 "queryState": {
                     "part": {
