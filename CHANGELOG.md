@@ -2,6 +2,10 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.2.1 - 2026-10-25
+
+- `--embed` adds the TrailsBI visual 1.0.0
+
 ## 1.2.0 - 2026-10-24
 
 - `--embed` now also adds a **TrailsBI** page to the report, hidden in view mode, with the
