@@ -110,8 +110,7 @@ The page needs a report saved in the PBIR format (Power BI Desktop's default for
 download `TrailsBI.pbiviz` from the visual's
 [latest release](https://github.com/trailsbi/trailsbi-visual/releases/latest), import it
 (Visualizations pane: **...** > **Import a visual from a file**) and add it to a page. In the Data
-pane, right-click and turn on **View hidden**, then drag **TrailsBI > Part** and **TrailsBI >
-Chunk** onto the visual.
+pane, right-click and turn on **View hidden**, then drag **TrailsBI > Chunk** onto the visual.
 
 Run `--embed` again whenever the model or report changes, then refresh. It replaces the table
 (even if you renamed it) and never adds a second one. It keeps the TrailsBI page as you left it

@@ -64,6 +64,8 @@ ICONS = {
     "ui_eye": "<path d='M2 12c2.7-4.7 6-7 10-7s7.3 2.3 10 7c-2.7 4.7-6 7-10 7s-7.3-2.3-10-7z'/><circle cx='12' cy='12' r='3'/>",
     "ui_chev": "<path d='M6 9l6 6 6-6'/>",
     "ui_download": "<path d='M12 4v11M7 10l5 5 5-5M5 20h14'/>",
+    "ui_copy": "<rect x='9' y='9' width='12' height='12' rx='2'/><path d='M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1'/>",
+    "ui_check": "<path d='M5 12.5l4.5 4.5L19 7.5'/>",
     "fieldparam": "<rect x='3' y='4' width='18' height='16' rx='2'/><path d='M3 9.5h18'/><path d='M6 13.5h3.5M13 13.5h5'/><circle cx='11.2' cy='13.5' r='1.7'/><path d='M6 17.5h6.5M16 17.5h2'/><circle cx='14.2' cy='17.5' r='1.7'/>",
     "ui_up": "<path d='M3 5.5l7 5.4M3 18.5l7-5.4M10.5 12h10.5'/><path d='M17.5 8.5l3.5 3.5-3.5 3.5'/>",
     "ui_down": "<path d='M3 12h10.5M13.5 12l7-5.4M13.5 12l7 5.4'/><path d='M17.5 3.2l3.5 3.4M17.5 20.8l3.5-3.4'/>",

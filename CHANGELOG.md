@@ -2,6 +2,12 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.2.2 - 2026-11-04
+
+- `--embed` writes the TrailsBI table with just one column, **Chunk**. A TrailsBI table or page from an earlier `--embed` is switched over when you run it again.
+- `--embed` adds the TrailsBI visual 1.0.1: one field, Power BI's right-click menu, and a copy button on code.
+- The HTML report: every DAX and M code block has a copy button at its top right when the pointer is over it.
+
 ## 1.2.1 - 2026-10-25
 
 - `--embed` adds the TrailsBI visual 1.0.0

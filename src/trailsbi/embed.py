@@ -2,8 +2,10 @@
 """Writes the TrailsBI page data into the project's semantic model (``trailsbi --embed``).
 
 The TrailsBI visual shows the report inside Power BI. It reads the page data from a
-small table in the model, ``TrailsBI``: Part (1, 2, 3 ...) and Chunk (up to 30,000
-characters of the data each, under Power BI's text limits). The table is import mode,
+small table in the model, ``TrailsBI``, with one text column, Chunk. Each value is a
+numbered piece of the data, ``000001|...``, ``000002|...`` and so on, at most 30,000
+characters (under Power BI's text limits). The number keeps the pieces in order and
+every row distinct, so the visual needs just the one field. The table is import mode,
 hidden, and filled from an M ``#table`` literal, so it needs no data source.
 
 The table carries the annotation ``TrailsBI_Embedded``. That is how a later run finds it
@@ -21,7 +23,8 @@ from .tmdl import parse_tmdl_text
 
 TABLE = "TrailsBI"
 MARKER = "TrailsBI_Embedded"
-CHUNK = 30_000
+CHUNK = 30_000  # longest value in the Chunk column, prefix included
+PREFIX_DIGITS = 6  # "000001|": the part number, zero-padded so text order is part order
 # The TrailsBI visual's type in reports is its GUID: trailsbiE7A4C19D (before 0.9.1: trailsbiVisual064B...)
 VISUAL_TYPE_PREFIX = "trailsbi"
 
@@ -67,20 +70,24 @@ def drop_trailsbi_visuals(report: dict) -> None:
 
 
 def chunks(data_json: str) -> list:
-    """The data in parts of at most CHUNK characters.
+    """The data in numbered parts, ``000001|...``, of at most CHUNK characters each.
 
     Power BI trims trailing spaces from text when it loads it into the model, so a part
     must never end with whitespace (a space inside a name would vanish at the cut). Each
     cut moves back until the characters on both sides of it are not whitespace.
     """
-    parts, i, n = [], 0, len(data_json)
+    size = CHUNK - PREFIX_DIGITS - 1
+    pieces, i, n = [], 0, len(data_json)
     while i < n:
-        j = min(i + CHUNK, n)
+        j = min(i + size, n)
         while i + 1 < j < n and (data_json[j - 1].isspace() or data_json[j].isspace()):
             j -= 1
-        parts.append(data_json[i:j])
+        pieces.append(data_json[i:j])
         i = j
-    return parts or [""]
+    pieces = pieces or [""]
+    if len(pieces) >= 10**PREFIX_DIGITS:
+        raise EmbedError("The report data is too large to embed.")
+    return [f"{k:0{PREFIX_DIGITS}d}|{piece}" for k, piece in enumerate(pieces, 1)]
 
 
 def m_text(value: str) -> str:
@@ -91,11 +98,11 @@ def m_text(value: str) -> str:
 
 def m_source(parts: list) -> list:
     """The partition's M query, one line per list item."""
-    rows = [f"\t\t{{{i}, {m_text(c)}}}" + ("," if i < len(parts) else "") for i, c in enumerate(parts, 1)]
+    rows = [f"\t\t{{{m_text(c)}}}" + ("," if i < len(parts) else "") for i, c in enumerate(parts, 1)]
     return [
         "let",
         "\tSource = #table(",
-        "\t\ttype table [Part = Int64.Type, Chunk = text],",
+        "\t\ttype table [Chunk = text],",
         "\t\t{",
         *["\t" + r for r in rows],
         "\t\t}",
@@ -116,13 +123,6 @@ def table_tmdl(name: str, parts: list) -> str:
         "/// Written by `trailsbi --embed`; run it again to update.\n"
         f"table {_tmdl_name(name)}\n"
         "\tisHidden\n"
-        "\n"
-        "\tcolumn Part\n"
-        "\t\tdataType: int64\n"
-        "\t\tformatString: 0\n"
-        "\t\tisHidden\n"
-        "\t\tsummarizeBy: none\n"
-        "\t\tsourceColumn: Part\n"
         "\n"
         "\tcolumn Chunk\n"
         "\t\tdataType: string\n"
@@ -146,14 +146,6 @@ def table_bim(name: str, parts: list) -> dict:
         "run it again to update.",
         "isHidden": True,
         "columns": [
-            {
-                "name": "Part",
-                "dataType": "int64",
-                "formatString": "0",
-                "isHidden": True,
-                "summarizeBy": "none",
-                "sourceColumn": "Part",
-            },
             {
                 "name": "Chunk",
                 "dataType": "string",
@@ -196,7 +188,9 @@ def _unquote(name: str) -> str:
 _TAKEN = (
     f"The model already has a table called {TABLE} that TrailsBI did not write. Rename it, then run again."
 )
-_SHAPE = {"part", "chunk"}  # the columns of the table; one called TrailsBI with just these is ours
+# The columns of the table; one called TrailsBI with just these is ours. Before 1.2.2 it
+# also had a Part column; such a table is replaced with the one-column table.
+_SHAPES = ({"chunk"}, {"part", "chunk"})
 
 
 def _tmdl_columns(text: str) -> set:
@@ -216,7 +210,7 @@ def _embed_tmdl(def_dir: Path, parts: list) -> tuple:
         if is_embedded_tmdl(text):
             existing = (f, _unquote(m.group(1)) if m else TABLE)
         elif m and _unquote(m.group(1)).lower() == TABLE.lower():
-            same_name = (f, _unquote(m.group(1)), _tmdl_columns(text) == _SHAPE)
+            same_name = (f, _unquote(m.group(1)), _tmdl_columns(text) in _SHAPES)
     if not existing and same_name:
         if not same_name[2]:
             raise EmbedError(_TAKEN)
@@ -256,7 +250,7 @@ def _embed_bim(bim: Path, parts: list) -> tuple:
         at = next((i for i, t in enumerate(tables) if str(t.get("name", "")).lower() == TABLE.lower()), None)
         if (
             at is not None
-            and {str(c.get("name", "")).lower() for c in tables[at].get("columns") or []} != _SHAPE
+            and {str(c.get("name", "")).lower() for c in tables[at].get("columns") or []} not in _SHAPES
         ):
             raise EmbedError(_TAKEN)
     new = at is None
@@ -284,7 +278,7 @@ def adopt(model_dir: Path | None) -> bool:
             m
             and _unquote(m.group(1)).lower() == TABLE.lower()
             and not is_embedded_tmdl(text)
-            and _tmdl_columns(text) == _SHAPE
+            and _tmdl_columns(text) in _SHAPES
         ):
             _write(f, text.rstrip("\n") + f"\n\n\tannotation {MARKER} = {VERSION}\n", newline, bom)
             return True
@@ -299,7 +293,7 @@ def adopt(model_dir: Path | None) -> bool:
             if (
                 str(t.get("name", "")).lower() == TABLE.lower()
                 and not is_embedded_bim_table(t)
-                and cols == _SHAPE
+                and cols in _SHAPES
             ):
                 t.setdefault("annotations", []).append({"name": MARKER, "value": VERSION})
                 tail = text[len(text.rstrip("\n")) :]

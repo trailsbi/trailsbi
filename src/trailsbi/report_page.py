@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 """Adds the TrailsBI page to a report (part of ``trailsbi --embed``).
 
-The page holds one TrailsBI visual over the whole page, bound to the Part and Chunk columns of
+The page holds one TrailsBI visual over the whole page, bound to the Chunk column of
 the TrailsBI table, so nobody has to import the visual, add a page or drag fields. It is hidden
 in view mode: report authors see it in Power BI Desktop, report readers do not.
 
@@ -166,7 +166,6 @@ def page_files(def_dir: Path, guid: str, table: str) -> dict:
             "visualType": guid,
             "query": {
                 "queryState": {
-                    "part": {"projections": [_field(table, "Part")]},
                     "chunk": {"projections": [_field(table, "Chunk")]},
                 }
             },
@@ -188,13 +187,12 @@ def _rebind(page_dir: Path, guid: str, table: str) -> None:
         if not str(visual.get("visualType", "")).lower().startswith("trailsbi"):
             continue
         state = (visual.get("query") or {}).get("queryState") or {}
-        wanted = {"part": _field(table, "Part"), "chunk": _field(table, "Chunk")}
-        changed = False
-        for role, field in wanted.items():
-            projections = (state.get(role) or {}).get("projections") or []
-            if projections and projections[0].get("field") != field["field"]:
-                projections[0].update(field)
-                changed = True
+        field = _field(table, "Chunk")
+        changed = state.pop("part", None) is not None  # the Part field went in 1.2.2
+        projections = (state.get("chunk") or {}).get("projections") or []
+        if projections and projections[0].get("field") != field["field"]:
+            projections[0].update(field)
+            changed = True
         if changed:
             _write_json(vf, data, like=vf)
 

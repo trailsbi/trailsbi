@@ -18,11 +18,14 @@ def copy(fixtures, tmp_path, name):
 
 
 def m_rows(query: str) -> list:
-    """(Part, Chunk) rows back out of the #table literal, decoding M text escapes."""
+    """(part number, data) back out of the #table literal's "000001|..." values,
+    decoding M text escapes."""
     rows = []
-    for part, lit in re.findall(r'\{(\d+), ("(?:[^"]|"")*")\}', query):
+    for lit in re.findall(r'\{("(?:[^"]|"")*")\}', query):
         text = lit[1:-1].replace('""', '"').replace("#(#)", "#")
-        rows.append((int(part), text))
+        number, _, data = text.partition("|")
+        assert len(number) == 6 and number.isdigit(), text[:20]
+        rows.append((int(number), data))
     return rows
 
 
@@ -198,8 +201,12 @@ def test_live_connected_report_cannot_embed(fixtures, tmp_path, capsys):
 
 
 def test_chunks_and_m_text():
-    blob = "a" * (CHUNK * 2 + 5)
-    assert [len(c) for c in chunks(blob)] == [CHUNK, CHUNK, 5]
+    size = CHUNK - 7  # "000001|" comes first
+    blob = "a" * (size * 2 + 5)
+    parts = chunks(blob)
+    assert [len(c) for c in parts] == [CHUNK, CHUNK, 12]
+    assert [c[:7] for c in parts] == ["000001|", "000002|", "000003|"]
+    assert sorted(parts) == parts  # text order is part order, which is how Power BI sorts them
     assert m_text('say "#(lf)"') == '"say ""#(#)(lf)"""'
 
 
@@ -234,15 +241,31 @@ def test_first_run_leaves_an_earlier_table_out_of_the_analysis(fixtures, tmp_pat
     assert json.loads(first.group(1))["meta"]["counts"] == before["meta"]["counts"]
 
 
+def test_a_two_column_table_from_1_2_1_becomes_one_column(fixtures, tmp_path, capsys):
+    proj = copy(fixtures, tmp_path, "Shop")
+    table = proj / "Shop.SemanticModel/definition/tables/TrailsBI.tmdl"
+    table.write_text(
+        "table TrailsBI\n\tisHidden\n\n\tcolumn Part\n\t\tdataType: int64\n\t\tsourceColumn: Part\n\n"
+        "\tcolumn Chunk\n\t\tdataType: string\n\t\tsourceColumn: Chunk\n\n"
+        f"\tannotation {MARKER} = 1.2.1\n",
+        encoding="utf-8",
+    )
+    assert main([str(proj), "--embed"]) == 0
+    capsys.readouterr()
+    text = table.read_text(encoding="utf-8")
+    assert "column Part" not in text and "column Chunk" in text and "type table [Chunk = text]" in text
+
+
 def test_no_part_ends_or_starts_with_whitespace():
     """Power BI trims trailing spaces when it loads text, so a cut next to a space loses it."""
     blob = ("x" * (CHUNK - 1)) + " y" + ("z" * CHUNK) + "  w" + "end"
     parts = chunks(blob)
-    assert "".join(parts) == blob
+    pieces = [p[7:] for p in parts]
+    assert "".join(pieces) == blob
     assert all(len(p) <= CHUNK for p in parts)
-    assert not any(p[-1].isspace() or p[0].isspace() for p in parts)
+    assert not any(p[-1].isspace() or p[0].isspace() for p in pieces)
     # real page data, cut many times
     data = '{"label": "Sales Amount", "x": "a b c d"}' * 5000
-    parts = chunks(data)
-    assert "".join(parts) == data and len(parts) > 5
-    assert not any(p[-1].isspace() or p[0].isspace() for p in parts)
+    pieces = [p[7:] for p in chunks(data)]
+    assert "".join(pieces) == data and len(pieces) > 5
+    assert not any(p[-1].isspace() or p[0].isspace() for p in pieces)

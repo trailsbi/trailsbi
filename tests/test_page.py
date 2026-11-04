@@ -47,7 +47,8 @@ def test_page_and_visual_are_added(fixtures, tmp_path, capsys):
     visual = read(rep / f"definition/pages/{PAGE}/visuals/{PAGE}/visual.json")
     assert visual["visual"]["visualType"] == GUID
     state = visual["visual"]["query"]["queryState"]
-    assert state["part"]["projections"][0]["queryRef"] == "TrailsBI.Part"
+    assert set(state) == {"chunk"}
+    assert state["chunk"]["projections"][0]["queryRef"] == "TrailsBI.Chunk"
     assert state["chunk"]["projections"][0]["field"]["Column"]["Property"] == "Chunk"
     assert read(rep / "definition/pages/pages.json")["pageOrder"][-1] == PAGE
 
@@ -103,8 +104,8 @@ def test_the_page_uses_the_tables_current_name(fixtures, tmp_path):
     (tables / "TrailsBI.tmdl").write_text(text, encoding="utf-8")
     assert main([str(proj), "--embed"]) == 0
     visual = read(proj / f"Shop.Report/definition/pages/{PAGE}/visuals/{PAGE}/visual.json")
-    proj_ = visual["visual"]["query"]["queryState"]["part"]["projections"][0]
-    assert proj_["queryRef"] == "Lineage data.Part"
+    proj_ = visual["visual"]["query"]["queryState"]["chunk"]["projections"][0]
+    assert proj_["queryRef"] == "Lineage data.Chunk"
     assert proj_["field"]["Column"]["Expression"]["SourceRef"]["Entity"] == "Lineage data"
 
 
@@ -151,3 +152,18 @@ def test_bundled_visual_is_a_pbiviz():
         names = z.namelist()
     assert "package.json" in names and f"resources/{GUID}.pbiviz.json" in names
     assert len(GUID) <= 20  # Desktop puts it twice in a path that Windows caps at 256 characters
+
+
+def test_a_page_from_1_2_1_loses_its_part_field(fixtures, tmp_path):
+    """1.2.1 bound the visual to Part and Chunk; from 1.2.2 it takes Chunk alone."""
+    proj = copy(fixtures, tmp_path, "Shop")
+    assert main([str(proj), "--embed"]) == 0
+    vf = proj / f"Shop.Report/definition/pages/{PAGE}/visuals/{PAGE}/visual.json"
+    data = read(vf)
+    chunk = data["visual"]["query"]["queryState"]["chunk"]["projections"][0]
+    part = json.loads(json.dumps(chunk).replace("Chunk", "Part"))
+    state = {"part": {"projections": [part]}, "chunk": {"projections": [chunk]}}
+    data["visual"]["query"]["queryState"] = state
+    vf.write_text(json.dumps(data, indent=2), encoding="utf-8")
+    assert main([str(proj), "--embed"]) == 0
+    assert set(read(vf)["visual"]["query"]["queryState"]) == {"chunk"}
