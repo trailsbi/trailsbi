@@ -6,7 +6,7 @@
   <a href="https://trailsbi.com"><b>Website</b></a>
   &nbsp;·&nbsp; <a href="#get-started"><b>Get started</b></a>
   &nbsp;·&nbsp; <a href="https://trailsbi.com/samples"><b>Sample Reports</b></a>
-  &nbsp;·&nbsp; <a href="https://youtube.com/@trailsbi"><b>YouTube</b></a>
+  &nbsp;·&nbsp; <a href="https://www.youtube.com/watch?v=HQTlUTrLqag"><b>Demo video</b></a>
 </p>
 
 <p align="center"><sub>* Power BI is a trademark of Microsoft. TrailsBI is not affiliated with or endorsed by Microsoft.</sub></p>
@@ -16,6 +16,10 @@
 TrailsBI reads a Power BI project saved as PBIP (TMDL and PBIR files) and builds one
 self-contained HTML page you can open in any browser. It runs entirely on your machine:
 no sign-in, no upload, no telemetry.
+
+<a href="https://www.youtube.com/watch?v=HQTlUTrLqag"><img src="docs/images/demo-poster.jpg" width="640" alt="Watch the TrailsBI demo on YouTube: what breaks if you change a measure, answered on Microsoft's Competitive Marketing Analysis sample"></a>
+
+**[Watch the demo on YouTube](https://www.youtube.com/watch?v=HQTlUTrLqag)**: what breaks if you change a measure, answered on Microsoft's Competitive Marketing Analysis sample.
 
 ## Everything about your Reports and Semantic Models
 
