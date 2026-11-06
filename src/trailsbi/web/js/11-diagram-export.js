@@ -4,16 +4,18 @@
    single self-contained SVG - no CSS variables, no nested <svg>, no external
    fonts - so it opens anywhere and rasterises to PNG without tainting a canvas. */
 var DX_FONT = '"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,sans-serif';
-var TRAILS_LOGO = '__LOGO__', TRAILS_LOGO_W = 509.0, TRAILS_LOGO_H = 125.0;
+var TRAILS_LOGO_W = 509.0, TRAILS_LOGO_H = 125.0;            // the logo's viewBox; its shapes are ICONS._logo
 function dExportMenu() {
-  return '<div class="menu dexport">' +
-         '<button class="tbtn dexp-btn" aria-haspopup="true" aria-expanded="false" title="Save this diagram as a picture">' +
-         icon("ui_download", 14) + '<span>Export</span>' + icon("ui_chev", 12, "chev") + '</button>' +
-         '<div class="pop dexp-pop" role="dialog" aria-label="Export diagram" hidden>' +
-         '<h5>Export diagram</h5>' +
-         '<label><input type="checkbox" class="dexp-mask"> Hide table and column names</label>' +
-         '<div class="pop-head"><button class="tbtn" data-exp="png">PNG</button>' +
-         '<button class="tbtn" data-exp="svg">SVG</button></div></div></div>';
+  return h("div", {"class": "menu dexport"}, [
+    h("button", {"class": "tbtn dexp-btn", "aria-haspopup": "true", "aria-expanded": "false", title: "Save this diagram as a picture"},
+      [icon("ui_download", 14), h("span", null, "Export"), icon("ui_chev", 12, "chev")]),
+    h("div", {"class": "pop dexp-pop", role: "dialog", "aria-label": "Export diagram", hidden: true}, [
+      h("h5", null, "Export diagram"),
+      h("label", null, [h("input", {type: "checkbox", "class": "dexp-mask"}), " Hide table and column names"]),
+      h("div", {"class": "pop-head"}, [h("button", {"class": "tbtn", "data-exp": "png"}, "PNG"),
+                                       h("button", {"class": "tbtn", "data-exp": "svg"}, "SVG")])
+    ])
+  ]);
 }
 /* Asterisks of the same length, so the drawing keeps its proportions. */
 function dxMask(name, on) {
@@ -21,46 +23,46 @@ function dxMask(name, on) {
   var n = Math.max(3, Math.min(String(name || "").length, 18));
   return new Array(n + 1).join("✱");
 }
-function dxEsc(t) {
-  return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
 /* Icons go in as plain paths: a nested <svg> is not drawn by every viewer. */
 function dxIcon(name, x, y, size, color) {
-  var body = ICONS[name] || ICONS.v_generic;
-  return '<g transform="translate(' + x + ',' + y + ') scale(' + (size / 24) + ')" ' +
-         'fill="none" stroke="' + color + '" stroke-width="2" stroke-linecap="round" ' +
-         'stroke-linejoin="round">' + body + '</g>';
+  return iconG(name, {transform: "translate(" + x + "," + y + ") scale(" + (size / 24) + ")", fill: "none", stroke: color,
+                      "stroke-width": 2, "stroke-linecap": "round", "stroke-linejoin": "round"});
+}
+function dxText(cls, x, y, room, text) {
+  return sg("text", {"class": cls, x: x, y: y, "data-room": room, "data-full": text}, text);
 }
 function dxCard(t, p, keys, mask) {
-  var accent = t.k === "calc" ? "#a86a12" : "#1f5fa8";
-  var ic = t.k === "calc" ? "calctable" : t.k === "fieldparam" ? "fieldparam"
-         : t.k === "calcgroup" ? "calcitem" : "table";
-  var rows = t.cols.filter(function (f) { return keys[t.n + "␞" + f.n]; });
-  var w = p.w, h = p.h, r = 6;
-  var g = '<g transform="translate(' + p.x + ',' + p.y + ')">';
-  // body, rounded on the right only, with the 4px accent bar down the left
-  g += '<path d="M0,0H' + (w - r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',' + r +
-       'V' + (h - r) + 'a' + r + ',' + r + ' 0 0 1 ' + (-r) + ',' + r + 'H0Z" fill="#ffffff" stroke="#dde3e9"/>';
-  g += '<path d="M0,0h4v' + h + 'h-4Z" fill="' + accent + '"/>';
-  g += '<path d="M4,0H' + (w - r) + 'a' + r + ',' + r + ' 0 0 1 ' + r + ',' + r + 'V' + DHEAD +
-       'H4Z" fill="#f8fafb"/>';
-  g += '<path d="M4,' + DHEAD + 'H' + w + '" stroke="#e8ecf0"/>';
-  g += dxIcon(ic, 12, (DHEAD - 16) / 2, 16, accent);
-  g += '<text class="dx-h' + (t.h ? " dx-hid" : "") + '" x="36" y="' + (DHEAD / 2 + 4) +
-       '" data-room="' + (w - 46) + '" data-full="' + dxEsc(dxMask(t.n, mask)) + '">' +
-       dxEsc(dxMask(t.n, mask)) + '</text>';
+  var accent = t.k === "calc" ? "#a86a12" : t.k === "calcgroup" ? "#b4532a" : "#1f5fa8";
+  var rows = t.cols.filter(function (f) { return keys[t.n + "\u241e" + f.n]; });
+  var w = p.w, ht = p.h, r = 6;
+  var kids = [
+    // body, rounded on the right only, with the 4px accent bar down the left
+    sg("path", {d: "M0,0H" + (w - r) + "a" + r + "," + r + " 0 0 1 " + r + "," + r + "V" + (ht - r) + "a" + r + "," + r +
+                   " 0 0 1 " + (-r) + "," + r + "H0Z", fill: "#ffffff", stroke: "#dde3e9"}),
+    sg("path", {d: "M0,0h4v" + ht + "h-4Z", fill: accent}),
+    sg("path", {d: "M4,0H" + (w - r) + "a" + r + "," + r + " 0 0 1 " + r + "," + r + "V" + DHEAD + "H4Z", fill: "#f8fafb"}),
+    sg("path", {d: "M4," + DHEAD + "H" + w, stroke: "#e8ecf0"}),
+    dxIcon(dTableIcon(t), 12, (DHEAD - 16) / 2, 16, accent),
+    dxText("dx-h" + (t.h ? " dx-hid" : ""), 36, DHEAD / 2 + 4, w - 46, dxMask(t.n, mask))
+  ];
   rows.forEach(function (f, i) {
     var y = DHEAD + 4 + i * DROW;
-    g += dxIcon(f.calc ? "calccolumn" : "column", 10, y + (DROW - 13) / 2, 13,
-                f.calc ? "#a86a12" : "#2f7f96");
-    g += '<text class="dx-f' + (f.h ? " dx-hid" : "") + '" x="29" y="' + (y + DROW / 2 + 4) +
-         '" data-room="' + (w - 29 - 26) + '" data-full="' + dxEsc(dxMask(f.n, mask)) + '">' +
-         dxEsc(dxMask(f.n, mask)) + '</text>';
-    g += dxIcon("key", w - 22, y + (DROW - 12) / 2, 12, "#5c6a78");
+    kids.push(dxIcon(f.calc ? "calccolumn" : "column", 10, y + (DROW - 13) / 2, 13, f.calc ? "#a86a12" : "#2f7f96"),
+              dxText("dx-f" + (f.h ? " dx-hid" : ""), 29, y + DROW / 2 + 4, w - 29 - 26, dxMask(f.n, mask)),
+              dxIcon("key", w - 22, y + (DROW - 12) / 2, 12, "#5c6a78"));
   });
-  return g + '</g>';
+  return sg("g", {transform: "translate(" + p.x + "," + p.y + ")"}, kids);
 }
+var DX_STYLE = "svg{font-family:" + DX_FONT + "}text{fill:#13203B}" +
+  ".dx-t{font-size:14px;font-weight:600}.dx-s{font-size:12px;fill:#5c6a78}" +
+  ".dx-h{font-size:13px;font-weight:700}.dx-f{font-size:12px}" +
+  ".dx-hid{fill:#5c6a78;font-style:italic}" +
+  ".line{fill:none;stroke:#8795a3;stroke-width:1.6}.inactive .line{stroke-dasharray:5 4}" +
+  ".dmark rect,.darrow rect{fill:#f4f6f8;stroke:#cfd7df}" +
+  ".darrow path{fill:#13203B;stroke:none}" +
+  ".dmark text{font-weight:700;fill:#13203B;text-anchor:middle;dominant-baseline:middle}" +
+  ".dmark text.one{font-size:12px}.dmark text.many{font-size:19px}";
+/* The exported picture as an <svg> element. It is always drawn light, whatever the page theme. */
 function diagramSvg(m, mask) {
   var V = mdVisible(m), L = layoutDiagramFit(V), keys = dRelKeys(V);
   var slots = dSlots(V.rels, L.pos);
@@ -71,61 +73,35 @@ function diagramSvg(m, mask) {
   var chips = dChipPoints(paths);
   var pad = 16, head = 34, foot = 18;                  // the credit line sits in the footer
   var W = dCanvasW(L, paths) + pad * 2, H = dCanvasH(L, paths) + pad * 2 + head + foot;
-  var s = '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="' + W + '" height="' + H +
-          '" viewBox="0 0 ' + W + ' ' + H + '">';
-  s += '<style>svg{font-family:' + DX_FONT + '}text{fill:#13203B}' +
-       '.dx-t{font-size:14px;font-weight:600}.dx-s{font-size:12px;fill:#5c6a78}' +
-       '.dx-h{font-size:13px;font-weight:700}.dx-f{font-size:12px}' +
-       '.dx-hid{fill:#5c6a78;font-style:italic}' +
-       '.line{fill:none;stroke:#8795a3;stroke-width:1.6}.inactive .line{stroke-dasharray:5 4}' +
-       '.dmark rect,.darrow rect{fill:#f4f6f8;stroke:#cfd7df}' +
-       '.darrow path{fill:#13203B;stroke:none}' +
-       '.dmark text{font-weight:700;fill:#13203B;text-anchor:middle;dominant-baseline:middle}' +
-       '.dmark text.one{font-size:12px}.dmark text.many{font-size:19px}</style>';
-  s += '<rect width="' + W + '" height="' + H + '" fill="#eef1f4"/>';
   var title = (mask ? "Semantic model" : m.name) + "  ·  " +
               plural(V.tables.length, "table", "tables") + "  ·  " +
               plural(V.rels.length, "relationship", "relationships");
-  s += '<text class="dx-t" x="' + pad + '" y="21">' + dxEsc(title) + '</text>';
   /* Every shared diagram says where it came from. */
   var lh = 15, lk = lh / TRAILS_LOGO_H, lw = TRAILS_LOGO_W * lk, lx = W - pad - lw;
-  s += '<a href="https://trailsbi.com" xlink:href="https://trailsbi.com" target="_blank">' +
-       '<title>Trails for Power BI · trailsbi.com</title>' +
-       '<text class="dx-s" x="' + (lx - 6) + '" y="' + (H - 9) + '" text-anchor="end">Generated by</text>' +
-       '<g transform="translate(' + lx + ',' + (H - 8 - lh + 1) + ') scale(' + lk.toFixed(4) + ')">' + TRAILS_LOGO + '</g></a>';
-  s += '<g transform="translate(' + pad + ',' + (pad + head) + ')">';
-  var bars = [];                          // drawn last, over the lines they speak for
-  V.rels.forEach(function (r, i) {
-    var pa = paths[i];
-    if (!pa) return;
-    var fromMark = r.fc === "many" ? "∗" : "1", toMark = r.tc === "many" ? "∗" : "1";
-    var m1 = pa.factFirst ? fromMark : toMark, m2 = pa.factFirst ? toMark : fromMark;
-    var arrows = r.both ? dArrow(pa, true, true, chips, segs, i)
-                        : dArrow(pa, m1 === "1", false, chips, segs, i);
-    var marks = "";
-    [[pa.m1, m1], [pa.m2, m2]].forEach(function (e) {
-      if (!e[0]) return;
-      if (e[0].span) bars.push(dMark(e[0], e[1])); else marks += dMark(e[0], e[1]);
-    });
-    s += '<g class="' + (r.active ? "" : "inactive") + '"><path class="line" d="' + pa.d + '"/>' +
-         arrows + marks + '</g>';
-  });
-  s += bars.join("");
-  V.tables.forEach(function (t) {
-    var p = L.pos[t.n];
-    if (p) s += dxCard(t, p, keys, mask);
-  });
-  return {svg: s + '</g></svg>', w: W, h: H};
+  var layer = dRelLayer(V, paths, slots, chips, segs, false);
+  var svgEl = sg("svg", {width: W, height: H, viewBox: "0 0 " + W + " " + H}, [
+    sg("style", null, DX_STYLE),
+    sg("rect", {width: W, height: H, fill: "#eef1f4"}),
+    sg("text", {"class": "dx-t", x: pad, y: 21}, title),
+    sg("a", {href: "https://trailsbi.com", target: "_blank"}, [
+      sg("title", null, "Trails for Power BI · trailsbi.com"),
+      sg("text", {"class": "dx-s", x: lx - 6, y: H - 9, "text-anchor": "end"}, "Generated by"),
+      iconG("_logo", {transform: "translate(" + lx + "," + (H - 8 - lh + 1) + ") scale(" + lk.toFixed(4) + ")"})
+    ]),
+    sg("g", {transform: "translate(" + pad + "," + (pad + head) + ")"}, [
+      layer.lines, layer.bars,
+      V.tables.map(function (t) { var p = L.pos[t.n]; return p ? dxCard(t, p, keys, mask) : null; })
+    ])
+  ]);
+  return {el: svgEl, w: W, h: H};
 }
 /* Text is trimmed by measuring it, the same way the cards on screen are, so the
    picture has to be laid out for a moment before it is saved. */
 function diagramSvgFitted(m, mask) {
   var out = diagramSvg(m, mask);
-  var host = document.createElement("div");
-  host.setAttribute("style", "position:absolute;left:-99999px;top:0;width:" + out.w + "px");
-  host.innerHTML = out.svg;
+  var host = h("div", {style: "position:absolute;left:-99999px;top:0;width:" + out.w + "px"}, out.el);
   document.body.appendChild(host);
-  var el = host.firstChild;
+  var el = out.el;
   try { fitCardLines(el); } catch (e) {}
   el.querySelectorAll("text[data-room]").forEach(function (t) {
     t.removeAttribute("data-room");
@@ -245,9 +221,9 @@ $("mdDiagram").addEventListener("click", function (e) {
 });
 /* Side pane: a table's fields, or a relationship's details. */
 function mdPanelEmpty() {
-  $("mdPanel").innerHTML = '<h2>Select a table or a relationship.</h2>' +
-    '<p class="muted">Tables show their columns and measures here. Relationships show both sides, ' +
-    'the cardinality, the filter direction and whether they are active.</p>';
+  fill($("mdPanel"), [h("h2", null, "Select a table or a relationship."),
+    h("p", {"class": "muted"}, "Tables show their columns and measures here. Relationships show both sides, " +
+                               "the cardinality, the filter direction and whether they are active.")]);
 }
 function openMdSide() {
   var side = $("mdSide");
@@ -295,30 +271,36 @@ function showDiagramSelection() {
         });
       });
     }
-    var h = '<span class="badge t-table">Table</span><h2>' + icon(iconName({type: "table"}), 20, "t-table") + esc(t.n) + '</h2>' +
-            (t.d ? '<p class="muted">' + esc(t.d) + '</p>' : "");
-    h += '<h3><span>Columns</span><span class="muted count">' + t.cols.length + '</span></h3><div class="pcards">' +
-         t.cols.map(function (c) {
-           var nid = fieldId(s.mkey, t.n, c.n);
-           return '<div class="card fcard withacts ' + (c.calc ? "t-column s-calculated" : "t-column") + '" title="' + esc(c.n) + '">' +
-                  '<span class="bar"></span>' + icon(c.calc ? "calccolumn" : "column", 16) +
-                  '<span class="fname' + (c.h ? " hid" : "") + '">' + esc(c.n) + '</span>' +
-                  '<small class="inline">' + esc([dataTypeLabel(c.dt), c.key ? "Key" : ""].filter(Boolean).join(" · ")) + '</small>' +
-                  '<span class="facts">' +
-                  (nid ? '<button class="fact-btn" data-go-id="' + esc(nid) + '" title="Show in lineage" aria-label="' +
-                         esc("Show " + c.n + " in the lineage map") + '">' + icon("nav_lineage", 14) + '</button>' : '') +
-                  (c.calc ? '<button class="fact-btn" data-detail-m="' + esc(s.mkey) + '" data-detail-t="' + esc(t.n) +
-                            '" data-detail-c="' + esc(c.n) + '" title="Show detail with its DAX" aria-label="' +
-                            esc("Show " + c.n + " in the model details") + '">' + icon("nav_model", 14) + '</button>' : '') +
-                  '</span></div>';
-         }).join("") + '</div>';
-    h += '<h3><span>Relationships</span><span class="muted count">' + rels.length + '</span></h3><div class="pcards">' +
-         (rels.length ? rels.map(function (r) {
-           return '<div class="card fcard" style="--c:var(--model)"><span class="bar"></span>' + icon("relationship", 16) +
-                  '<span class="fname">' + esc(r.f[0] + "[" + r.f[1] + "] → " + r.t[0] + "[" + r.t[1] + "]") + '</span>' +
-                  '<small>' + esc((r.fc === "many" ? "many" : "one") + " → " + (r.tc === "many" ? "many" : "one")) + '</small></div>';
-         }).join("") : '<p class="muted">This table has no relationships.</p>') + '</div>';
-    $("mdPanel").innerHTML = h;
+    var colCard = function (c) {
+      var nid = fieldId(s.mkey, t.n, c.n);
+      return h("div", {"class": "card fcard withacts " + (c.calc ? "t-column s-calculated" : "t-column"), title: c.n}, [
+        h("span", {"class": "bar"}), icon(c.calc ? "calccolumn" : "column", 16),
+        h("span", {"class": "fname" + (c.h ? " hid" : "")}, c.n),
+        h("small", {"class": "inline"}, [dataTypeLabel(c.dt), c.key ? "Key" : ""].filter(Boolean).join(" · ")),
+        h("span", {"class": "facts"}, [
+          nid ? h("button", {"class": "fact-btn", "data-go-id": nid, title: "Show in lineage",
+                             "aria-label": "Show " + c.n + " in the lineage map"}, icon("nav_lineage", 14)) : null,
+          c.calc ? h("button", {"class": "fact-btn", "data-detail-m": s.mkey, "data-detail-t": t.n, "data-detail-c": c.n,
+                                title: "Show detail with its DAX", "aria-label": "Show " + c.n + " in the model details"},
+                     icon("nav_model", 14)) : null
+        ])
+      ]);
+    };
+    fill($("mdPanel"), [
+      h("span", {"class": "badge " + (t.k === "calcgroup" ? "t-calcgroup" : "t-table")}, t.k === "calcgroup" ? "Calculation group" : "Table"),
+      h("h2", null, [icon(dTableIcon(t), 20, t.k === "calcgroup" ? "t-calcgroup" : "t-table"), t.n]),
+      t.d ? h("p", {"class": "muted"}, t.d) : null,
+      paneHead("Columns", t.cols.length),
+      h("div", {"class": "pcards"}, t.cols.map(colCard)),
+      paneHead("Relationships", rels.length),
+      h("div", {"class": "pcards"}, rels.length ? rels.map(function (r) {
+        return h("div", {"class": "card fcard", style: "--c:var(--model)"}, [
+          h("span", {"class": "bar"}), icon("relationship", 16),
+          h("span", {"class": "fname"}, r.f[0] + "[" + r.f[1] + "] → " + r.t[0] + "[" + r.t[1] + "]"),
+          h("small", null, (r.fc === "many" ? "many" : "one") + " → " + (r.tc === "many" ? "many" : "one"))
+        ]);
+      }) : h("p", {"class": "muted"}, "This table has no relationships."))
+    ]);
     return;
   }
   var mm = (D.meta.models || []).filter(function (x) { return x.key === s.mkey; })[0];
@@ -334,21 +316,25 @@ function showDiagramSelection() {
     });
   }
   var card = function (value, ic, col, sub, tip) {
-    return '<div class="rf"><div class="card fcard" style="--c:' + (col || "var(--page)") + '" title="' +
-           esc(tip || (sub ? sub + " · " + value : value)) + '"><span class="bar"></span>' + icon(ic, 16) +
-           '<span class="fname">' + esc(value) + '</span>' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</div></div>';
+    return h("div", {"class": "rf-row one"}, h("div", {"class": "rf"},
+      h("div", {"class": "card fcard", style: "--c:" + (col || "var(--page)"), title: tip || (sub ? sub + " · " + value : value)}, [
+        h("span", {"class": "bar"}), icon(ic, 16), h("span", {"class": "fname"}, value), sub ? h("small", null, sub) : null
+      ])));
   };
   var cardinality = (r.fc === "many" ? "Many" : "One") + " to " + (r.tc === "many" ? "many" : "one");
   var cardSymbols = "(" + (r.fc === "many" ? "*" : "1") + ":" + (r.tc === "many" ? "*" : "1") + ")";
-  $("mdPanel").innerHTML = '<span class="badge k-model">Relationship</span><h2>' + icon("relationship", 20, "k-model") +
-    esc(r.f[0] + " → " + r.t[0]) + (r.active ? "" : '<span class="tag bad">Inactive</span>') + '</h2><div class="relform">' +
-    '<div class="rf-row one">' + card(r.f[1], "column", "var(--column)", r.f[0]) + '</div>' +
-    '<div class="rf-row one">' + card(cardinality, "relationship", "var(--model)", cardSymbols,
-                                      "Cardinality: " + cardinality + " " + cardSymbols) + '</div>' +
-    '<div class="rf-row one">' + card(r.t[1], "column", "var(--column)", r.t[0]) + '</div>' +
-    '<div class="rf-row one">' + card((r.both ? "Both" : "Single") + " filter direction",
-                                      r.both ? "arrow_both" : "arrow_one", "var(--page)", "",
-                                      "Filter direction: " + (r.both ? "Both" : "Single")) + '</div></div>';
+  fill($("mdPanel"), [
+    h("span", {"class": "badge k-model"}, "Relationship"),
+    h("h2", null, [icon("relationship", 20, "k-model"), r.f[0] + " → " + r.t[0],
+                   r.active ? null : h("span", {"class": "tag bad"}, "Inactive")]),
+    h("div", {"class": "relform"}, [
+      card(r.f[1], "column", "var(--column)", r.f[0]),
+      card(cardinality, "relationship", "var(--model)", cardSymbols, "Cardinality: " + cardinality + " " + cardSymbols),
+      card(r.t[1], "column", "var(--column)", r.t[0]),
+      card((r.both ? "Both" : "Single") + " filter direction", r.both ? "arrow_both" : "arrow_one", "var(--page)", "",
+           "Filter direction: " + (r.both ? "Both" : "Single"))
+    ])
+  ]);
 }
 var DTYPE_LABEL = {int64: "Int64", double: "Double", decimal: "Decimal", string: "String",
                    datetime: "DateTime", boolean: "Boolean", binary: "Binary", variant: "Variant"};

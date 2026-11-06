@@ -35,6 +35,7 @@ class Model:
                 "hidden": False,
                 "description": "",
                 "calc_group": False,
+                "precedence": None,
             }
         return self.tables[name]
 
@@ -106,8 +107,12 @@ def _ingest_tmdl_table(o, model):
     t = model.table(o["name"])
     p = o["props"]
     t["hidden"] = truthy(p.get("isHidden"))
+    t["description"] = o.get("desc") or t["description"]
     if "calculationGroup" in p:
         t["calc_group"] = True
+    prec = str(p.get("precedence") or "").strip()
+    if prec.lstrip("-").isdigit():
+        t["precedence"] = int(prec)
     for ch in o["children"]:
         k, cp = ch["kw"], ch["props"]
         if k == "column":
@@ -133,6 +138,7 @@ def _ingest_tmdl_table(o, model):
                 "folder": unquote(cp.get("displayFolder") or ""),
                 "hidden": truthy(cp.get("isHidden")),
                 "calc_item": k == "calculationItem",
+                "desc": ch.get("desc") or "",
             }
         elif k == "partition":
             src = cp.get("source")
@@ -180,15 +186,19 @@ def load_bim(path, model):
         cg = tj.get("calculationGroup")
         if cg:
             t["calc_group"] = True
+            if isinstance(cg.get("precedence"), int):
+                t["precedence"] = cg["precedence"]
             for it in cg.get("calculationItems", []):
+                fsd = it.get("formatStringDefinition") or {}
                 t["measures"][it["name"]] = {
                     "name": it["name"],
                     "expr": as_text(it.get("expression")) or "",
                     "format": None,
-                    "fsExpr": None,
+                    "fsExpr": as_text(fsd.get("expression")) if isinstance(fsd, dict) else None,
                     "folder": "",
                     "hidden": False,
                     "calc_item": True,
+                    "desc": as_text(it.get("description")) or "",
                 }
         for c in tj.get("columns", []):
             ctype = c.get("type", "data")

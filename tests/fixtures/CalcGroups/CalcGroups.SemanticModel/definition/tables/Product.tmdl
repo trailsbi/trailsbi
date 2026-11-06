@@ -1,0 +1,25 @@
+table Product
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		isKey
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column Category
+		dataType: string
+		sourceColumn: Category
+
+	column prod_name
+		dataType: string
+		sourceColumn: prod_name
+
+	partition Product = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(ServerName, "Shop"),
+				    dbo_Product = Source{[Schema="dbo",Item="Product"]}[Data]
+				in
+				    dbo_Product

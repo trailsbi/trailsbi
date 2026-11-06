@@ -1,0 +1,2710 @@
+{
+"#binary": [
+"#binary(value as any) as any",
+"Creates a binary value from numbers or text."
+],
+"#date": [
+"#date(year as number, month as number, day as number) as date",
+"Creates a date value from year, month, and day."
+],
+"#datetime": [
+"#datetime(year as number, month as number, day as number, hour as number, minute as number, second as number) as datetime",
+"Creates a datetime value from year, month, day, hour, minute, and second."
+],
+"#datetimezone": [
+"#datetimezone(year as number, month as number, day as number, hour as number, minute as number, second as number, offsetHours as number, offsetMinutes as number) as datetimezone",
+"Creates a datetimezone value from year, month, day, hour, minute, second, offset-hours, and offset-minutes."
+],
+"#duration": [
+"#duration(days as number, hours as number, minutes as number, seconds as number) as duration",
+"Creates a duration value from days, hours, minutes, and seconds."
+],
+"#table": [
+"#table(columns as any, rows as any) as any",
+"Creates a table value from columns and rows."
+],
+"#time": [
+"#time(hour as number, minute as number, second as number) as time",
+"Creates a time value from hour, minute, and second."
+],
+"Access.Database": [
+"Access.Database(database as binary, optional options as nullable record) as table",
+"Returns a structural representation of an Access database."
+],
+"AccessControlEntry.ConditionToIdentities": [
+"AccessControlEntry.ConditionToIdentities(identityProvider as function, condition as function) as list",
+"Returns a list of identities that the condition will accept."
+],
+"Action.Return": [
+"Action.Return(value as any) as action",
+"Creates an action that performs no action when executed and returns the specified value as its result."
+],
+"Action.Sequence": [
+"Action.Sequence(actions as list) as action",
+"Creates an action that executes a sequence of actions in order."
+],
+"Action.Try": [
+"Action.Try(action as action) as action",
+"Creates an action that executes the specified action, catching and returning any errors that occur during its execution."
+],
+"Action.View": [
+"Action.View(action as nullable action, handlers as record) as action",
+"Creates or extends an action with user-defined handlers for query and action operations."
+],
+"Action.ViewError": [
+"Action.ViewError(errorRecord as record) as record",
+"Creates a modified error record which won't trigger a fallback when raised by a handler defined on a view (via Action.View)."
+],
+"Action.ViewFunction": [
+"Action.ViewFunction(function as function) as function",
+"Creates a function that can be intercepted by a handler defined on a view (via Binary.View)."
+],
+"Action.WithErrorContext": [
+"Action.WithErrorContext(action as action, context as text) as action",
+"This function is intended for internal use only."
+],
+"ActiveDirectory.Domains": [
+"ActiveDirectory.Domains(optional forestRootDomainName as nullable text) as table",
+"Returns a list of Active Directory domains in the same forest as the specified domain or of the current machine's domain if none is specified."
+],
+"AdoDotNet.DataSource": [
+"AdoDotNet.DataSource(providerName as text, connectionString as any, optional options as nullable record) as table",
+"Returns the schema collection for an ADO.NET data source."
+],
+"AdoDotNet.Query": [
+"AdoDotNet.Query(providerName as text, connectionString as any, query as text, optional options as nullable record) as table",
+"Returns the result of running a native query on an ADO.NET data source."
+],
+"AdobeAnalytics.Cubes": [
+"AdobeAnalytics.Cubes(optional options as nullable record) as table",
+"Returns the report suites in Adobe Analytics."
+],
+"AnalysisServices.Database": [
+"AnalysisServices.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of multidimensional cubes or tabular models from the Analysis Services database."
+],
+"AnalysisServices.Databases": [
+"AnalysisServices.Databases(server as text, optional options as nullable record) as table",
+"Returns the Analysis Services databases on a particular host."
+],
+"Arrow.Document": [
+"Arrow.Document(binary as binary, optional options as nullable record) as any",
+"Returns the contents of an Apache Arrow document as a table."
+],
+"Arrow.FromBinary": [
+"Arrow.FromBinary(binary as binary, optional options as nullable record) as any",
+"Returns a table from an Apache Arrow IPC stream."
+],
+"Arrow.ToBinary": [
+"Arrow.ToBinary(table as table, optional options as nullable record) as any",
+"Produces an Apache Arrow IPC stream from a table."
+],
+"AzureStorage.BlobContents": [
+"AzureStorage.BlobContents(url as text, optional options as nullable record) as binary",
+"Returns the content of the specified blob from an Azure storage vault."
+],
+"AzureStorage.Blobs": [
+"AzureStorage.Blobs(account as text, optional options as nullable record) as table",
+"Returns a navigational table containing the containers found in the specified account from an Azure storage vault."
+],
+"AzureStorage.DataLake": [
+"AzureStorage.DataLake(endpoint as text, optional options as nullable record) as table",
+"Returns a navigational table containing the documents found in the specified container and its subfolders from Azure Data Lake Storage."
+],
+"AzureStorage.DataLakeContents": [
+"AzureStorage.DataLakeContents(url as text, optional options as nullable record) as binary",
+"Returns the content of the specified file from an Azure Data Lake Storage filesystem."
+],
+"AzureStorage.Tables": [
+"AzureStorage.Tables(account as text, optional options as nullable record) as table",
+"Returns a navigational table containing the tables found in the specified account from an Azure storage vault."
+],
+"Binary.ApproximateLength": [
+"Binary.ApproximateLength(binary as nullable binary) as nullable number",
+"Returns the approximate length of the binary."
+],
+"Binary.Buffer": [
+"Binary.Buffer(binary as nullable binary) as nullable binary",
+"Buffers the binary value in memory."
+],
+"Binary.Combine": [
+"Binary.Combine(binaries as list) as binary",
+"Combines a list of binaries into a single binary."
+],
+"Binary.Compress": [
+"Binary.Compress(binary as nullable binary, compressionType as number) as nullable binary",
+"Compresses a binary value using the given compression type."
+],
+"Binary.Decompress": [
+"Binary.Decompress(binary as nullable binary, compressionType as number) as nullable binary",
+"Decompresses a binary value using the given compression type."
+],
+"Binary.End": [
+"Binary.End(binary as binary) as binary",
+"Returns the end of a binary value."
+],
+"Binary.From": [
+"Binary.From(value as any, optional encoding as nullable number) as nullable binary",
+"Creates a binary from the given value"
+],
+"Binary.FromList": [
+"Binary.FromList(list as list) as binary",
+"Converts a list of numbers into a binary value."
+],
+"Binary.FromText": [
+"Binary.FromText(text as nullable text, optional encoding as nullable number) as nullable binary",
+"Decodes data from a text form into binary."
+],
+"Binary.InferContentType": [
+"Binary.InferContentType(source as binary) as record",
+"Reads the binary stream and tries to determine the content type and format information of the stream."
+],
+"Binary.Length": [
+"Binary.Length(binary as nullable binary) as nullable number",
+"Returns the number of characters."
+],
+"Binary.Range": [
+"Binary.Range(binary as binary, offset as number, optional count as nullable number) as binary",
+"Returns a subset of the binary value beginning at an offset."
+],
+"Binary.Split": [
+"Binary.Split(binary as binary, pageSize as number) as list",
+"Splits the specified binary into a list of binaries using the specified page size."
+],
+"Binary.ToList": [
+"Binary.ToList(binary as binary) as list",
+"Converts a binary value into a list of numbers."
+],
+"Binary.ToText": [
+"Binary.ToText(binary as nullable binary, optional encoding as nullable number) as nullable text",
+"Encodes binary data into a text form."
+],
+"Binary.View": [
+"Binary.View(binary as nullable binary, handlers as record) as binary",
+"Creates or extends a binary with user-defined handlers for query and action operations."
+],
+"Binary.ViewError": [
+"Binary.ViewError(errorRecord as record) as record",
+"Creates a modified error record which won't trigger a fallback when raised by a handler defined on a view (via Binary.View)."
+],
+"Binary.ViewFunction": [
+"Binary.ViewFunction(function as function) as function",
+"Creates a function that can be intercepted by a handler defined on a view (via Binary.View)."
+],
+"BinaryFormat.7BitEncodedSignedInteger": [
+"BinaryFormat.7BitEncodedSignedInteger(binary as binary) as any",
+"A binary format that reads a 64-bit signed integer that was encoded using a 7-bit variable-length encoding."
+],
+"BinaryFormat.7BitEncodedUnsignedInteger": [
+"BinaryFormat.7BitEncodedUnsignedInteger(binary as binary) as any",
+"A binary format that reads a 64-bit unsigned integer that was encoded using a 7-bit variable-length encoding."
+],
+"BinaryFormat.Binary": [
+"BinaryFormat.Binary(optional length as any) as function",
+"Returns a binary format that reads a binary value."
+],
+"BinaryFormat.Byte": [
+"BinaryFormat.Byte(binary as binary) as any",
+"A binary format that reads an 8-bit unsigned integer."
+],
+"BinaryFormat.ByteOrder": [
+"BinaryFormat.ByteOrder(binaryFormat as function, byteOrder as number) as function",
+"Returns a binary format with the byte order specified by a function."
+],
+"BinaryFormat.Choice": [
+"BinaryFormat.Choice(binaryFormat as function, chooseFunction as function, optional type as nullable type, optional combineFunction as nullable function) as function",
+"Returns a binary format that chooses the next binary format based on a value that has already been read."
+],
+"BinaryFormat.Decimal": [
+"BinaryFormat.Decimal(binary as binary) as any",
+"A binary format that reads a .NET 16-byte decimal value."
+],
+"BinaryFormat.Double": [
+"BinaryFormat.Double(binary as binary) as any",
+"A binary format that reads an 8-byte IEEE double-precision floating point value."
+],
+"BinaryFormat.Group": [
+"BinaryFormat.Group(binaryFormat as function, group as list, optional extra as nullable function, optional lastKey as any) as function",
+"Returns a binary format that reads a group of items."
+],
+"BinaryFormat.Length": [
+"BinaryFormat.Length(binaryFormat as function, length as any) as function",
+"Returns a binary format that limits the amount of data that can be read."
+],
+"BinaryFormat.List": [
+"BinaryFormat.List(binaryFormat as function, optional countOrCondition as any) as function",
+"Returns a binary format that reads a sequence of items and returns a list."
+],
+"BinaryFormat.Null": [
+"BinaryFormat.Null(binary as binary) as any",
+"A binary format that reads zero bytes and returns null."
+],
+"BinaryFormat.Record": [
+"BinaryFormat.Record(record as record) as function",
+"Returns a binary format that reads a record."
+],
+"BinaryFormat.SignedInteger16": [
+"BinaryFormat.SignedInteger16(binary as binary) as any",
+"A binary format that reads a 16-bit signed integer."
+],
+"BinaryFormat.SignedInteger32": [
+"BinaryFormat.SignedInteger32(binary as binary) as any",
+"A binary format that reads a 32-bit signed integer."
+],
+"BinaryFormat.SignedInteger64": [
+"BinaryFormat.SignedInteger64(binary as binary) as any",
+"A binary format that reads a 64-bit signed integer."
+],
+"BinaryFormat.Single": [
+"BinaryFormat.Single(binary as binary) as any",
+"A binary format that reads a 4-byte IEEE single-precision floating point value."
+],
+"BinaryFormat.Text": [
+"BinaryFormat.Text(length as any, optional encoding as nullable number) as function",
+"Returns a binary format that reads a text value."
+],
+"BinaryFormat.Transform": [
+"BinaryFormat.Transform(binaryFormat as function, function as function) as function",
+"Returns a binary format that will transform the values read by another binary format."
+],
+"BinaryFormat.UnsignedInteger16": [
+"BinaryFormat.UnsignedInteger16(binary as binary) as any",
+"A binary format that reads a 16-bit unsigned integer."
+],
+"BinaryFormat.UnsignedInteger32": [
+"BinaryFormat.UnsignedInteger32(binary as binary) as any",
+"A binary format that reads a 32-bit unsigned integer."
+],
+"BinaryFormat.UnsignedInteger64": [
+"BinaryFormat.UnsignedInteger64(binary as binary) as any",
+"A binary format that reads a 64-bit unsigned integer."
+],
+"Byte.From": [
+"Byte.From(value as any, optional culture as nullable text, optional roundingMode as nullable number) as nullable number",
+"Creates an 8-bit integer from the given value."
+],
+"Cdpa.Database": [
+"Cdpa.Database(tenantUri as text) as any",
+"Provides access to a CDPA database."
+],
+"Character.FromNumber": [
+"Character.FromNumber(number as nullable number) as nullable text",
+"Converts a number to a text character."
+],
+"Character.ToNumber": [
+"Character.ToNumber(character as nullable text) as nullable number",
+"Converts a character to a number value."
+],
+"Combiner.CombineTextByDelimiter": [
+"Combiner.CombineTextByDelimiter(delimiter as text, optional quoteStyle as nullable number) as function",
+"Returns a function that combines a list of text using the specified delimiter."
+],
+"Combiner.CombineTextByEachDelimiter": [
+"Combiner.CombineTextByEachDelimiter(delimiters as list, optional quoteStyle as nullable number) as function",
+"Returns a function that combines a list of text using a sequence of delimiters."
+],
+"Combiner.CombineTextByLengths": [
+"Combiner.CombineTextByLengths(lengths as list, optional template as nullable text) as function",
+"Returns a function that combines a list of text using the specified lengths."
+],
+"Combiner.CombineTextByPositions": [
+"Combiner.CombineTextByPositions(positions as list, optional template as nullable text) as function",
+"Returns a function that combines a list of text using the specified output positions."
+],
+"Combiner.CombineTextByRanges": [
+"Combiner.CombineTextByRanges(ranges as list, optional template as nullable text) as function",
+"Returns a function that combines a list of text using the specified positions and lengths."
+],
+"Comparer.Equals": [
+"Comparer.Equals(comparer as function, x as any, y as any) as logical",
+"Returns a logical value based on the equality check over the two given values."
+],
+"Comparer.FromCulture": [
+"Comparer.FromCulture(culture as text, optional ignoreCase as nullable logical) as function",
+"Returns a comparer function based on the specified culture and case-sensitivity."
+],
+"Comparer.Ordinal": [
+"Comparer.Ordinal(x as any, y as any) as number",
+"Returns a comparer function which uses Ordinal rules to compare values."
+],
+"Comparer.OrdinalIgnoreCase": [
+"Comparer.OrdinalIgnoreCase(x as any, y as any) as number",
+"Returns a case-insensitive comparer function which uses Ordinal rules to compare values."
+],
+"Csv.Document": [
+"Csv.Document(source as any, optional columns as any, optional delimiter as any, optional extraValues as nullable number, optional encoding as nullable number) as table",
+"Returns the contents of the CSV document as a table."
+],
+"Cube.AddAndExpandDimensionColumn": [
+"Cube.AddAndExpandDimensionColumn(cube as table, dimensionSelector as any, attributeNames as list, optional newColumnNames as any) as table",
+"Merges the specified dimension table into the cube's filter context and changes the dimensional granularity of the filter context by expanding the specified set of dimension attributes."
+],
+"Cube.AddMeasureColumn": [
+"Cube.AddMeasureColumn(cube as table, column as text, measureSelector as any) as table",
+"Adds a column to the cube that contains the results of the measure applied in the row context of each row."
+],
+"Cube.ApplyParameter": [
+"Cube.ApplyParameter(cube as table, parameter as any, optional arguments as nullable list) as table",
+"Returns a cube after applying a parameter to it."
+],
+"Cube.AttributeMemberId": [
+"Cube.AttributeMemberId(attribute as any) as any",
+"Returns the unique member identifier from members property value."
+],
+"Cube.AttributeMemberProperty": [
+"Cube.AttributeMemberProperty(attribute as any, propertyName as text) as any",
+"Returns a property of a dimension attribute."
+],
+"Cube.CollapseAndRemoveColumns": [
+"Cube.CollapseAndRemoveColumns(cube as table, columnNames as list) as table",
+"Changes the dimensional granularity of the filter context for the cube by collapsing the attributes mapped to the specified columns."
+],
+"Cube.Dimensions": [
+"Cube.Dimensions(cube as table) as table",
+"Returns a table containing the set of available dimensions."
+],
+"Cube.DisplayFolders": [
+"Cube.DisplayFolders(cube as table) as table",
+"Returns a nested tree of tables representing the display folder hierarchy of the objects (for example, dimensions and measures)."
+],
+"Cube.MeasureProperties": [
+"Cube.MeasureProperties(cube as table) as table",
+"Returns a table containing the set of available measure properties that are expanded in the cube."
+],
+"Cube.MeasureProperty": [
+"Cube.MeasureProperty(measure as any, propertyName as text) as any",
+"Returns a property of a measure (cell property)."
+],
+"Cube.Measures": [
+"Cube.Measures(cube as any) as table",
+"Returns a table containing the set of available measures."
+],
+"Cube.Parameters": [
+"Cube.Parameters(cube as table) as table",
+"Returns a table containing the set of parameters that can be applied to the cube."
+],
+"Cube.Properties": [
+"Cube.Properties(cube as table) as table",
+"Returns a table containing the set of available properties for dimensions that are expanded in the cube."
+],
+"Cube.PropertyKey": [
+"Cube.PropertyKey(property as any) as any",
+"Returns the key of a property."
+],
+"Cube.ReplaceDimensions": [
+"Cube.ReplaceDimensions(cube as table, dimensions as any) as table",
+"Replaces the set of dimensions returned by Cube.Dimensions."
+],
+"Cube.Transform": [
+"Cube.Transform(cube as table, transforms as list) as table",
+"Applies a list of cube functions."
+],
+"Currency.From": [
+"Currency.From(value as any, optional culture as nullable text, optional roundingMode as nullable number) as nullable number",
+"Returns a currency value from the given value."
+],
+"DB2.Database": [
+"DB2.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of SQL tables and views available in a Db2 database."
+],
+"Date.AddDays": [
+"Date.AddDays(dateTime as any, numberOfDays as number) as any",
+"Adds the specified days to the date."
+],
+"Date.AddMonths": [
+"Date.AddMonths(dateTime as any, numberOfMonths as number) as any",
+"Adds the specified months to the date."
+],
+"Date.AddQuarters": [
+"Date.AddQuarters(dateTime as any, numberOfQuarters as number) as any",
+"Adds the specified quarters to the date."
+],
+"Date.AddWeeks": [
+"Date.AddWeeks(dateTime as any, numberOfWeeks as number) as any",
+"Adds the specified weeks to the date."
+],
+"Date.AddYears": [
+"Date.AddYears(dateTime as any, numberOfYears as number) as any",
+"Adds the specified years to the date."
+],
+"Date.Day": [
+"Date.Day(dateTime as any) as nullable number",
+"Returns the day component."
+],
+"Date.DayOfWeek": [
+"Date.DayOfWeek(dateTime as any, optional firstDayOfWeek as nullable number) as nullable number",
+"Returns a number (from 0 to 6) indicating the day of the week of the provided value."
+],
+"Date.DayOfWeekName": [
+"Date.DayOfWeekName(date as any, optional culture as nullable text) as nullable text",
+"Returns the day of the week name."
+],
+"Date.DayOfYear": [
+"Date.DayOfYear(dateTime as any) as nullable number",
+"Returns a number from 1 to 366 representing the day of the year."
+],
+"Date.DaysInMonth": [
+"Date.DaysInMonth(dateTime as any) as nullable number",
+"Returns a number from 28 to 31 indicating the number of days in the month."
+],
+"Date.EndOfDay": [
+"Date.EndOfDay(dateTime as any) as any",
+"Returns the end of the day."
+],
+"Date.EndOfMonth": [
+"Date.EndOfMonth(dateTime as any) as any",
+"Returns the end of the month."
+],
+"Date.EndOfQuarter": [
+"Date.EndOfQuarter(dateTime as any) as any",
+"Returns the end of the quarter."
+],
+"Date.EndOfWeek": [
+"Date.EndOfWeek(dateTime as any, optional firstDayOfWeek as nullable number) as any",
+"Returns the end of the week."
+],
+"Date.EndOfYear": [
+"Date.EndOfYear(dateTime as any) as any",
+"Returns the end of the year."
+],
+"Date.From": [
+"Date.From(value as any, optional culture as nullable text) as nullable date",
+"Creates a date from the given value."
+],
+"Date.FromText": [
+"Date.FromText(text as nullable text, optional options as any) as nullable date",
+"Creates a Date from local, universal, and custom Date formats."
+],
+"Date.IsInCurrentDay": [
+"Date.IsInCurrentDay(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the current day, as determined by the current date and time on the system."
+],
+"Date.IsInCurrentMonth": [
+"Date.IsInCurrentMonth(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the current month, as determined by the current date and time on the system."
+],
+"Date.IsInCurrentQuarter": [
+"Date.IsInCurrentQuarter(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the current quarter, as determined by the current date and time on the system."
+],
+"Date.IsInCurrentWeek": [
+"Date.IsInCurrentWeek(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the current week, as determined by the current date and time on the system."
+],
+"Date.IsInCurrentYear": [
+"Date.IsInCurrentYear(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the current year, as determined by the current date and time on the system."
+],
+"Date.IsInNextDay": [
+"Date.IsInNextDay(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the next day, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current day."
+],
+"Date.IsInNextMonth": [
+"Date.IsInNextMonth(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the next month, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current month."
+],
+"Date.IsInNextNDays": [
+"Date.IsInNextNDays(dateTime as any, days as number) as nullable logical",
+"Indicates whether this date occurs during the next number of days, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current day."
+],
+"Date.IsInNextNMonths": [
+"Date.IsInNextNMonths(dateTime as any, months as number) as nullable logical",
+"Indicates whether this date occurs during the next number of months, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current month."
+],
+"Date.IsInNextNQuarters": [
+"Date.IsInNextNQuarters(dateTime as any, quarters as number) as nullable logical",
+"Indicates whether this date occurs during the next number of quarters, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current quarter."
+],
+"Date.IsInNextNWeeks": [
+"Date.IsInNextNWeeks(dateTime as any, weeks as number) as nullable logical",
+"Indicates whether this date occurs during the next number of weeks, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current week."
+],
+"Date.IsInNextNYears": [
+"Date.IsInNextNYears(dateTime as any, years as number) as nullable logical",
+"Indicates whether this date occurs during the next number of years, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current year."
+],
+"Date.IsInNextQuarter": [
+"Date.IsInNextQuarter(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the next quarter, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current quarter."
+],
+"Date.IsInNextWeek": [
+"Date.IsInNextWeek(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the next week, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current week."
+],
+"Date.IsInNextYear": [
+"Date.IsInNextYear(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the next year, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current year."
+],
+"Date.IsInPreviousDay": [
+"Date.IsInPreviousDay(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the previous day, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current day."
+],
+"Date.IsInPreviousMonth": [
+"Date.IsInPreviousMonth(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the previous month, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current month."
+],
+"Date.IsInPreviousNDays": [
+"Date.IsInPreviousNDays(dateTime as any, days as number) as nullable logical",
+"Indicates whether this date occurs during the previous number of days, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current day."
+],
+"Date.IsInPreviousNMonths": [
+"Date.IsInPreviousNMonths(dateTime as any, months as number) as nullable logical",
+"Indicates whether this date occurs during the previous number of months, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current month."
+],
+"Date.IsInPreviousNQuarters": [
+"Date.IsInPreviousNQuarters(dateTime as any, quarters as number) as nullable logical",
+"Indicates whether this date occurs during the previous number of quarters, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current quarter."
+],
+"Date.IsInPreviousNWeeks": [
+"Date.IsInPreviousNWeeks(dateTime as any, weeks as number) as nullable logical",
+"Indicates whether this date occurs during the previous number of weeks, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current week."
+],
+"Date.IsInPreviousNYears": [
+"Date.IsInPreviousNYears(dateTime as any, years as number) as nullable logical",
+"Indicates whether this date occurs during the previous number of years, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current year."
+],
+"Date.IsInPreviousQuarter": [
+"Date.IsInPreviousQuarter(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the previous quarter, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current quarter."
+],
+"Date.IsInPreviousWeek": [
+"Date.IsInPreviousWeek(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the previous week, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current week."
+],
+"Date.IsInPreviousYear": [
+"Date.IsInPreviousYear(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the previous year, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current year."
+],
+"Date.IsInYearToDate": [
+"Date.IsInYearToDate(dateTime as any) as nullable logical",
+"Indicates whether this date occurs during the current year and is on or before the current day, as determined by the current date and time on the system."
+],
+"Date.IsLeapYear": [
+"Date.IsLeapYear(dateTime as any) as nullable logical",
+"Indicates whether this date falls in a leap year."
+],
+"Date.Month": [
+"Date.Month(dateTime as any) as nullable number",
+"Returns the month component."
+],
+"Date.MonthName": [
+"Date.MonthName(date as any, optional culture as nullable text) as nullable text",
+"Returns the name of the month component."
+],
+"Date.QuarterOfYear": [
+"Date.QuarterOfYear(dateTime as any) as nullable number",
+"Returns a number indicating which quarter of the year the date falls in."
+],
+"Date.StartOfDay": [
+"Date.StartOfDay(dateTime as any) as any",
+"Returns the start of the day."
+],
+"Date.StartOfMonth": [
+"Date.StartOfMonth(dateTime as any) as any",
+"Returns the start of the month."
+],
+"Date.StartOfQuarter": [
+"Date.StartOfQuarter(dateTime as any) as any",
+"Returns the start of the quarter."
+],
+"Date.StartOfWeek": [
+"Date.StartOfWeek(dateTime as any, optional firstDayOfWeek as nullable number) as any",
+"Returns the start of the week."
+],
+"Date.StartOfYear": [
+"Date.StartOfYear(dateTime as any) as any",
+"Returns the start of the year."
+],
+"Date.ToRecord": [
+"Date.ToRecord(date as date) as record",
+"Returns a record containing parts of the date value."
+],
+"Date.ToText": [
+"Date.ToText(date as nullable date, optional options as any, optional culture as nullable text) as nullable text",
+"Returns a textual representation of the date value."
+],
+"Date.WeekOfMonth": [
+"Date.WeekOfMonth(dateTime as any, optional firstDayOfWeek as nullable number) as nullable number",
+"Returns a number from 1 to 6 indicating which week of the month this date falls in."
+],
+"Date.WeekOfYear": [
+"Date.WeekOfYear(dateTime as any, optional firstDayOfWeek as nullable number) as nullable number",
+"Returns a number from 1 to 54 indicating which week of the year this date falls in."
+],
+"Date.Year": [
+"Date.Year(dateTime as any) as nullable number",
+"Returns the year component."
+],
+"DateTime.AddZone": [
+"DateTime.AddZone(dateTime as nullable datetime, timezoneHours as number, optional timezoneMinutes as nullable number) as nullable datetimezone",
+"Adds timezone information to the datetime value."
+],
+"DateTime.Date": [
+"DateTime.Date(dateTime as any) as nullable date",
+"Returns the date component of the given date, datetime, or datetimezone value."
+],
+"DateTime.FixedLocalNow": [
+"DateTime.FixedLocalNow() as datetime",
+"Returns the current date and time in the local timezone. This value is fixed and will not change with successive calls."
+],
+"DateTime.From": [
+"DateTime.From(value as any, optional culture as nullable text) as nullable datetime",
+"Creates a datetime from the given value."
+],
+"DateTime.FromFileTime": [
+"DateTime.FromFileTime(fileTime as nullable number) as nullable datetime",
+"Creates a datetime from a 64 bits long number."
+],
+"DateTime.FromText": [
+"DateTime.FromText(text as nullable text, optional options as any) as nullable datetime",
+"Creates a datetimezone from local and universal datetime formats."
+],
+"DateTime.IsInCurrentHour": [
+"DateTime.IsInCurrentHour(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the current hour, as determined by the current date and time on the system."
+],
+"DateTime.IsInCurrentMinute": [
+"DateTime.IsInCurrentMinute(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the current minute, as determined by the current date and time on the system."
+],
+"DateTime.IsInCurrentSecond": [
+"DateTime.IsInCurrentSecond(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the current second, as determined by the current date and time on the system."
+],
+"DateTime.IsInNextHour": [
+"DateTime.IsInNextHour(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the next hour, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current hour."
+],
+"DateTime.IsInNextMinute": [
+"DateTime.IsInNextMinute(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the next minute, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current minute."
+],
+"DateTime.IsInNextNHours": [
+"DateTime.IsInNextNHours(dateTime as any, hours as number) as nullable logical",
+"Indicates whether this datetime occurs during the next number of hours, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current hour."
+],
+"DateTime.IsInNextNMinutes": [
+"DateTime.IsInNextNMinutes(dateTime as any, minutes as number) as nullable logical",
+"Indicates whether this datetime occurs during the next number of minutes, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current minute."
+],
+"DateTime.IsInNextNSeconds": [
+"DateTime.IsInNextNSeconds(dateTime as any, seconds as number) as nullable logical",
+"Indicates whether this datetime occurs during the next number of seconds, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current second."
+],
+"DateTime.IsInNextSecond": [
+"DateTime.IsInNextSecond(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the next second, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current second."
+],
+"DateTime.IsInPreviousHour": [
+"DateTime.IsInPreviousHour(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the previous hour, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current hour."
+],
+"DateTime.IsInPreviousMinute": [
+"DateTime.IsInPreviousMinute(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the previous minute, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current minute."
+],
+"DateTime.IsInPreviousNHours": [
+"DateTime.IsInPreviousNHours(dateTime as any, hours as number) as nullable logical",
+"Indicates whether this datetime occurs during the previous number of hours, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current hour."
+],
+"DateTime.IsInPreviousNMinutes": [
+"DateTime.IsInPreviousNMinutes(dateTime as any, minutes as number) as nullable logical",
+"Indicates whether this datetime occurs during the previous number of minutes, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current minute."
+],
+"DateTime.IsInPreviousNSeconds": [
+"DateTime.IsInPreviousNSeconds(dateTime as any, seconds as number) as nullable logical",
+"Indicates whether this datetime occurs during the previous number of seconds, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current second."
+],
+"DateTime.IsInPreviousSecond": [
+"DateTime.IsInPreviousSecond(dateTime as any) as nullable logical",
+"Indicates whether this datetime occurs during the previous second, as determined by the current date and time on the system. Note that this function will return false when passed a value that occurs within the current second."
+],
+"DateTime.LocalNow": [
+"DateTime.LocalNow() as datetime",
+"Returns the current date and time in the local timezone."
+],
+"DateTime.Time": [
+"DateTime.Time(dateTime as any) as nullable time",
+"Returns the time part of the given datetime value."
+],
+"DateTime.ToRecord": [
+"DateTime.ToRecord(dateTime as datetime) as record",
+"Returns a record containing the datetime value's parts."
+],
+"DateTime.ToText": [
+"DateTime.ToText(dateTime as nullable datetime, optional options as any, optional culture as nullable text) as nullable text",
+"Returns a textual representation of the datetime value."
+],
+"DateTimeZone.FixedLocalNow": [
+"DateTimeZone.FixedLocalNow() as datetimezone",
+"Returns the current date & time in the local timezone. This value is fixed and will not change with successive calls."
+],
+"DateTimeZone.FixedUtcNow": [
+"DateTimeZone.FixedUtcNow() as datetimezone",
+"Returns the current date and time in UTC (the GMT timezone). This value is fixed and will not change with successive calls."
+],
+"DateTimeZone.From": [
+"DateTimeZone.From(value as any, optional culture as nullable text) as nullable datetimezone",
+"Creates a datetimezone from the given value."
+],
+"DateTimeZone.FromFileTime": [
+"DateTimeZone.FromFileTime(fileTime as nullable number) as nullable datetimezone",
+"Creates a datetimezone from a 64 bits long number."
+],
+"DateTimeZone.FromText": [
+"DateTimeZone.FromText(text as nullable text, optional options as any) as nullable datetimezone",
+"Creates a datetimezone from local, universal, and custom datetimezone formats."
+],
+"DateTimeZone.LocalNow": [
+"DateTimeZone.LocalNow() as datetimezone",
+"Returns the current date & time in the local timezone."
+],
+"DateTimeZone.RemoveZone": [
+"DateTimeZone.RemoveZone(dateTimeZone as nullable datetimezone) as nullable datetime",
+"Removes timezone information from the given datetimezone value."
+],
+"DateTimeZone.SwitchZone": [
+"DateTimeZone.SwitchZone(dateTimeZone as nullable datetimezone, timezoneHours as number, optional timezoneMinutes as nullable number) as nullable datetimezone",
+"Changes the timezone of the value."
+],
+"DateTimeZone.ToLocal": [
+"DateTimeZone.ToLocal(dateTimeZone as nullable datetimezone) as nullable datetimezone",
+"Converts the timezone component to the local timezone."
+],
+"DateTimeZone.ToRecord": [
+"DateTimeZone.ToRecord(dateTimeZone as datetimezone) as record",
+"Returns a record containing the datetimezone value's parts."
+],
+"DateTimeZone.ToText": [
+"DateTimeZone.ToText(dateTimeZone as nullable datetimezone, optional options as any, optional culture as nullable text) as nullable text",
+"Returns a textual representation of the datetimezone value."
+],
+"DateTimeZone.ToUtc": [
+"DateTimeZone.ToUtc(dateTimeZone as nullable datetimezone) as nullable datetimezone",
+"Converts the timezone component to UTC timezone."
+],
+"DateTimeZone.UtcNow": [
+"DateTimeZone.UtcNow() as datetimezone",
+"Returns the current date and time in UTC (the GMT timezone)."
+],
+"DateTimeZone.ZoneHours": [
+"DateTimeZone.ZoneHours(dateTimeZone as nullable datetimezone) as nullable number",
+"Gets the timezone hour of the value."
+],
+"DateTimeZone.ZoneMinutes": [
+"DateTimeZone.ZoneMinutes(dateTimeZone as nullable datetimezone) as nullable number",
+"Gets the timezone minutes of the value."
+],
+"Decimal.From": [
+"Decimal.From(value as any, optional culture as nullable text) as nullable number",
+"Creates a Decimal from the given value."
+],
+"DeltaLake.Metadata": [
+"DeltaLake.Metadata(table as table) as table",
+"Given a Delta Lake table, returns the log entries for that table."
+],
+"DeltaLake.Table": [
+"DeltaLake.Table(directory as table, optional options as nullable record) as any",
+"Returns the contents of the Delta Lake table."
+],
+"Diagnostics.ActivityId": [
+"Diagnostics.ActivityId() as nullable text",
+"Returns an opaque identifier for the currently-running evaluation."
+],
+"Diagnostics.CorrelationId": [
+"Diagnostics.CorrelationId() as nullable text",
+"Returns an opaque identifier to correlate incoming requests with outgoing ones."
+],
+"Diagnostics.Trace": [
+"Diagnostics.Trace(traceLevel as number, message as anynonnull, value as any, optional delayed as nullable logical) as any",
+"Writes a trace entry, if tracing is enabled, and returns the value."
+],
+"DirectQueryCapabilities.From": [
+"DirectQueryCapabilities.From(value as any) as table",
+"This function is intended for internal use only."
+],
+"Double.From": [
+"Double.From(value as any, optional culture as nullable text) as nullable number",
+"Creates a Double from the given value."
+],
+"Duration.Days": [
+"Duration.Days(duration as nullable duration) as nullable number",
+"Returns the days portion of a duration."
+],
+"Duration.From": [
+"Duration.From(value as any) as nullable duration",
+"Creates a duration from the given value."
+],
+"Duration.FromText": [
+"Duration.FromText(text as nullable text) as nullable duration",
+"Returns a duration value from textual elapsed time forms (d.h:m:s)."
+],
+"Duration.Hours": [
+"Duration.Hours(duration as nullable duration) as nullable number",
+"Returns the hours portion of a duration."
+],
+"Duration.Minutes": [
+"Duration.Minutes(duration as nullable duration) as nullable number",
+"Returns the minutes portion of a duration."
+],
+"Duration.Seconds": [
+"Duration.Seconds(duration as nullable duration) as nullable number",
+"Returns the seconds portion of a duration."
+],
+"Duration.ToRecord": [
+"Duration.ToRecord(duration as duration) as record",
+"Returns a record containing the parts of the duration."
+],
+"Duration.ToText": [
+"Duration.ToText(duration as nullable duration, optional format as nullable text) as nullable text",
+"Returns the text of the form \"d.h:m:s\"."
+],
+"Duration.TotalDays": [
+"Duration.TotalDays(duration as nullable duration) as nullable number",
+"Returns the total days this duration spans."
+],
+"Duration.TotalHours": [
+"Duration.TotalHours(duration as nullable duration) as nullable number",
+"Returns the total hours this duration spans."
+],
+"Duration.TotalMinutes": [
+"Duration.TotalMinutes(duration as nullable duration) as nullable number",
+"Returns the total minutes this duration spans."
+],
+"Duration.TotalSeconds": [
+"Duration.TotalSeconds(duration as nullable duration) as nullable number",
+"Returns the total seconds this duration spans."
+],
+"Embedded.Value": [
+"Embedded.Value(value as any, path as text) as any",
+"This function is intended for internal use only."
+],
+"Error.Record": [
+"Error.Record(reason as text, optional message as nullable text, optional detail as any, optional parameters as nullable list, optional errorCode as nullable text) as record",
+"Returns an error record from the provided text values for reason, message, detail, and error code."
+],
+"Essbase.Cubes": [
+"Essbase.Cubes(url as text, optional options as nullable record) as table",
+"Returns the cubes in an Essbase instance grouped by Essbase server."
+],
+"Excel.ShapeTable": [
+"Excel.ShapeTable(table as table, optional options as nullable record) as any",
+"This function is intended for internal use only."
+],
+"Excel.Workbook": [
+"Excel.Workbook(workbook as binary, optional useHeaders as any, optional delayTypes as nullable logical) as table",
+"Returns the contents of the Excel workbook."
+],
+"Exchange.Contents": [
+"Exchange.Contents(optional mailboxAddress as nullable text) as table",
+"Returns a table of contents from a Microsoft Exchange account."
+],
+"Expression.Constant": [
+"Expression.Constant(value as any) as text",
+"Returns the M source code representation of a constant value."
+],
+"Expression.Evaluate": [
+"Expression.Evaluate(document as text, optional environment as nullable record) as any",
+"Returns the result of evaluating an M expression."
+],
+"Expression.Identifier": [
+"Expression.Identifier(name as text) as text",
+"Returns the M source code representation of an identifier."
+],
+"File.Contents": [
+"File.Contents(path as text, optional options as nullable record) as binary",
+"Returns the contents of the specified file as binary."
+],
+"Folder.Contents": [
+"Folder.Contents(path as text, optional options as nullable record) as table",
+"Returns a table containing the properties and contents of the files and folders found in the specified folder."
+],
+"Folder.Files": [
+"Folder.Files(path as text, optional options as nullable record) as table",
+"Returns a table containing the properties and contents of the files found in the specified folder and subfolders."
+],
+"Function.From": [
+"Function.From(functionType as type, function as function) as function",
+"Creates a function with a specific parameter signature on top of a function that takes a single list argument."
+],
+"Function.Invoke": [
+"Function.Invoke(function as function, args as list) as any",
+"Invokes the given function."
+],
+"Function.InvokeAfter": [
+"Function.InvokeAfter(function as function, delay as duration) as any",
+"Invokes the given function after the specified duration has passed."
+],
+"Function.InvokeWithErrorContext": [
+"Function.InvokeWithErrorContext(function as function, context as text) as any",
+"This function is intended for internal use only."
+],
+"Function.IsDataSource": [
+"Function.IsDataSource(function as function) as logical",
+"Returns whether or not a particular function is considered a data source."
+],
+"Function.ScalarVector": [
+"Function.ScalarVector(scalarFunctionType as type, vectorFunction as function) as function",
+"Creates a scalar function on top of a vector function, batching multiple invocations."
+],
+"Geography.FromWellKnownText": [
+"Geography.FromWellKnownText(input as nullable text) as nullable record",
+"Translates text representing a geographic value in Well-Known Text (WKT) format into a structured record."
+],
+"Geography.ToWellKnownText": [
+"Geography.ToWellKnownText(input as nullable record, optional omitSRID as nullable logical) as nullable text",
+"Translates a structured geographic point value into its Well-Known Text (WKT) representation."
+],
+"GeographyPoint.From": [
+"GeographyPoint.From(longitude as number, latitude as number, optional z as nullable number, optional m as nullable number, optional srid as nullable number) as record",
+"Creates a record representing a geographic point from parts."
+],
+"Geometry.FromWellKnownText": [
+"Geometry.FromWellKnownText(input as nullable text) as nullable record",
+"Translates text representing a geometric value in Well-Known Text (WKT) format into a structured record."
+],
+"Geometry.ToWellKnownText": [
+"Geometry.ToWellKnownText(input as nullable record, optional omitSRID as nullable logical) as nullable text",
+"Translates a structured geometric point value into its Well-Known Text (WKT) representation."
+],
+"GeometryPoint.From": [
+"GeometryPoint.From(x as number, y as number, optional z as nullable number, optional m as nullable number, optional srid as nullable number) as record",
+"Creates a record representing a geometric point from parts."
+],
+"GoogleAnalytics.Accounts": [
+"GoogleAnalytics.Accounts(optional options as nullable record) as table",
+"Returns Google Analytics accounts."
+],
+"Graph.Nodes": [
+"Graph.Nodes(graph as record) as list",
+"This function is intended for internal use only."
+],
+"Guid.From": [
+"Guid.From(value as nullable text) as nullable text",
+"Returns a guid value from the given value."
+],
+"HdInsight.Containers": [
+"HdInsight.Containers(account as text) as table",
+"Returns a navigational table containing the containers found in the specified account from an Azure storage vault."
+],
+"HdInsight.Contents": [
+"HdInsight.Contents(account as text) as table",
+"Returns a navigational table containing the containers found in the specified account from an Azure storage vault."
+],
+"HdInsight.Files": [
+"HdInsight.Files(account as text, containerName as text) as table",
+"Returns a table containing the properties and contents of the blobs found in the specified container from an Azure storage vault."
+],
+"Hdfs.Contents": [
+"Hdfs.Contents(url as text) as table",
+"Returns a table containing the properties and contents of the files and folders found in the specified folder from a Hadoop file system."
+],
+"Hdfs.Files": [
+"Hdfs.Files(url as text) as table",
+"Returns a table containing the properties and contents of the files found in the specified folder and subfolders from a Hadoop file system."
+],
+"Html.Table": [
+"Html.Table(html as any, columnNameSelectorPairs as list, optional options as nullable record) as table",
+"Returns a table containing the results of running the specified CSS selectors against the provided HTML."
+],
+"Identity.From": [
+"Identity.From(identityProvider as function, value as any) as record",
+"Creates an identity."
+],
+"Identity.IsMemberOf": [
+"Identity.IsMemberOf(identity as record, collection as record) as logical",
+"Determines whether an identity is a member of an identity collection."
+],
+"IdentityProvider.Default": [
+"IdentityProvider.Default() as any",
+"The default identity provider for the current host."
+],
+"Informix.Database": [
+"Informix.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of SQL tables and views available in an Informix database."
+],
+"Int16.From": [
+"Int16.From(value as any, optional culture as nullable text, optional roundingMode as nullable number) as nullable number",
+"Creates a 16-bit integer from the given value."
+],
+"Int32.From": [
+"Int32.From(value as any, optional culture as nullable text, optional roundingMode as nullable number) as nullable number",
+"Creates a 32-bit integer from the given value."
+],
+"Int64.From": [
+"Int64.From(value as any, optional culture as nullable text, optional roundingMode as nullable number) as nullable number",
+"Creates a 64-bit integer from the given value."
+],
+"Int8.From": [
+"Int8.From(value as any, optional culture as nullable text, optional roundingMode as nullable number) as nullable number",
+"Creates a signed 8-bit integer from the given value."
+],
+"ItemExpression.From": [
+"ItemExpression.From(function as function) as record",
+"Returns the abstract syntax tree (AST) for the body of a function."
+],
+"Json.Document": [
+"Json.Document(jsonText as any, optional encoding as nullable number) as any",
+"Returns the content of the JSON document."
+],
+"Json.FromValue": [
+"Json.FromValue(value as any, optional encoding as nullable number) as binary",
+"Produces a JSON representation of a given value."
+],
+"Json.SchemaFromType": [
+"Json.SchemaFromType(type as type, optional options as nullable record) as record",
+"Produces a JSON Schema that describes a given type."
+],
+"Lines.FromBinary": [
+"Lines.FromBinary(binary as binary, optional quoteStyle as any, optional includeLineSeparators as nullable logical, optional encoding as nullable number) as list",
+"Converts a binary value to a list of text values split at lines breaks. If a quote style is specified, then line breaks may appear within quotes. If includeLineSeparators is true, then the line break characters are included in the text."
+],
+"Lines.FromText": [
+"Lines.FromText(text as text, optional quoteStyle as any, optional includeLineSeparators as nullable logical) as list",
+"Converts a text value to a list of text values split at lines breaks. If includeLineSeparators is true, then the line break characters are included in the text."
+],
+"Lines.ToBinary": [
+"Lines.ToBinary(lines as list, optional lineSeparator as nullable text, optional encoding as nullable number, optional includeByteOrderMark as nullable logical) as binary",
+"Converts a list of text into a binary value using the specified encoding and lineSeparator.The specified lineSeparator is appended to each line. If not specified then the carriage return and line feed characters are used."
+],
+"Lines.ToText": [
+"Lines.ToText(lines as list, optional lineSeparator as nullable text) as text",
+"Converts a list of text values into a single text value. The specified line separator is appended to each line. If not specified, then the carriage return and line feed characters are used as the line separator."
+],
+"List.Accumulate": [
+"List.Accumulate(list as list, seed as any, accumulator as function) as any",
+"Accumulates a summary value from the items in the list."
+],
+"List.AllTrue": [
+"List.AllTrue(list as list) as logical",
+"Returns true if all expressions are true."
+],
+"List.Alternate": [
+"List.Alternate(list as list, count as number, optional repeatInterval as nullable number, optional offset as nullable number) as list",
+"Returns a new list by alternatively keeping and skipping items."
+],
+"List.AnyTrue": [
+"List.AnyTrue(list as list) as logical",
+"Returns true if any expression is true."
+],
+"List.Average": [
+"List.Average(list as list, optional precision as nullable number) as any",
+"Returns the average of the values. Works with number, date, datetime, datetimezone and duration values."
+],
+"List.Buffer": [
+"List.Buffer(list as list) as list",
+"Buffers a list."
+],
+"List.Combine": [
+"List.Combine(lists as list) as list",
+"Returns a single list by combining multiple lists."
+],
+"List.ConformToPageReader": [
+"List.ConformToPageReader(list as list, optional options as nullable record) as table",
+"This function is intended for internal use only."
+],
+"List.Contains": [
+"List.Contains(list as list, value as any, optional equationCriteria as any) as logical",
+"Indicates whether the list contains the value."
+],
+"List.ContainsAll": [
+"List.ContainsAll(list as list, values as list, optional equationCriteria as any) as logical",
+"Indicates where a list includes all the values in another list."
+],
+"List.ContainsAny": [
+"List.ContainsAny(list as list, values as list, optional equationCriteria as any) as logical",
+"Indicates where a list includes any of the values in another list."
+],
+"List.Count": [
+"List.Count(list as list) as number",
+"Returns the number of items in the list."
+],
+"List.Covariance": [
+"List.Covariance(numberList1 as list, numberList2 as list) as nullable number",
+"Returns the covariance between the two lists of numbers."
+],
+"List.DateTimeZones": [
+"List.DateTimeZones(start as datetimezone, count as number, step as duration) as list",
+"Generates a list of datetimezone values given an initial value, count, and incremental duration value."
+],
+"List.DateTimes": [
+"List.DateTimes(start as datetime, count as number, step as duration) as list",
+"Generates a list of datetime values given an initial value, count, and incremental duration value."
+],
+"List.Dates": [
+"List.Dates(start as date, count as number, step as duration) as list",
+"Generates a list of date values given an initial value, count, and incremental duration value."
+],
+"List.Difference": [
+"List.Difference(list1 as list, list2 as list, optional equationCriteria as any) as list",
+"Returns the difference of the two given lists."
+],
+"List.Distinct": [
+"List.Distinct(list as list, optional equationCriteria as any) as list",
+"Returns a list of values with duplicates removed."
+],
+"List.Durations": [
+"List.Durations(start as duration, count as number, step as duration) as list",
+"Generates a list of duration values given an initial value, count, and incremental duration value."
+],
+"List.FindText": [
+"List.FindText(list as list, text as text) as list",
+"Returns a list of values (including record fields) that contain the specified text."
+],
+"List.First": [
+"List.First(list as list, optional defaultValue as any) as any",
+"Returns the first value of the list or the specified default if empty."
+],
+"List.FirstN": [
+"List.FirstN(list as list, countOrCondition as any) as any",
+"Returns the first set of items in the list by specifying how many items to return or a qualifying condition."
+],
+"List.Generate": [
+"List.Generate(initial as function, condition as function, next as function, optional selector as nullable function) as list",
+"Generates a list of values."
+],
+"List.InsertRange": [
+"List.InsertRange(list as list, index as number, values as list) as list",
+"Inserts values into a list at the given index."
+],
+"List.Intersect": [
+"List.Intersect(lists as list, optional equationCriteria as any) as list",
+"Returns the intersection of the list values found in the input."
+],
+"List.IsDistinct": [
+"List.IsDistinct(list as list, optional equationCriteria as any) as logical",
+"Indicates whether there are duplicates in the list."
+],
+"List.IsEmpty": [
+"List.IsEmpty(list as list) as logical",
+"Returns true if the list is empty."
+],
+"List.Last": [
+"List.Last(list as list, optional defaultValue as any) as any",
+"Returns the last value of the list or the specified default if empty."
+],
+"List.LastN": [
+"List.LastN(list as list, optional countOrCondition as any) as any",
+"Returns a list of the last item or items in the specified list. Can optionally specify how many values to return or a qualifying condition."
+],
+"List.MatchesAll": [
+"List.MatchesAll(list as list, condition as function) as logical",
+"Returns true if the condition function is satisfied by all values in the list."
+],
+"List.MatchesAny": [
+"List.MatchesAny(list as list, condition as function) as logical",
+"Returns true if the condition function is satisfied by any value."
+],
+"List.Max": [
+"List.Max(list as list, optional default as any, optional comparisonCriteria as any, optional includeNulls as nullable logical) as any",
+"Returns the maximum value or the default value for an empty list."
+],
+"List.MaxN": [
+"List.MaxN(list as list, countOrCondition as any, optional comparisonCriteria as any, optional includeNulls as nullable logical) as list",
+"Returns the maximum value(s) in the list. The number of values to return or a filter condition must be specified."
+],
+"List.Median": [
+"List.Median(list as list, optional comparisonCriteria as any) as any",
+"Returns the median value in the list."
+],
+"List.Min": [
+"List.Min(list as list, optional default as any, optional comparisonCriteria as any, optional includeNulls as nullable logical) as any",
+"Returns the minimum value or the default value for an empty list."
+],
+"List.MinN": [
+"List.MinN(list as list, countOrCondition as any, optional comparisonCriteria as any, optional includeNulls as nullable logical) as list",
+"Returns the minimum value(s) in the list. The number of values to return or a filtering condition may be specified."
+],
+"List.Mode": [
+"List.Mode(list as list, optional equationCriteria as any) as any",
+"Returns the most frequent value in the list."
+],
+"List.Modes": [
+"List.Modes(list as list, optional equationCriteria as any) as list",
+"Returns a list of the most frequent values in the list."
+],
+"List.NonNullCount": [
+"List.NonNullCount(list as list) as number",
+"Returns the number of non-null items in the list."
+],
+"List.Numbers": [
+"List.Numbers(start as number, count as number, optional increment as nullable number) as list",
+"Returns a list of numbers given an initial value, count, and optional increment value."
+],
+"List.Percentile": [
+"List.Percentile(list as list, percentiles as any, optional options as nullable record) as any",
+"Returns one or more sample percentiles corresponding to the given probabilities."
+],
+"List.PositionOf": [
+"List.PositionOf(list as list, value as any, optional occurrence as nullable number, optional equationCriteria as any) as any",
+"Returns the offset(s) of a value in a list."
+],
+"List.PositionOfAny": [
+"List.PositionOfAny(list as list, values as list, optional occurrence as nullable number, optional equationCriteria as any) as any",
+"Returns the first offset of a value in a list."
+],
+"List.Positions": [
+"List.Positions(list as list) as list",
+"Returns a list of offsets for the input."
+],
+"List.Product": [
+"List.Product(numbersList as list, optional precision as nullable number) as nullable number",
+"Returns the product of the numbers in the list."
+],
+"List.Random": [
+"List.Random(count as number, optional seed as nullable number) as list",
+"Returns a list of random numbers."
+],
+"List.Range": [
+"List.Range(list as list, offset as number, optional count as nullable number) as list",
+"Returns a subset of the list beginning at an offset."
+],
+"List.RemoveFirstN": [
+"List.RemoveFirstN(list as list, optional countOrCondition as any) as list",
+"Returns a list that skips the specified number of elements at the beginning of the list."
+],
+"List.RemoveItems": [
+"List.RemoveItems(list1 as list, list2 as list) as list",
+"Removes items from list1 that are present in list."
+],
+"List.RemoveLastN": [
+"List.RemoveLastN(list as list, optional countOrCondition as any) as list",
+"Returns a list that removes the specified number of elements from the end of the list."
+],
+"List.RemoveMatchingItems": [
+"List.RemoveMatchingItems(list1 as list, list2 as list, optional equationCriteria as any) as list",
+"Removes all occurrences of the input values."
+],
+"List.RemoveNulls": [
+"List.RemoveNulls(list as list) as list",
+"Removes all \"null\" values from the specified list."
+],
+"List.RemoveRange": [
+"List.RemoveRange(list as list, index as number, optional count as nullable number) as list",
+"Removes count number of values starting at the specified position."
+],
+"List.Repeat": [
+"List.Repeat(list as list, count as number) as list",
+"Returns a list that is count repetitions of the original list."
+],
+"List.ReplaceMatchingItems": [
+"List.ReplaceMatchingItems(list as list, replacements as list, optional equationCriteria as any) as list",
+"Applies replacements to a list."
+],
+"List.ReplaceRange": [
+"List.ReplaceRange(list as list, index as number, count as number, replaceWith as list) as list",
+"Replaces count number of values starting at position with the replacement values."
+],
+"List.ReplaceValue": [
+"List.ReplaceValue(list as list, oldValue as any, newValue as any, replacer as function) as list",
+"Searches a list for the specified value and replaces it."
+],
+"List.Reverse": [
+"List.Reverse(list as list) as list",
+"Reverses the order of values in the list."
+],
+"List.Select": [
+"List.Select(list as list, selection as function) as list",
+"Returns a list of values that match the condition."
+],
+"List.Single": [
+"List.Single(list as list) as any",
+"Returns the one list item for a list of length one, otherwise raises an error."
+],
+"List.SingleOrDefault": [
+"List.SingleOrDefault(list as list, optional default as any) as any",
+"Returns the one list item for a list of length one and the default value for an empty list."
+],
+"List.Skip": [
+"List.Skip(list as list, optional countOrCondition as any) as list",
+"Returns a list that skips the specified number of elements at the beginning of the list."
+],
+"List.Sort": [
+"List.Sort(list as list, optional comparisonCriteria as any) as list",
+"Sorts a list of data according to the criteria specified."
+],
+"List.Split": [
+"List.Split(list as list, pageSize as number) as list",
+"Splits the specified list into a list of lists using the specified page size."
+],
+"List.StandardDeviation": [
+"List.StandardDeviation(numbersList as list) as nullable number",
+"Returns a sample based estimate of the standard deviation."
+],
+"List.Sum": [
+"List.Sum(list as list, optional precision as nullable number) as any",
+"Returns the sum of the items in the list."
+],
+"List.Times": [
+"List.Times(start as time, count as number, step as duration) as list",
+"Generates a list of time values given an initial value, count, and incremental duration value."
+],
+"List.Transform": [
+"List.Transform(list as list, transform as function) as list",
+"Returns a new list of values computed from this list."
+],
+"List.TransformMany": [
+"List.TransformMany(list as list, collectionTransform as function, resultTransform as function) as list",
+"Returns a list whose elements are transformed from the input list using specified functions."
+],
+"List.Union": [
+"List.Union(lists as list, optional equationCriteria as any) as list",
+"Returns the union of the list values found in the input."
+],
+"List.Zip": [
+"List.Zip(lists as list) as list",
+"Returns a list of lists by combining items at the same position in multiple lists."
+],
+"Logical.From": [
+"Logical.From(value as any) as nullable logical",
+"Creates a logical from the given value."
+],
+"Logical.FromText": [
+"Logical.FromText(text as nullable text) as nullable logical",
+"Creates a logical value from the text values \"true\" and \"false\"."
+],
+"Logical.ToText": [
+"Logical.ToText(logicalValue as nullable logical) as nullable text",
+"Returns the text \"true\" or \"false\" given a logical value."
+],
+"MQ.Queue": [
+"MQ.Queue(server as text, queuemanager as text, channel as text, queue as text, optional options as nullable record) as table",
+"Returns a table of messages available in the queue via a non-destructive read."
+],
+"Module.Versions": [
+"Module.Versions() as record",
+"Returns a record of module versions for the current module and its dependencies."
+],
+"MySQL.Database": [
+"MySQL.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of SQL tables, views, and stored scalar functions available in a MySQL database."
+],
+"Number.Abs": [
+"Number.Abs(number as nullable number) as nullable number",
+"Returns the absolute value of the number."
+],
+"Number.Acos": [
+"Number.Acos(number as nullable number) as nullable number",
+"Returns the arccosine of the number."
+],
+"Number.Asin": [
+"Number.Asin(number as nullable number) as nullable number",
+"Returns the arcsine of the number."
+],
+"Number.Atan": [
+"Number.Atan(number as nullable number) as nullable number",
+"Returns the arctangent of the number."
+],
+"Number.Atan2": [
+"Number.Atan2(y as nullable number, x as nullable number) as nullable number",
+"Returns the arctangent of the division of the two numbers."
+],
+"Number.BitwiseAnd": [
+"Number.BitwiseAnd(number1 as nullable number, number2 as nullable number) as nullable number",
+"Returns the result of performing a bitwise \"And\" operation between the two inputs."
+],
+"Number.BitwiseNot": [
+"Number.BitwiseNot(number as any) as any",
+"Returns a byte where each bit is the opposite of the input."
+],
+"Number.BitwiseOr": [
+"Number.BitwiseOr(number1 as nullable number, number2 as nullable number) as nullable number",
+"Returns the result of performing a bitwise \"Or\" between the two inputs."
+],
+"Number.BitwiseShiftLeft": [
+"Number.BitwiseShiftLeft(number1 as nullable number, number2 as nullable number) as nullable number",
+"Shifts the bits set to the left."
+],
+"Number.BitwiseShiftRight": [
+"Number.BitwiseShiftRight(number1 as nullable number, number2 as nullable number) as nullable number",
+"Shifts the bits set to the right."
+],
+"Number.BitwiseXor": [
+"Number.BitwiseXor(number1 as nullable number, number2 as nullable number) as nullable number",
+"Returns the result of performing a bitwise \"XOR\" (Exclusive-OR) between the two inputs."
+],
+"Number.Combinations": [
+"Number.Combinations(setSize as nullable number, combinationSize as nullable number) as nullable number",
+"Returns the number of unique combinations."
+],
+"Number.Cos": [
+"Number.Cos(number as nullable number) as nullable number",
+"Returns the cosine of the number."
+],
+"Number.Cosh": [
+"Number.Cosh(number as nullable number) as nullable number",
+"Returns the hyperbolic cosine of the number."
+],
+"Number.Exp": [
+"Number.Exp(number as nullable number) as nullable number",
+"Raises e to the given power."
+],
+"Number.Factorial": [
+"Number.Factorial(number as nullable number) as nullable number",
+"Returns the factorial of the number."
+],
+"Number.From": [
+"Number.From(value as any, optional culture as nullable text) as nullable number",
+"Creates a number from the given value."
+],
+"Number.FromText": [
+"Number.FromText(text as nullable text, optional culture as nullable text) as nullable number",
+"Creates numbers from common text formats (\"15\", \"3,423.10\", \"5.0E-10\")."
+],
+"Number.IntegerDivide": [
+"Number.IntegerDivide(number1 as nullable number, number2 as nullable number, optional precision as nullable number) as nullable number",
+"Divides two numbers and returns the integer portion of the result."
+],
+"Number.IsEven": [
+"Number.IsEven(number as number) as logical",
+"Indicates if the value is even."
+],
+"Number.IsNaN": [
+"Number.IsNaN(number as number) as logical",
+"Indicates if the value is NaN (Not a number)."
+],
+"Number.IsOdd": [
+"Number.IsOdd(number as number) as logical",
+"Indicates if the value is odd."
+],
+"Number.Ln": [
+"Number.Ln(number as nullable number) as nullable number",
+"Returns the natural logarithm of the number."
+],
+"Number.Log": [
+"Number.Log(number as nullable number, optional base as nullable number) as nullable number",
+"Returns the logarithm of the number to the specified base (default e)."
+],
+"Number.Log10": [
+"Number.Log10(number as nullable number) as nullable number",
+"Returns the base 10 logarithm of the number."
+],
+"Number.Mod": [
+"Number.Mod(number as nullable number, divisor as nullable number, optional precision as nullable number) as nullable number",
+"Integer divides two numbers and returns the remainder."
+],
+"Number.Permutations": [
+"Number.Permutations(setSize as nullable number, permutationSize as nullable number) as nullable number",
+"Returns the number of permutations."
+],
+"Number.Power": [
+"Number.Power(number as nullable number, power as nullable number) as nullable number",
+"Raises a number to the given power."
+],
+"Number.Random": [
+"Number.Random() as number",
+"Returns a random number."
+],
+"Number.RandomBetween": [
+"Number.RandomBetween(bottom as number, top as number) as number",
+"Returns a random number between two numbers."
+],
+"Number.Round": [
+"Number.Round(number as nullable number, optional digits as nullable number, optional roundingMode as nullable number) as nullable number",
+"Returns the rounded number. The number of digits and rounding mode can be specified."
+],
+"Number.RoundAwayFromZero": [
+"Number.RoundAwayFromZero(number as nullable number, optional digits as nullable number) as nullable number",
+"Returns the result of rounding positive numbers up and negative numbers down. The number of digits can be specified."
+],
+"Number.RoundDown": [
+"Number.RoundDown(number as nullable number, optional digits as nullable number) as nullable number",
+"Returns the highest previous number. The number of digits can be specified."
+],
+"Number.RoundTowardZero": [
+"Number.RoundTowardZero(number as nullable number, optional digits as nullable number) as nullable number",
+"Returns the result of rounding positive numbers down and negative numbers up. The number of digits can be specified."
+],
+"Number.RoundUp": [
+"Number.RoundUp(number as nullable number, optional digits as nullable number) as nullable number",
+"Returns the next highest number. The number of digits can be specified."
+],
+"Number.Sign": [
+"Number.Sign(number as nullable number) as nullable number",
+"Returns 1 if the number is positive, -1 if it is negative, and 0 if it is zero."
+],
+"Number.Sin": [
+"Number.Sin(number as nullable number) as nullable number",
+"Returns the sine of the number."
+],
+"Number.Sinh": [
+"Number.Sinh(number as nullable number) as nullable number",
+"Returns the hyperbolic sine of the number."
+],
+"Number.Sqrt": [
+"Number.Sqrt(number as nullable number) as nullable number",
+"Returns the square root of the number."
+],
+"Number.Tan": [
+"Number.Tan(number as nullable number) as nullable number",
+"Returns the tangent of the number."
+],
+"Number.Tanh": [
+"Number.Tanh(number as nullable number) as nullable number",
+"Returns the hyperbolic tangent of the number."
+],
+"Number.ToText": [
+"Number.ToText(number as nullable number, optional format as nullable text, optional culture as nullable text) as nullable text",
+"Converts the given number to text."
+],
+"OData.Feed": [
+"OData.Feed(serviceUri as text, optional headers as nullable record, optional options as any) as any",
+"Returns a table of OData feeds offered by an OData service."
+],
+"Odbc.DataSource": [
+"Odbc.DataSource(connectionString as any, optional options as nullable record) as table",
+"Returns a table of SQL tables and views from the ODBC data source."
+],
+"Odbc.InferOptions": [
+"Odbc.InferOptions(connectionString as any) as record",
+"Returns the result of trying to infer SQL capabilities for an ODBC driver."
+],
+"Odbc.Query": [
+"Odbc.Query(connectionString as any, query as text, optional options as nullable record) as table",
+"Returns the result of running a native query on an ODBC data source."
+],
+"OleDb.DataSource": [
+"OleDb.DataSource(connectionString as any, optional options as nullable record) as table",
+"Returns a table of SQL tables and views from the OLE DB data source."
+],
+"OleDb.Query": [
+"OleDb.Query(connectionString as any, query as text, optional options as nullable record) as table",
+"Returns the result of running a native query on an OLE DB data source."
+],
+"Oracle.Database": [
+"Oracle.Database(server as text, optional options as nullable record) as table",
+"Returns a table of SQL tables and views from the Oracle database."
+],
+"Parquet.Document": [
+"Parquet.Document(binary as binary, optional options as nullable record) as any",
+"Returns the contents of the Parquet document as a table."
+],
+"Parquet.Metadata": [
+"Parquet.Metadata(binary as binary) as any",
+"This function is intended for internal use only."
+],
+"Pdf.Tables": [
+"Pdf.Tables(pdf as binary, optional options as nullable record) as table",
+"Returns any tables found in a PDF file."
+],
+"Percentage.From": [
+"Percentage.From(value as any, optional culture as nullable text) as nullable number",
+"Returns a percentage value from the given value."
+],
+"PostgreSQL.Database": [
+"PostgreSQL.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of SQL tables and views available in a PostgreSQL database."
+],
+"Progress.DataSourceProgress": [
+"Progress.DataSourceProgress() as any",
+"This function is intended for internal use only."
+],
+"RData.FromBinary": [
+"RData.FromBinary(stream as binary) as any",
+"Returns a record of data frames from the RData file."
+],
+"Record.AddField": [
+"Record.AddField(record as record, fieldName as text, value as any, optional delayed as nullable logical) as record",
+"Adds a field to a record."
+],
+"Record.Combine": [
+"Record.Combine(records as list) as record",
+"Combines the records in the given list."
+],
+"Record.Field": [
+"Record.Field(record as record, field as text) as any",
+"Returns the value of the specified field in a record."
+],
+"Record.FieldCount": [
+"Record.FieldCount(record as record) as number",
+"Returns the number of fields in the record."
+],
+"Record.FieldNames": [
+"Record.FieldNames(record as record) as list",
+"Returns the names of the fields."
+],
+"Record.FieldOrDefault": [
+"Record.FieldOrDefault(record as nullable record, field as text, optional defaultValue as any) as any",
+"Returns the value of the specified field in a record or the default value if the field is not found."
+],
+"Record.FieldValues": [
+"Record.FieldValues(record as record) as list",
+"Returns a list of the field values."
+],
+"Record.FromList": [
+"Record.FromList(list as list, fields as any) as record",
+"Returns a record given a list of field values and a set of fields."
+],
+"Record.FromTable": [
+"Record.FromTable(table as table) as record",
+"Creates a record from a table of the form {[Name = name, Value = value]}."
+],
+"Record.HasFields": [
+"Record.HasFields(record as record, fields as any) as logical",
+"Indicates whether the record has the specified fields."
+],
+"Record.RemoveFields": [
+"Record.RemoveFields(record as record, fields as any, optional missingField as nullable number) as record",
+"Removes the specified field(s) from the input record."
+],
+"Record.RenameFields": [
+"Record.RenameFields(record as record, renames as list, optional missingField as nullable number) as record",
+"Applies rename(s) from a list in the form { old, new }."
+],
+"Record.ReorderFields": [
+"Record.ReorderFields(record as record, fieldOrder as list, optional missingField as nullable number) as record",
+"Reorders the record fields to match the order of a list of field names."
+],
+"Record.SelectFields": [
+"Record.SelectFields(record as record, fields as any, optional missingField as nullable number) as record",
+"Returns a record that contains only the specified fields."
+],
+"Record.ToList": [
+"Record.ToList(record as record) as list",
+"Returns a list of values containing the field values of the input record."
+],
+"Record.ToTable": [
+"Record.ToTable(record as record) as table",
+"Returns a table with each row being a field name and value of the input record."
+],
+"Record.TransformFields": [
+"Record.TransformFields(record as record, transformOperations as list, optional missingField as nullable number) as record",
+"Returns a record after applying specified transformations."
+],
+"Replacer.ReplaceText": [
+"Replacer.ReplaceText(text as nullable text, old as text, new as text) as nullable text",
+"Replaces text within the provided input."
+],
+"Replacer.ReplaceValue": [
+"Replacer.ReplaceValue(value as any, old as any, new as any) as any",
+"Replaces values within the provided input."
+],
+"RowExpression.Column": [
+"RowExpression.Column(columnName as text) as record",
+"Returns an abstract syntax tree (AST) that represents access to a column within a row expression."
+],
+"RowExpression.From": [
+"RowExpression.From(function as function) as record",
+"Returns the abstract syntax tree (AST) for the body of a function."
+],
+"Salesforce.Data": [
+"Salesforce.Data(optional loginUrl as any, optional options as nullable record) as table",
+"Returns the objects from the Salesforce account."
+],
+"Salesforce.Reports": [
+"Salesforce.Reports(optional loginUrl as nullable text, optional options as nullable record) as table",
+"Returns the reports from the Salesforce account."
+],
+"SapBusinessWarehouse.Cubes": [
+"SapBusinessWarehouse.Cubes(server as text, systemNumberOrSystemId as text, clientId as text, optional optionsOrLogonGroup as any, optional options as nullable record) as table",
+"Returns the InfoCubes and queries in an SAP Business Warehouse system grouped by InfoArea."
+],
+"SapHana.Database": [
+"SapHana.Database(server as text, optional options as nullable record) as table",
+"Returns the packages in an SAP HANA database."
+],
+"SharePoint.Contents": [
+"SharePoint.Contents(url as text, optional options as nullable record) as table",
+"Returns a hierarchical table containing the properties and contents of folders and files found at a SharePoint site."
+],
+"SharePoint.Files": [
+"SharePoint.Files(url as text, optional options as nullable record) as table",
+"Returns a table containing the properties and contents of the files found at the specified SharePoint site and its subfolders."
+],
+"SharePoint.Tables": [
+"SharePoint.Tables(url as text, optional options as nullable record) as table",
+"Returns a table containing content from a SharePoint List."
+],
+"Single.From": [
+"Single.From(value as any, optional culture as nullable text) as nullable number",
+"Creates a Single from the given value."
+],
+"Soda.Feed": [
+"Soda.Feed(url as text) as table",
+"Returns a table from the contents at the specified URL formatted according to the SODA 2.0 API."
+],
+"Splitter.SplitByNothing": [
+"Splitter.SplitByNothing() as function",
+"Returns a function that does no splitting, returning its argument as a single element list."
+],
+"Splitter.SplitTextByAnyDelimiter": [
+"Splitter.SplitTextByAnyDelimiter(delimiters as list, optional quoteStyle as nullable number, optional startAtEnd as nullable logical) as function",
+"Returns a function that splits text into a list of text at any of the specified delimiters."
+],
+"Splitter.SplitTextByCharacterTransition": [
+"Splitter.SplitTextByCharacterTransition(before as anynonnull, after as anynonnull) as function",
+"Returns a function that splits text into a list of text according to a transition from one kind of character to another. The {0} and {1} parameters can either be a list of characters, or a function that takes a character and returns true/false."
+],
+"Splitter.SplitTextByDelimiter": [
+"Splitter.SplitTextByDelimiter(delimiter as text, optional quoteStyle as nullable number, optional csvStyle as nullable number) as function",
+"Returns a function that splits text into a list of text according to the specified delimiter."
+],
+"Splitter.SplitTextByEachDelimiter": [
+"Splitter.SplitTextByEachDelimiter(delimiters as list, optional quoteStyle as nullable number, optional startAtEnd as nullable logical) as function",
+"Returns a function that splits text into a list of text at each specified delimiter in sequence."
+],
+"Splitter.SplitTextByLengths": [
+"Splitter.SplitTextByLengths(lengths as list, optional startAtEnd as nullable logical) as function",
+"Returns a function that splits text into a list of text by each specified length."
+],
+"Splitter.SplitTextByPositions": [
+"Splitter.SplitTextByPositions(positions as list, optional startAtEnd as nullable logical) as function",
+"Returns a function that splits text into a list of text at each specified position."
+],
+"Splitter.SplitTextByRanges": [
+"Splitter.SplitTextByRanges(ranges as list, optional startAtEnd as nullable logical) as function",
+"Returns a function that splits text into a list of text according to the specified offsets and lengths."
+],
+"Splitter.SplitTextByRepeatedLengths": [
+"Splitter.SplitTextByRepeatedLengths(length as number, optional startAtEnd as nullable logical) as function",
+"Returns a function that splits text into a list of text after the specified length repeatedly."
+],
+"Splitter.SplitTextByWhitespace": [
+"Splitter.SplitTextByWhitespace(optional quoteStyle as nullable number) as function",
+"Returns a function that splits text into a list of text at whitespace."
+],
+"Sql.Database": [
+"Sql.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of SQL tables, views, and stored functions from the SQL Server database."
+],
+"Sql.Databases": [
+"Sql.Databases(server as text, optional options as nullable record) as table",
+"Returns a table of databases on a SQL Server."
+],
+"SqlExpression.SchemaFrom": [
+"SqlExpression.SchemaFrom(schema as any) as any",
+"This function is intended for internal use only."
+],
+"SqlExpression.ToExpression": [
+"SqlExpression.ToExpression(sql as text, environment as record) as text",
+"Converts the provided SQL query to M code. This function is intended for internal use only."
+],
+"Sybase.Database": [
+"Sybase.Database(server as text, database as text, optional options as nullable record) as table",
+"Returns a table of SQL tables and views available in a Sybase database."
+],
+"Table.AddColumn": [
+"Table.AddColumn(table as table, newColumnName as text, columnGenerator as function, optional columnType as nullable type) as table",
+"Adds a column with the specified name. The value is computed using the specified selection function with each row taken as an input."
+],
+"Table.AddFuzzyClusterColumn": [
+"Table.AddFuzzyClusterColumn(table as table, columnName as text, newColumnName as text, optional options as nullable record) as table",
+"Adds a new column with representative values obtained by fuzzy grouping values of the specified column in the table."
+],
+"Table.AddIndexColumn": [
+"Table.AddIndexColumn(table as table, newColumnName as text, optional initialValue as nullable number, optional increment as nullable number, optional columnType as nullable type) as table",
+"Appends a column with explicit position values."
+],
+"Table.AddJoinColumn": [
+"Table.AddJoinColumn(table1 as table, key1 as any, table2 as any, key2 as any, newColumnName as text) as table",
+"Performs a join between tables on supplied columns and produces the join result in a new column."
+],
+"Table.AddKey": [
+"Table.AddKey(table as table, columns as list, isPrimary as logical) as table",
+"Adds a key to a table."
+],
+"Table.AddRankColumn": [
+"Table.AddRankColumn(table as table, newColumnName as text, comparisonCriteria as any, optional options as nullable record) as table",
+"Appends a column with the ranking of one or more other columns."
+],
+"Table.AggregateTableColumn": [
+"Table.AggregateTableColumn(table as table, column as text, aggregations as list) as table",
+"Aggregates a column of tables into multiple columns in the containing table."
+],
+"Table.AlternateRows": [
+"Table.AlternateRows(table as table, offset as number, skip as number, take as number) as table",
+"Keeps the initial offset then alternates taking and skipping the following rows."
+],
+"Table.ApproximateRowCount": [
+"Table.ApproximateRowCount(table as table) as number",
+"Returns the approximate number of rows in the table."
+],
+"Table.Buffer": [
+"Table.Buffer(table as table, optional options as nullable record) as table",
+"Buffers a table in memory, isolating it from external changes during evaluation."
+],
+"Table.ClearDown": [
+"Table.ClearDown(table as table, columns as list) as table",
+"Clears repeating sets of column values."
+],
+"Table.Column": [
+"Table.Column(table as table, column as text) as list",
+"Returns a specified column of data from the table as a list."
+],
+"Table.ColumnCount": [
+"Table.ColumnCount(table as table) as number",
+"Returns the number of columns in the table."
+],
+"Table.ColumnNames": [
+"Table.ColumnNames(table as table) as list",
+"Returns the column names as a list."
+],
+"Table.ColumnsOfType": [
+"Table.ColumnsOfType(table as table, listOfTypes as list) as list",
+"Returns a list with the names of the columns that match the specified types."
+],
+"Table.Combine": [
+"Table.Combine(tables as list, optional columns as any) as table",
+"Returns a table that is the result of appending a list of tables."
+],
+"Table.CombineColumns": [
+"Table.CombineColumns(table as table, sourceColumns as list, combiner as function, column as text) as table",
+"Combines the specified columns into a new column using the specified combiner function."
+],
+"Table.CombineColumnsToRecord": [
+"Table.CombineColumnsToRecord(table as table, newColumnName as text, sourceColumns as list, optional options as nullable record) as table",
+"Combines the specified columns into a new record-valued column where each record has field names and values corresponding to the column names and values of the columns that were combined."
+],
+"Table.ConformToPageReader": [
+"Table.ConformToPageReader(table as table, shapingFunction as function) as table",
+"This function is intended for internal use only."
+],
+"Table.Contains": [
+"Table.Contains(table as table, row as record, optional equationCriteria as any) as logical",
+"Indicates whether the specified record appears as a row in the table."
+],
+"Table.ContainsAll": [
+"Table.ContainsAll(table as table, rows as list, optional equationCriteria as any) as logical",
+"Indicates whether all of the specified records appear as rows in the table."
+],
+"Table.ContainsAny": [
+"Table.ContainsAny(table as table, rows as list, optional equationCriteria as any) as logical",
+"Indicates whether any of the specified records appear as rows in the table."
+],
+"Table.DemoteHeaders": [
+"Table.DemoteHeaders(table as table) as table",
+"Demotes the column headers to the first row of values."
+],
+"Table.Distinct": [
+"Table.Distinct(table as table, optional equationCriteria as any) as table",
+"Removes duplicate rows from the table."
+],
+"Table.DuplicateColumn": [
+"Table.DuplicateColumn(table as table, columnName as text, newColumnName as text, optional columnType as nullable type) as table",
+"Duplicates a column with the specified name. Values and type are copied from the source column."
+],
+"Table.ExpandListColumn": [
+"Table.ExpandListColumn(table as table, column as text) as table",
+"Given a column of lists in a table, create a copy of a row for each value in its list."
+],
+"Table.ExpandRecordColumn": [
+"Table.ExpandRecordColumn(table as table, column as text, fieldNames as list, optional newColumnNames as nullable list) as table",
+"Expands a column of records into columns with each of the values."
+],
+"Table.ExpandTableColumn": [
+"Table.ExpandTableColumn(table as table, column as text, columnNames as list, optional newColumnNames as nullable list) as table",
+"Expands a column of tables into multiple rows and columns."
+],
+"Table.FillDown": [
+"Table.FillDown(table as table, columns as list) as table",
+"Propagates the value of a previous cell to the null-valued cells below in the column."
+],
+"Table.FillUp": [
+"Table.FillUp(table as table, columns as list) as table",
+"Propagates the value of a cell to the null-valued cells above in the column."
+],
+"Table.FilterWithDataTable": [
+"Table.FilterWithDataTable(table as table, dataTableIdentifier as text) as any",
+"This function is intended for internal use only."
+],
+"Table.FindText": [
+"Table.FindText(table as table, text as text) as table",
+"Returns all the rows that contain the given text in the table."
+],
+"Table.First": [
+"Table.First(table as table, optional default as any) as any",
+"Returns the first row or a specified default value."
+],
+"Table.FirstN": [
+"Table.FirstN(table as table, countOrCondition as any) as table",
+"Returns the first count rows specified."
+],
+"Table.FirstValue": [
+"Table.FirstValue(table as table, optional default as any) as any",
+"Returns the first column of the first row of the table or a specified default value."
+],
+"Table.FromColumns": [
+"Table.FromColumns(lists as list, optional columns as any) as table",
+"Creates a table from a list of columns and specified values."
+],
+"Table.FromList": [
+"Table.FromList(list as list, optional splitter as nullable function, optional columns as any, optional default as any, optional extraValues as nullable number) as table",
+"Converts a list into a table by applying the specified splitting function to each item in the list."
+],
+"Table.FromPartitions": [
+"Table.FromPartitions(partitionColumn as text, partitions as list, optional partitionColumnType as nullable type) as table",
+"Returns a table that is the result of combining a set of partitioned tables."
+],
+"Table.FromRecords": [
+"Table.FromRecords(records as list, optional columns as any, optional missingField as nullable number) as table",
+"Converts a list of records into a table."
+],
+"Table.FromRows": [
+"Table.FromRows(rows as list, optional columns as any) as table",
+"Creates a table from a list of row values and optional columns."
+],
+"Table.FromValue": [
+"Table.FromValue(value as any, optional options as nullable record) as table",
+"Creates a table with a column from the provided value(s)."
+],
+"Table.FuzzyGroup": [
+"Table.FuzzyGroup(table as table, key as any, aggregatedColumns as list, optional options as nullable record) as table",
+"Groups rows in the table based on fuzzy matching of keys."
+],
+"Table.FuzzyJoin": [
+"Table.FuzzyJoin(table1 as table, key1 as any, table2 as table, key2 as any, optional joinKind as nullable number, optional joinOptions as nullable record) as table",
+"Joins the rows from the two tables that fuzzy match based on the given keys."
+],
+"Table.FuzzyNestedJoin": [
+"Table.FuzzyNestedJoin(table1 as table, key1 as any, table2 as table, key2 as any, newColumnName as text, optional joinKind as nullable number, optional joinOptions as nullable record) as table",
+"Performs a fuzzy join between tables on supplied columns and produces the join result in a new column."
+],
+"Table.Group": [
+"Table.Group(table as table, key as any, aggregatedColumns as list, optional groupKind as nullable number, optional comparer as nullable function) as table",
+"Groups rows in the table that have the same key."
+],
+"Table.HasColumns": [
+"Table.HasColumns(table as table, columns as any) as logical",
+"Indicates whether the table contains the specified column(s)."
+],
+"Table.InsertRows": [
+"Table.InsertRows(table as table, offset as number, rows as list) as table",
+"Inserts a list of rows into the table at the specified position."
+],
+"Table.IsDistinct": [
+"Table.IsDistinct(table as table, optional comparisonCriteria as any) as logical",
+"Indicates whether the table contains only distinct rows (no duplicates)."
+],
+"Table.IsEmpty": [
+"Table.IsEmpty(table as table) as logical",
+"Indicates whether the table contains any rows."
+],
+"Table.Join": [
+"Table.Join(table1 as table, key1 as any, table2 as table, key2 as any, optional joinKind as nullable number, optional joinAlgorithm as nullable number, optional keyEqualityComparers as nullable list) as table",
+"Joins the rows from the two tables that match based on the given keys."
+],
+"Table.Keys": [
+"Table.Keys(table as table) as list",
+"Returns the keys of the specified table."
+],
+"Table.Last": [
+"Table.Last(table as table, optional default as any) as any",
+"Returns the last row or a specified default value."
+],
+"Table.LastN": [
+"Table.LastN(table as table, countOrCondition as any) as table",
+"Returns the last specified number of rows."
+],
+"Table.MatchesAllRows": [
+"Table.MatchesAllRows(table as table, condition as function) as logical",
+"Indicates whether all the rows in the table meet the given condition."
+],
+"Table.MatchesAnyRows": [
+"Table.MatchesAnyRows(table as table, condition as function) as logical",
+"Indicates whether any the rows in the table meet the given condition."
+],
+"Table.Max": [
+"Table.Max(table as table, comparisonCriteria as any, optional default as any) as any",
+"Returns the largest row or default value using the given criteria."
+],
+"Table.MaxN": [
+"Table.MaxN(table as table, comparisonCriteria as any, countOrCondition as any) as table",
+"Returns the largest row(s) using the given criteria."
+],
+"Table.Min": [
+"Table.Min(table as table, comparisonCriteria as any, optional default as any) as any",
+"Returns the smallest row or a default value using the given criteria."
+],
+"Table.MinN": [
+"Table.MinN(table as table, comparisonCriteria as any, countOrCondition as any) as table",
+"Returns the smallest row(s) using the given criteria."
+],
+"Table.NestedJoin": [
+"Table.NestedJoin(table1 as table, key1 as any, table2 as any, key2 as any, newColumnName as text, optional joinKind as nullable number, optional keyEqualityComparers as nullable list) as table",
+"Performs a join between tables on supplied columns and produces the join result in a new column."
+],
+"Table.Partition": [
+"Table.Partition(table as table, column as text, groups as number, hash as function) as list",
+"Partitions the table into a list of tables based on the number of groups and column specified."
+],
+"Table.PartitionKey": [
+"Table.PartitionKey(table as table) as nullable list",
+"Returns the partition key of the specified table."
+],
+"Table.PartitionValues": [
+"Table.PartitionValues(table as table) as table",
+"Returns information about how a table is partitioned."
+],
+"Table.Pivot": [
+"Table.Pivot(table as table, pivotValues as list, attributeColumn as text, valueColumn as text, optional aggregationFunction as nullable function) as table",
+"Given a pair of columns representing attribute-value pairs, rotates the data in the attribute column into a column headings."
+],
+"Table.PositionOf": [
+"Table.PositionOf(table as table, row as record, optional occurrence as any, optional equationCriteria as any) as any",
+"Returns the position or positions of the row within the table."
+],
+"Table.PositionOfAny": [
+"Table.PositionOfAny(table as table, rows as list, optional occurrence as nullable number, optional equationCriteria as any) as any",
+"Returns the position or positions of any of the specified rows within the table."
+],
+"Table.PrefixColumns": [
+"Table.PrefixColumns(table as table, prefix as text) as table",
+"Returns a table where the columns have all been prefixed with the given text."
+],
+"Table.Profile": [
+"Table.Profile(table as table, optional additionalAggregates as nullable list) as table",
+"Returns a profile of the columns of a table."
+],
+"Table.PromoteHeaders": [
+"Table.PromoteHeaders(table as table, optional options as nullable record) as table",
+"Promotes the first row of values as the new column headers (i.e. column names)."
+],
+"Table.Range": [
+"Table.Range(table as table, offset as number, optional count as nullable number) as table",
+"Returns the rows beginning at the specified offset."
+],
+"Table.RemoveColumns": [
+"Table.RemoveColumns(table as table, columns as any, optional missingField as nullable number) as table",
+"Removes the specified columns."
+],
+"Table.RemoveFirstN": [
+"Table.RemoveFirstN(table as table, optional countOrCondition as any) as table",
+"Returns a table with the first count rows skipped."
+],
+"Table.RemoveLastN": [
+"Table.RemoveLastN(table as table, optional countOrCondition as any) as table",
+"Returns a table with the last N rows removed."
+],
+"Table.RemoveMatchingRows": [
+"Table.RemoveMatchingRows(table as table, rows as list, optional equationCriteria as any) as table",
+"Removes all occurrences of the specified rows from the table."
+],
+"Table.RemoveRows": [
+"Table.RemoveRows(table as table, offset as number, optional count as nullable number) as table",
+"Removes the specified number of rows."
+],
+"Table.RemoveRowsWithErrors": [
+"Table.RemoveRowsWithErrors(table as table, optional columns as nullable list) as table",
+"Returns a table with the rows removed from the input table that contain an error in at least one of the cells. If a columns list is specified, then only the cells in the specified columns are inspected for errors."
+],
+"Table.RenameColumns": [
+"Table.RenameColumns(table as table, renames as list, optional missingField as nullable number) as table",
+"Applies rename(s) of the form {old, new}."
+],
+"Table.ReorderColumns": [
+"Table.ReorderColumns(table as table, columnOrder as list, optional missingField as nullable number) as table",
+"Returns a table with the columns in the specified order."
+],
+"Table.Repeat": [
+"Table.Repeat(table as table, count as number) as table",
+"Repeats the rows of the tables a specified number of times."
+],
+"Table.ReplaceErrorValues": [
+"Table.ReplaceErrorValues(table as table, errorReplacement as list) as table",
+"Replaces the error values in the specified columns with the corresponding specified value."
+],
+"Table.ReplaceKeys": [
+"Table.ReplaceKeys(table as table, keys as list) as table",
+"Replaces the keys of the specified table."
+],
+"Table.ReplaceMatchingRows": [
+"Table.ReplaceMatchingRows(table as table, replacements as list, optional equationCriteria as any) as table",
+"Replaces all the specified rows with the provided row(s)."
+],
+"Table.ReplacePartitionKey": [
+"Table.ReplacePartitionKey(table as table, partitionKey as nullable list) as table",
+"Replaces the partition key of the specified table."
+],
+"Table.ReplaceRelationshipIdentity": [
+"Table.ReplaceRelationshipIdentity(value as any, identity as text) as any",
+"This function is intended for internal use only."
+],
+"Table.ReplaceRows": [
+"Table.ReplaceRows(table as table, offset as number, count as number, rows as list) as table",
+"Replaces the specified range of rows with the provided row(s)."
+],
+"Table.ReplaceValue": [
+"Table.ReplaceValue(table as table, oldValue as any, newValue as any, replacer as function, columnsToSearch as list) as table",
+"Replaces one value with another in the specified columns."
+],
+"Table.ReverseRows": [
+"Table.ReverseRows(table as table) as table",
+"Returns a table with the rows in reverse order."
+],
+"Table.RowCount": [
+"Table.RowCount(table as table) as number",
+"Returns the number of rows in the table."
+],
+"Table.Schema": [
+"Table.Schema(table as table) as table",
+"Returns a table containing a description of the columns (i.e. the schema) of the specified table."
+],
+"Table.SelectColumns": [
+"Table.SelectColumns(table as table, columns as any, optional missingField as nullable number) as table",
+"Returns a table with only the specified columns."
+],
+"Table.SelectRows": [
+"Table.SelectRows(table as table, condition as function) as table",
+"Selects the rows that meet the condition function."
+],
+"Table.SelectRowsWithErrors": [
+"Table.SelectRowsWithErrors(table as table, optional columns as nullable list) as table",
+"Returns a table with only those rows of the input table that contain an error in at least one of the cells. If a columns list is specified, then only the cells in the specified columns are inspected for errors."
+],
+"Table.SingleRow": [
+"Table.SingleRow(table as table) as record",
+"Returns the single row in the table."
+],
+"Table.Skip": [
+"Table.Skip(table as table, optional countOrCondition as any) as table",
+"Returns a table with the first count rows skipped."
+],
+"Table.Sort": [
+"Table.Sort(table as table, comparisonCriteria as any) as table",
+"Sorts the table using one or more column names and comparison criteria."
+],
+"Table.Split": [
+"Table.Split(table as table, pageSize as number) as list",
+"Splits the specified table into a list of tables using the specified page size."
+],
+"Table.SplitAt": [
+"Table.SplitAt(table as table, count as number) as list",
+"Returns a list containing the first count rows specified and the remaining rows."
+],
+"Table.SplitColumn": [
+"Table.SplitColumn(table as table, sourceColumn as text, splitter as function, optional columnNamesOrNumber as any, optional default as any, optional extraColumns as any) as table",
+"Splits the specified column into a set of additional columns using the specified splitter function."
+],
+"Table.StopFolding": [
+"Table.StopFolding(table as table) as table",
+"Prevents any downstream operations from being run against the original source of the data."
+],
+"Table.ToColumns": [
+"Table.ToColumns(table as table) as list",
+"Creates a list of nested lists of column values from a table."
+],
+"Table.ToList": [
+"Table.ToList(table as table, optional combiner as nullable function) as list",
+"Converts a table into a list by applying the specified combining function to each row of values in the table."
+],
+"Table.ToRecords": [
+"Table.ToRecords(table as table) as list",
+"Converts a table to a list of records."
+],
+"Table.ToRows": [
+"Table.ToRows(table as table) as list",
+"Creates a list of nested lists of row values from a table."
+],
+"Table.TransformColumnNames": [
+"Table.TransformColumnNames(table as table, nameGenerator as function, optional options as nullable record) as table",
+"Transforms column names by using the given function."
+],
+"Table.TransformColumnTypes": [
+"Table.TransformColumnTypes(table as table, typeTransformations as list, optional culture as any) as table",
+"Applies type transformation(s) of the form { column, type } using a specific culture."
+],
+"Table.TransformColumns": [
+"Table.TransformColumns(table as table, transformOperations as list, optional defaultTransformation as nullable function, optional missingField as nullable number) as table",
+"Transforms the values of one or more columns."
+],
+"Table.TransformRows": [
+"Table.TransformRows(table as table, transform as function) as list",
+"Transforms the rows of the table using the specified transform function."
+],
+"Table.Transpose": [
+"Table.Transpose(table as table, optional columns as any) as table",
+"Makes columns into rows and rows into columns."
+],
+"Table.Unpivot": [
+"Table.Unpivot(table as table, pivotColumns as list, attributeColumn as text, valueColumn as text) as table",
+"Translates a set of columns in a table into attribute-value pairs."
+],
+"Table.UnpivotOtherColumns": [
+"Table.UnpivotOtherColumns(table as table, pivotColumns as list, attributeColumn as text, valueColumn as text) as table",
+"Translates all columns other than a specified set into attribute-value pairs."
+],
+"Table.View": [
+"Table.View(table as nullable table, handlers as record) as table",
+"Creates or extends a table with user-defined handlers for query and action operations."
+],
+"Table.ViewError": [
+"Table.ViewError(errorRecord as record) as record",
+"Creates a modified error record which won't trigger a fallback when raised by a handler defined on a view (via Table.View)."
+],
+"Table.ViewFunction": [
+"Table.ViewFunction(function as function) as function",
+"Creates a function that can be intercepted by a handler defined on a view (via Table.View)."
+],
+"Table.WithErrorContext": [
+"Table.WithErrorContext(value as any, context as text) as any",
+"This function is intended for internal use only."
+],
+"TableAction.DeleteRows": [
+"TableAction.DeleteRows(table as table) as action",
+"Creates an action to delete rows from a table."
+],
+"TableAction.InsertRows": [
+"TableAction.InsertRows(table as table, rowsToInsert as table) as action",
+"Creates an action to insert rows into a table."
+],
+"TableAction.Tee": [
+"TableAction.Tee(table as table, actions as list) as action",
+"Creates an action that executes multiple actions concurrently while reading data from a table."
+],
+"TableAction.UpdateRows": [
+"TableAction.UpdateRows(table as table, columnUpdates as list) as action",
+"Creates an action to update rows in a table."
+],
+"Tables.GetRelationships": [
+"Tables.GetRelationships(tables as table, optional dataColumn as nullable text) as table",
+"Gets the relationships among a set of tables."
+],
+"Teradata.Database": [
+"Teradata.Database(server as text, optional options as nullable record) as table",
+"Returns a table of SQL tables and views from the Teradata database."
+],
+"Text.At": [
+"Text.At(text as nullable text, index as number) as nullable text",
+"Returns the character at the specified position."
+],
+"Text.Clean": [
+"Text.Clean(text as nullable text) as nullable text",
+"Returns the text value with all control characters removed."
+],
+"Text.Combine": [
+"Text.Combine(texts as list, optional separator as nullable text) as text",
+"Concatenates a list of text values into one text value."
+],
+"Text.Contains": [
+"Text.Contains(text as nullable text, substring as text, optional comparer as nullable function) as nullable logical",
+"Returns whether the text contains the substring."
+],
+"Text.End": [
+"Text.End(text as nullable text, count as number) as nullable text",
+"Returns the last characters of the text."
+],
+"Text.EndsWith": [
+"Text.EndsWith(text as nullable text, substring as text, optional comparer as nullable function) as nullable logical",
+"Indicates whether the text ends in the specified value."
+],
+"Text.Format": [
+"Text.Format(formatString as text, arguments as any, optional culture as nullable text) as text",
+"Returns formatted text from a format string and arguments."
+],
+"Text.From": [
+"Text.From(value as any, optional culture as nullable text) as nullable text",
+"Creates a text value from the given value."
+],
+"Text.FromBinary": [
+"Text.FromBinary(binary as nullable binary, optional encoding as nullable number) as nullable text",
+"Decodes data from a binary form into text."
+],
+"Text.InferNumberType": [
+"Text.InferNumberType(text as text, optional culture as nullable text) as type",
+"Infers the granular number type (Int64.Type, Double.Type, and so on) of a number encoded in text."
+],
+"Text.Insert": [
+"Text.Insert(text as nullable text, offset as number, newText as text) as nullable text",
+"Inserts one text value into another at a given position."
+],
+"Text.Length": [
+"Text.Length(text as nullable text) as nullable number",
+"Returns the number of characters."
+],
+"Text.Lower": [
+"Text.Lower(text as nullable text, optional culture as nullable text) as nullable text",
+"Converts all characters to lowercase."
+],
+"Text.Middle": [
+"Text.Middle(text as nullable text, start as number, optional count as nullable number) as nullable text",
+"Returns the substring up to a specific length."
+],
+"Text.NewGuid": [
+"Text.NewGuid() as text",
+"Returns a new, random globally unique identifier (GUID)."
+],
+"Text.PadEnd": [
+"Text.PadEnd(text as nullable text, count as number, optional character as nullable text) as nullable text",
+"Returns text of a specified length by padding the end of the given text."
+],
+"Text.PadStart": [
+"Text.PadStart(text as nullable text, count as number, optional character as nullable text) as nullable text",
+"Returns text of a specified length by padding the start of the given text."
+],
+"Text.PositionOf": [
+"Text.PositionOf(text as text, substring as text, optional occurrence as nullable number, optional comparer as nullable function) as any",
+"Returns the first position of the value (-1 if not found)."
+],
+"Text.PositionOfAny": [
+"Text.PositionOfAny(text as text, characters as list, optional occurrence as nullable number) as any",
+"Returns the first position in the text value of any listed character (-1 if not found)."
+],
+"Text.Proper": [
+"Text.Proper(text as nullable text, optional culture as nullable text) as nullable text",
+"Capitalizes the first letter of each word."
+],
+"Text.Range": [
+"Text.Range(text as nullable text, offset as number, optional count as nullable number) as nullable text",
+"Returns the substring found at offset."
+],
+"Text.Remove": [
+"Text.Remove(text as nullable text, removeChars as any) as nullable text",
+"Removes all occurrences of the given character or list of characters from the input text value."
+],
+"Text.RemoveRange": [
+"Text.RemoveRange(text as nullable text, offset as number, optional count as nullable number) as nullable text",
+"Removes a count of characters starting at the given offset"
+],
+"Text.Repeat": [
+"Text.Repeat(text as nullable text, count as number) as nullable text",
+"Returns a text value composed of the input text repeated a specified number of times."
+],
+"Text.Replace": [
+"Text.Replace(text as nullable text, old as text, new as text) as nullable text",
+"Replaces all occurrences of the given substring in the text."
+],
+"Text.ReplaceRange": [
+"Text.ReplaceRange(text as nullable text, offset as number, count as number, newText as text) as nullable text",
+"Removes a range of characters and inserts a new value at a specified position."
+],
+"Text.Select": [
+"Text.Select(text as nullable text, selectChars as any) as nullable text",
+"Selects all occurrences of the given character or list of characters from the input text value."
+],
+"Text.Split": [
+"Text.Split(text as text, separator as text) as list",
+"Splits text into a list of text values based upon a specified delimiter."
+],
+"Text.SplitAny": [
+"Text.SplitAny(text as text, separators as text) as list",
+"Returns a list of text values, split on any of the characters in the delimiter."
+],
+"Text.Start": [
+"Text.Start(text as nullable text, count as number) as nullable text",
+"Returns the start of the text."
+],
+"Text.StartsWith": [
+"Text.StartsWith(text as nullable text, substring as text, optional comparer as nullable function) as nullable logical",
+"Indicates whether the text starts with a specified value."
+],
+"Text.ToBinary": [
+"Text.ToBinary(text as nullable text, optional encoding as nullable number, optional includeByteOrderMark as nullable logical) as nullable binary",
+"Encodes text into a binary form."
+],
+"Text.ToList": [
+"Text.ToList(text as text) as list",
+"Returns a list of character values from the given text value."
+],
+"Text.Trim": [
+"Text.Trim(text as nullable text, optional trim as any) as nullable text",
+"Removes all the specified leading and trailing characters."
+],
+"Text.TrimEnd": [
+"Text.TrimEnd(text as nullable text, optional trim as any) as nullable text",
+"Removes all specified trailing characters."
+],
+"Text.TrimStart": [
+"Text.TrimStart(text as nullable text, optional trim as any) as nullable text",
+"Removes all specified leading characters."
+],
+"Text.Upper": [
+"Text.Upper(text as nullable text, optional culture as nullable text) as nullable text",
+"Converts all characters to uppercase."
+],
+"Time.EndOfHour": [
+"Time.EndOfHour(dateTime as any) as any",
+"Returns the end of the hour."
+],
+"Time.From": [
+"Time.From(value as any, optional culture as nullable text) as nullable time",
+"Creates a time from the given value."
+],
+"Time.FromText": [
+"Time.FromText(text as nullable text, optional options as any) as nullable time",
+"Creates a Time from local and universal, and custom Time formats."
+],
+"Time.Hour": [
+"Time.Hour(dateTime as any) as nullable number",
+"Returns the hour component."
+],
+"Time.Minute": [
+"Time.Minute(dateTime as any) as nullable number",
+"Returns the minute component."
+],
+"Time.Second": [
+"Time.Second(dateTime as any) as nullable number",
+"Returns the second component."
+],
+"Time.StartOfHour": [
+"Time.StartOfHour(dateTime as any) as any",
+"Returns the start of the hour."
+],
+"Time.ToRecord": [
+"Time.ToRecord(time as time) as record",
+"Returns a record containing the Time value's parts."
+],
+"Time.ToText": [
+"Time.ToText(time as nullable time, optional options as any, optional culture as nullable text) as nullable text",
+"Returns a textual representation of the time value."
+],
+"Type.AddTableKey": [
+"Type.AddTableKey(table as type, columns as list, isPrimary as logical) as type",
+"Adds a key to the given table type."
+],
+"Type.ClosedRecord": [
+"Type.ClosedRecord(type as type) as type",
+"Returns a closed version of the given record type (or the same type, if it is already closed)."
+],
+"Type.Facets": [
+"Type.Facets(type as type) as record",
+"Returns the facets of a type."
+],
+"Type.ForFunction": [
+"Type.ForFunction(signature as record, min as number) as type",
+"Returns a type that represents functions with specific parameter and return type constraints."
+],
+"Type.ForRecord": [
+"Type.ForRecord(fields as record, open as logical) as type",
+"Returns a type that represents records with specific type constraints on fields."
+],
+"Type.FunctionParameters": [
+"Type.FunctionParameters(type as type) as record",
+"Returns a record with field values set to the name of the parameters of a function type, and their values set to their corresponding types."
+],
+"Type.FunctionRequiredParameters": [
+"Type.FunctionRequiredParameters(type as type) as number",
+"Returns a number indicating the minimum number of parameters required to invoke the type of function."
+],
+"Type.FunctionReturn": [
+"Type.FunctionReturn(type as type) as type",
+"Returns a type returned by a function type."
+],
+"Type.Is": [
+"Type.Is(type1 as type, type2 as type) as logical",
+"Determines if a value of the first type is always compatible with the second type."
+],
+"Type.IsNullable": [
+"Type.IsNullable(type as type) as logical",
+"Returns true if a type is a nullable type; otherwise, false."
+],
+"Type.IsOpenRecord": [
+"Type.IsOpenRecord(type as type) as logical",
+"Returns whether a record type is open."
+],
+"Type.ListItem": [
+"Type.ListItem(type as type) as type",
+"Returns an item type from a list type."
+],
+"Type.NonNullable": [
+"Type.NonNullable(type as type) as type",
+"Returns the non nullable type from a type."
+],
+"Type.OpenRecord": [
+"Type.OpenRecord(type as type) as type",
+"Returns an opened version of the given record type (or the same type, if it is already open)."
+],
+"Type.RecordFields": [
+"Type.RecordFields(type as type) as record",
+"Returns a record describing the fields of a record type with each field of the returned record type having a corresponding name and a value."
+],
+"Type.ReplaceFacets": [
+"Type.ReplaceFacets(type as type, facets as record) as type",
+"Replaces the facets of a type."
+],
+"Type.ReplaceTableKeys": [
+"Type.ReplaceTableKeys(tableType as type, keys as list) as type",
+"Returns a new table type with all keys replaced by the specified list of keys."
+],
+"Type.ReplaceTablePartitionKey": [
+"Type.ReplaceTablePartitionKey(tableType as type, partitionKey as nullable list) as type",
+"Returns a new table type with the partition key replaced by the specified partition key."
+],
+"Type.TableColumn": [
+"Type.TableColumn(tableType as type, column as text) as type",
+"Returns the type of a column in a table."
+],
+"Type.TableKeys": [
+"Type.TableKeys(tableType as type) as list",
+"Returns the possibly empty list of keys for the given table type."
+],
+"Type.TablePartitionKey": [
+"Type.TablePartitionKey(tableType as type) as nullable list",
+"Returns the partition key for the given table type if it has one."
+],
+"Type.TableRow": [
+"Type.TableRow(table as type) as type",
+"Returns the row type of the table type."
+],
+"Type.TableSchema": [
+"Type.TableSchema(tableType as type) as table",
+"Returns a table containing a description of the columns (i.e. the schema) of the specified table type."
+],
+"Type.Union": [
+"Type.Union(types as list) as type",
+"Returns the union of a list of types."
+],
+"Uri.BuildQueryString": [
+"Uri.BuildQueryString(query as record) as text",
+"Assemble a record into a URI query string."
+],
+"Uri.Combine": [
+"Uri.Combine(baseUri as text, relativeUri as text) as text",
+"Returns an absolute URI that is the combination of the input base URI and relative URI."
+],
+"Uri.EscapeDataString": [
+"Uri.EscapeDataString(data as text) as text",
+"Encodes special characters in accordance with RFC 3986."
+],
+"Uri.Parts": [
+"Uri.Parts(absoluteUri as text) as record",
+"Returns the parts of the input absolute URI as a record."
+],
+"Value.Add": [
+"Value.Add(value1 as any, value2 as any, optional precision as nullable number) as any",
+"Returns the sum of the two values."
+],
+"Value.Alternates": [
+"Value.Alternates(alternates as list) as any",
+"Expresses alternate query plans."
+],
+"Value.As": [
+"Value.As(value as any, type as type) as any",
+"Returns the value if it's compatible with the specified type."
+],
+"Value.Compare": [
+"Value.Compare(value1 as any, value2 as any, optional precision as nullable number) as number",
+"Returns -1, 0, or 1 based on whether the first value is less than, equal to, or greater than the second."
+],
+"Value.Divide": [
+"Value.Divide(value1 as any, value2 as any, optional precision as nullable number) as any",
+"Returns the result of dividing the first value by the second."
+],
+"Value.Equals": [
+"Value.Equals(value1 as any, value2 as any, optional precision as nullable number) as logical",
+"Returns whether two values are equal."
+],
+"Value.Expression": [
+"Value.Expression(value as any) as nullable record",
+"Returns an abstract syntax tree (AST) that represents the value's expression."
+],
+"Value.Firewall": [
+"Value.Firewall(key as text) as any",
+"This function is intended for internal use only."
+],
+"Value.FromText": [
+"Value.FromText(text as any, optional culture as nullable text) as any",
+"Creates a strongly-typed value from a textual representation."
+],
+"Value.Is": [
+"Value.Is(value as any, type as type) as logical",
+"Determines whether a value is compatible with the specified type."
+],
+"Value.Lineage": [
+"Value.Lineage(value as any) as any",
+"This function is intended for internal use only."
+],
+"Value.Metadata": [
+"Value.Metadata(value as any) as any",
+"Returns a record containing the input's metadata."
+],
+"Value.Multiply": [
+"Value.Multiply(value1 as any, value2 as any, optional precision as nullable number) as any",
+"Returns the product of the two values."
+],
+"Value.NativeQuery": [
+"Value.NativeQuery(target as any, query as text, optional parameters as any, optional options as nullable record) as any",
+"Evaluates a query against a target."
+],
+"Value.NullableEquals": [
+"Value.NullableEquals(value1 as any, value2 as any, optional precision as nullable number) as nullable logical",
+"Returns whether two values are equal."
+],
+"Value.Optimize": [
+"Value.Optimize(value as any) as any",
+"Signals Value.Expression to return the optimized expression for a value."
+],
+"Value.RemoveMetadata": [
+"Value.RemoveMetadata(value as any, optional metaValue as any) as any",
+"Strips the input of metadata."
+],
+"Value.ReplaceMetadata": [
+"Value.ReplaceMetadata(value as any, metaValue as any) as any",
+"Replaces the input's metadata information."
+],
+"Value.ReplaceType": [
+"Value.ReplaceType(value as any, type as type) as any",
+"Replaces the value's type."
+],
+"Value.Subtract": [
+"Value.Subtract(value1 as any, value2 as any, optional precision as nullable number) as any",
+"Returns the difference of the two values."
+],
+"Value.Traits": [
+"Value.Traits(value as any) as table",
+"This function is intended for internal use only."
+],
+"Value.Type": [
+"Value.Type(value as any) as type",
+"Returns the type of the given value."
+],
+"Value.VersionIdentity": [
+"Value.VersionIdentity(value as any) as any",
+"Returns the version identity of the value."
+],
+"Value.Versions": [
+"Value.Versions(value as any) as table",
+"Returns a navigation table containing the available versions of the value."
+],
+"Value.ViewError": [
+"Value.ViewError(errorRecord as record) as record",
+"This function is intended for internal use only."
+],
+"Value.ViewFunction": [
+"Value.ViewFunction(function as function) as function",
+"This function is intended for internal use only."
+],
+"ValueAction.NativeStatement": [
+"ValueAction.NativeStatement(target as any, statement as text, optional parameters as any, optional options as nullable record) as action",
+"Creates an action to execute a statement against a target."
+],
+"ValueAction.Replace": [
+"ValueAction.Replace(target as any, source as any) as action",
+"Creates an action that replaces the content of a value with the specified value."
+],
+"Variable.Value": [
+"Variable.Value(identifier as text) as any",
+"Returns the value of the specified variable."
+],
+"Variable.ValueOrDefault": [
+"Variable.ValueOrDefault(identifier as text, optional defaultValue as any) as any",
+"Returns the value of the specified variable or the default value if the variable is not defined."
+],
+"Web.BrowserContents": [
+"Web.BrowserContents(url as text, optional options as nullable record) as text",
+"Returns the HTML for the specified URL, as viewed by a web browser."
+],
+"Web.Contents": [
+"Web.Contents(url as text, optional options as nullable record) as binary",
+"Returns the contents downloaded from the url as binary."
+],
+"Web.Headers": [
+"Web.Headers(url as text, optional options as nullable record) as record",
+"Returns the HTTP headers downloaded from the url as a record value."
+],
+"Web.Page": [
+"Web.Page(html as any) as table",
+"Returns the contents of the HTML document broken into its constituent structures, as well as a representation of the full document and its text after removing tags."
+],
+"WebAction.Request": [
+"WebAction.Request(method as text, url as text, optional options as nullable record) as action",
+"Creates an action that, when executed, will return the results of performing an HTTP request as a binary value."
+],
+"Xml.Document": [
+"Xml.Document(contents as any, optional encoding as nullable number) as table",
+"Returns the contents of the XML document as a hierarchical table."
+],
+"Xml.Tables": [
+"Xml.Tables(contents as any, optional options as nullable record, optional encoding as nullable number) as table",
+"Returns the contents of the XML document as a nested collection of flattened tables."
+]
+}

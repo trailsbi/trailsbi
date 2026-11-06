@@ -47,6 +47,18 @@ jobs:
           python tools/build_pyz.py
           python dist/trailsbi.pyz tests/fixtures/Shop -o shop.html
 
+  page-lint:
+    # The TrailsBI visual runs this page script inside Power BI, so it is held to the
+    # rules Microsoft uses for custom visuals (no innerHTML, no http:, no eval and so on).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: npm install --no-save eslint@9 eslint-plugin-powerbi-visuals
+      - run: npx eslint src/trailsbi/web/js
+
   page:
     runs-on: ubuntu-latest
     steps:

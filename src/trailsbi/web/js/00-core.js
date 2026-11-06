@@ -7,12 +7,15 @@ var TYPES = [
   {k:"table",   label:"Tables"},
   {k:"column",  label:"Columns"},
   {k:"measure", label:"Measures"},
+  {k:"calcgroup", label:"Calculation groups"},
+  {k:"calcitem", label:"Calculation items"},
   {k:"visual",  label:"Visuals"},
   {k:"page",    label:"Pages"}
 ];
 var TYPE_IDX = {}; TYPES.forEach(function (t, i) { TYPE_IDX[t.k] = i; });
 var SINGULAR = {source:"Data source", query:"Query", table:"Table", column:"Column",
-                measure:"Measure", visual:"Visual", page:"Page"};
+                measure:"Measure", calcgroup:"Calculation group", calcitem:"Calculation item",
+                visual:"Visual", page:"Page"};
 var byId = new Map(), OUT = new Map(), IN = new Map(), ROLE = new Map();
 D.nodes.forEach(function (n) { byId.set(n.id, n); });
 /* "home" edges tie a measure to the table it is stored in. They always count
@@ -29,32 +32,58 @@ function wireEdges(withHome) {
 }
 wireEdges(false);
 
-function esc(s) {
-  return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
-    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
-  });
+/* ---------- DOM building ----------
+   Every view is built from elements, never from markup strings: names, DAX and
+   anything else read from the project only ever become text nodes or attribute
+   values, so nothing in a model can turn into markup or script.
+     h("div", {class: "x", "data-id": id}, [child, "text", [more]])
+   Attributes that are null, undefined or false are left out; true sets an empty
+   attribute. Children can be nodes, strings, numbers or nested arrays; null and
+   false are skipped. sg() does the same for SVG elements. */
+var SVGNS = "http://www.w3.org/2000/svg";
+function addKids(parent, kids) {
+  if (kids === null || kids === undefined || kids === false) return parent;
+  if (Array.isArray(kids)) { for (var i = 0; i < kids.length; i++) addKids(parent, kids[i]); return parent; }
+  parent.appendChild(kids.nodeType ? kids : document.createTextNode(String(kids)));
+  return parent;
 }
+function makeEl(ns, tag, attrs, kids) {
+  var e = ns ? document.createElementNS(ns, tag) : document.createElement(tag);
+  if (attrs) Object.keys(attrs).forEach(function (k) {
+    var v = attrs[k];
+    if (v === null || v === undefined || v === false) return;
+    e.setAttribute(k, v === true ? "" : String(v));
+  });
+  return addKids(e, kids);
+}
+function h(tag, attrs, kids) { return makeEl(null, tag, attrs, kids); }
+function sg(tag, attrs, kids) { return makeEl(SVGNS, tag, attrs, kids); }
+function frag(kids) { return addKids(document.createDocumentFragment(), kids); }
+/* Replace everything inside an element. */
+function fill(el, kids) { el.textContent = ""; return addKids(el, kids); }
+/* An element tree from the page's icon data: [tag, {attributes}, [children]]. */
+function treeEl(t) { return sg(t[0], t[1], (t[2] || []).map(treeEl)); }
+function iconParts(name) { return (ICONS[name] || ICONS.v_generic).map(treeEl); }
+/* An icon as a <g> for drawing inside a larger SVG. */
+function iconG(name, attrs) { return sg("g", attrs, iconParts(name)); }
 function trunc(s, n) { s = String(s); return s.length > n ? s.slice(0, n - 1) + "…" : s; }
 function $(id) { return document.getElementById(id); }
 function kindName(n) {
   if (n.type === "column" && n.sub === "calculated") return "Calculated column";
   if (n.type === "table" && n.sub === "calculated") return "Calculated table";
   if (n.type === "table" && n.sub === "fieldparam") return "Field parameter";
-  if (n.type === "table" && n.sub === "calcgroup") return "Calculation group";
   if (n.type === "query" && n.sub === "parameter") return "Parameter";
-  if (n.sub === "calcitem") return "Calculation item";
   if (n.broken) return "Missing " + n.type;
   return SINGULAR[n.type];
 }
 var TYPE_ICON = {source:"db", query:"query", table:"table", column:"column",
-                 measure:"measure", visual:"v_column", page:"page"};
+                 measure:"measure", calcgroup:"calcgroup", calcitem:"calcitem", visual:"v_column", page:"page"};
 function iconName(n) { return n.icon || TYPE_ICON[n.type] || "v_generic"; }
 function typeCls(n) { return n.broken ? "is-bad" : "t-" + n.type + (n.sub ? " s-" + n.sub : ""); }
 function icon(name, size, cls) {
-  return '<svg class="ic ' + (cls || "") + '" width="' + size + '" height="' + size +
-    '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" ' +
-    'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    (ICONS[name] || ICONS.v_generic) + '</svg>';
+  return sg("svg", {"class": "ic " + (cls || ""), width: size, height: size, viewBox: "0 0 24 24", fill: "none",
+                    stroke: "currentColor", "stroke-width": 2, "stroke-linecap": "round",
+                    "stroke-linejoin": "round", "aria-hidden": "true"}, iconParts(name));
 }
 function markers(n) {
   var m = [];

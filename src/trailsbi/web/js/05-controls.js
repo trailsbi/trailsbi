@@ -2,8 +2,8 @@
 var SIDE_KEY = "trailsbi.detailsPane";
 var SIDES = Array.prototype.slice.call(document.querySelectorAll("aside.side"));
 SIDES.forEach(function (side) {
-  side.querySelector(".side-hide").innerHTML = icon("ui_hide", 18);
-  side.querySelector(".side-show-ic").innerHTML = icon("ui_show", 18);
+  fill(side.querySelector(".side-hide"), icon("ui_hide", 18));
+  fill(side.querySelector(".side-show-ic"), icon("ui_show", 18));
   side.querySelector(".side-hide").addEventListener("click", function () { setSide(true, true, side); });
   side.querySelector(".side-show").addEventListener("click", function () { setSide(false, true, side); });
 });
@@ -50,7 +50,7 @@ FILTERS.forEach(function (t) {
   var b = document.createElement("button");
   b.dataset.k = t.k;
   b.className = "t-" + (t.k === "parameter" ? "query" : t.k);
-  b.innerHTML = icon(t.icon, 16, "t-" + (t.k === "parameter" ? "query" : t.k));
+  b.appendChild(icon(t.icon, 16, "t-" + (t.k === "parameter" ? "query" : t.k)));
   b.setAttribute("aria-label", t.label);
   b.dataset.label = t.label;
   b.addEventListener("click", function () {
@@ -80,9 +80,13 @@ function syncControls() {
   $("optHidden").checked = state.hideHidden;
   $("optHome").checked = !!state.showHome;
   var changed = (state.hideUnused ? 1 : 0) + (state.hideAuto ? 0 : 1) + (state.hideHidden ? 1 : 0) + (state.showHome ? 1 : 0);
-  $("viewBtn").innerHTML = icon("ui_eye", 15) + '<span>View options</span><span class="vcount">' + (changed || "") + '</span>' +
-                           icon("ui_chev", 14, "chev");
+  fill($("viewBtn"), viewButtonKids(changed));
   $("viewBtn").title = changed ? changed + " view option" + (changed === 1 ? "" : "s") + " changed from the default" : "View options";
+}
+/* The "View options" button: eye, label, how many options differ from the default, chevron. */
+function viewButtonKids(changed) {
+  return [icon("ui_eye", 15), h("span", {"class": "vlabel"}, "View options"), h("span", {"class": "vcount"}, changed || ""),
+          icon("ui_chev", 14, "chev")];
 }
 function setDensity(mode) {
   if (state.dense === mode) return;

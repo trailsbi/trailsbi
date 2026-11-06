@@ -4,7 +4,8 @@
 var MKINDS = [
   {k: "table", label: "Tables", icon: "table", c: "var(--table)", of: ["table"]},
   {k: "column", label: "Columns", icon: "column", c: "var(--column)", of: ["column"]},
-  {k: "measure", label: "Measures", icon: "measure", c: "var(--measure)", of: ["measure", "calculationItem"]},
+  {k: "measure", label: "Measures", icon: "measure", c: "var(--measure)", of: ["measure"]},
+  {k: "calcgroup", label: "Calculation groups", icon: "calcgroup", c: "var(--calcgroup)", of: ["calculationItem"]},
   {k: "hierarchy", label: "Hierarchies", icon: "v_tree", c: "var(--table)", of: ["hierarchy", "level"]},
   {k: "partition", label: "Partitions", icon: "query", c: "var(--query)", of: ["partition"]},
   {k: "relationship", label: "Relationships", icon: "relationship", c: "var(--model)", of: ["relationship"]},
@@ -19,13 +20,15 @@ var MKINDS = [
 var MKIND_OF = {};
 MKINDS.forEach(function (g) { g.of.forEach(function (k) { MKIND_OF[k] = g.k; }); });
 function mGroup(k) { return MKIND_OF[k] || "other"; }
+/* A row's kind for the filter: like mGroup, but a calculation group's own row counts with its items. */
+function mRowGroup(it) { return it.k === "table" && /calculation group/.test(it.t) ? "calcgroup" : mGroup(it.k); }
 /* Kinds the Model view leaves out: parameters and expressions, annotations,
    and model / culture / perspective entries. */
 var MSKIP = {expression: 1, annotation: 1, other: 1};
 function mShown(it) { return !MSKIP[mGroup(it.k)] && (state.mdShowAuto || !it.auto); }
 function mIcon(it) {
   switch (it.k) {
-    case "table": return /field parameter/.test(it.t) ? "fieldparam" : /calculation group/.test(it.t) ? "calcitem"
+    case "table": return /field parameter/.test(it.t) ? "fieldparam" : /calculation group/.test(it.t) ? "calcgroup"
                        : /calculated/.test(it.t) ? "calctable" : "table";
     case "column": return /calculated/.test(it.t) ? "calccolumn" : "column";
     case "measure": return "measure";
@@ -47,7 +50,7 @@ function mIcon(it) {
 function mColor(it) {
   if (it.k === "column" && /calculated/.test(it.t)) return "var(--calc)";
   if (it.k === "table" && /calculated/.test(it.t)) return "var(--calc)";
-  var g = mGroup(it.k);
+  var g = mRowGroup(it);
   for (var i = 0; i < MKINDS.length; i++) if (MKINDS[i].k === g) return MKINDS[i].c;
   return "var(--page)";
 }
@@ -62,16 +65,19 @@ function mHiddenKind(g) { return (g === "relationship" && !state.mdShowRel) || (
    A table with one partition carries its expression itself instead of a partition card. */
 function mChildRank(it) {
   if (it.k === "partition") return 0;
+  if (it.k === "calculationItem") return 0.5;           // a calculation group's items come first
   if (it.k === "column") return /calculated/.test(it.t) ? 2 : 1;
   if (it.k === "hierarchy") return 3;
   if (it.k === "measure") return 4;
-  if (it.k === "calculationItem") return 5;
   return 6;
 }
 function mTableLabel(tbl, kids) {
   var parts = kids.filter(function (g) { return g[0].k === "partition"; }).length;
   var cols = kids.filter(function (g) { return g[0].k === "column"; }).length;
   var meas = kids.filter(function (g) { return g[0].k === "measure"; }).length;
+  var items = kids.filter(function (g) { return g[0].k === "calculationItem"; }).length;
+  if (items || /calculation group/.test(tbl.t))
+    return ["calculation group", plural(items, "item", "items"), plural(cols, "column", "columns")].join(" · ");
   var bits = String(tbl.t).split(" · ");                 // e.g. "table", "import"
   var type = bits[0], mode = bits[1] ? bits[1].charAt(0).toUpperCase() + bits[1].slice(1) : "";
   return [type, mode, parts > 1 ? plural(parts, "partition", "partitions") : "",
@@ -109,41 +115,57 @@ function mArrange(list) {
    Shown with the same cards as the outline so the page reads consistently. */
 function liveBlock(m) {
   var L = m.live;
-  var h = '<p class="note">This semantic model is a live connection. Its tables, columns and ' +
-          'measures are defined in the model it points at, so the project has nothing to list ' +
-          'here beyond the connection itself.</p>';
-  h += '<div class="mrow card" data-info="1" data-p="-1" style="--c:var(--source)"><span class="bar"></span>' +
-       '<span class="mtw-sp"></span>' + icon(L.icon || "db", 16) +
-       '<span class="mn">' + esc(L.database || L.server) + '</span>' +
-       '<span class="mt">' + esc(L.connector) + '</span><span class="macts">' +
-       (m.liveId ? '<button class="mlin" data-go-id="' + esc(m.liveId) +
-                   '" title="Show in lineage" aria-label="Show this connection in the lineage map">' +
-                   icon("nav_lineage", 14) + '</button>' : '') +
-       '</span></div>';
+  var out = [
+    h("p", {"class": "note"}, "This semantic model is a live connection. Its tables, columns and " +
+      "measures are defined in the model it points at, so the project has nothing to list " +
+      "here beyond the connection itself."),
+    h("div", {"class": "mrow card", "data-info": 1, "data-p": -1, style: "--c:var(--source)"}, [
+      h("span", {"class": "bar"}), h("span", {"class": "mtw-sp"}), icon(L.icon || "db", 16),
+      h("span", {"class": "mn"}, L.database || L.server), h("span", {"class": "mt"}, L.connector),
+      h("span", {"class": "macts"}, m.liveId ? h("button", {"class": "mlin", "data-go-id": m.liveId, title: "Show in lineage",
+        "aria-label": "Show this connection in the lineage map"}, icon("nav_lineage", 14)) : null)
+    ])
+  ];
   [[L.server.indexOf("://") > 0 ? "cloud" : "db", L.server, "Server"],
    ["db", L.database, "Database"], ["table", L.cube, "Perspective"],
    ["relationship", L.typeLabel, "Connection type"]]
     .forEach(function (r) {
       if (!r[1]) return;
-      h += '<div class="mrow card" data-info="1" data-p="-1" style="--c:var(--rule);margin-left:24px"><span class="bar"></span>' +
-           '<span class="mtw-sp"></span>' + icon(r[0], 16) +
-           '<span class="mn">' + esc(r[1]) + '</span><span class="mt">' + esc(r[2]) + '</span></div>';
+      out.push(h("div", {"class": "mrow card", "data-info": 1, "data-p": -1, style: "--c:var(--rule);margin-left:24px"}, [
+        h("span", {"class": "bar"}), h("span", {"class": "mtw-sp"}), icon(r[0], 16),
+        h("span", {"class": "mn"}, r[1]), h("span", {"class": "mt"}, r[2])
+      ]));
     });
-  return h;
+  return out;
 }
 
+/* A row's health and AI readiness buttons, when it has findings. */
+function issueButtons(it) {
+  var e = it.id ? issuesFor(it.id) : null;
+  if (!e) return null;
+  var meta = function (kind, count, label, ic) {
+    return h("button", {"class": "mhealth", "data-issue": kind, "data-id": it.id, "data-label": it.n, "data-kind": it.k,
+                        "data-table": it.tb || "", title: label}, [String(count), icon(ic, 14)]);
+  };
+  return [e.h ? meta("health", e.h, plural(e.h, "health finding", "health findings"), "nav_health") : null,
+          e.a ? meta("ai", e.a, plural(e.a, "AI readiness finding", "AI readiness findings"), "nav_ai") : null];
+}
 function modelBlock(m) {
   var out = mArrange((m.outline || []).filter(mShown)), cnt = {table: 0, column: 0, measure: 0};
   out.forEach(function (it) { if (cnt[it.k] !== undefined) cnt[it.k]++; });
-  var h = '<section class="rep mdl" id="mod-' + esc(m.key) + '" data-mkey="' + esc(m.key) + '">' +
-          '<button class="rep-h" aria-expanded="true" title="Click to collapse this semantic model">' +
-          icon("ws_model", 20, "k-model") + esc(m.name) + '<span class="muted">' +
-          (m.live ? esc(m.live.typeLabel)
-                  : [plural(cnt.table, "table", "tables"), plural(cnt.column, "column", "columns"),
-                     plural(cnt.measure, "measure", "measures")].join(" · ")) +
-          '</span><span class="rep-chev"></span></button><div class="mbody">';
-  if (!out.length && m.live) return h + liveBlock(m) + '</div></section>';
-  if (!out.length) return h + '<p class="muted">No objects could be read from this semantic model.</p></div></section>';
+  var body = h("div", {"class": "mbody"});
+  var sec = h("section", {"class": "rep mdl", id: "mod-" + m.key, "data-mkey": m.key}, [
+    h("button", {"class": "rep-h", "aria-expanded": "true", title: "Click to collapse this semantic model"}, [
+      icon("ws_model", 20, "k-model"), m.name,
+      h("span", {"class": "muted"}, m.live ? m.live.typeLabel
+        : [plural(cnt.table, "table", "tables"), plural(cnt.column, "column", "columns"),
+           plural(cnt.measure, "measure", "measures")].join(" · ")),
+      h("span", {"class": "rep-chev"})
+    ]),
+    body
+  ]);
+  if (!out.length && m.live) { addKids(body, liveBlock(m)); return sec; }
+  if (!out.length) { addKids(body, h("p", {"class": "muted"}, "No objects could be read from this semantic model.")); return sec; }
   var stack = [];
   out.forEach(function (it, i) {
     while (stack.length && out[stack[stack.length - 1]].d >= it.d) stack.pop();
@@ -152,51 +174,47 @@ function modelBlock(m) {
     if (it._p >= 0) out[it._p]._kids++;
     stack.push(i);
   });
+  var rows = [];
   out.forEach(function (it, i) {
     var node = it.id ? byId.get(it.id) : null;
     var isKey = it.key || (node && node.relkey);
     var hidden = it.h || (node && node.hidden);
     var open = !(it._kids && it.d === 0 && it.k !== "model");      // top-level objects start closed
-    h += '<div class="mrow card" data-i="' + i + '" data-p="' + it._p + '" data-g="' + mGroup(it.k) + '"' +
-         (it.id ? ' data-id="' + esc(it.id) + '"' : '') + (it._kids ? ' data-open="' + (open ? 1 : 0) + '"' : '') +
-         ' style="--c:' + mColor(it) + ';margin-left:' + (it.d * 24) + 'px">' +
-         '<span class="bar"></span>' +
-         (it._kids ? '<button class="mtw" aria-label="Show or hide contents"></button>' : '<span class="mtw-sp"></span>') +
-         icon(mIcon(it), 16) +
-         '<span class="mn' + (hidden ? ' hid' : '') + '">' + esc(it.n) + '</span>' +
-         '<span class="mt">' + esc(it.t) + '</span>' +
-         (isKey ? '<span class="mk" title="Key">' + icon("key", 14) + '</span>' : '') +
-         (hidden ? '<span class="mk" title="Hidden">' + icon("hidden", 14) + '</span>' : '') +
-         (it._kids && !it.table ? '<span class="mcount">' + it._kids + '</span>' : '') +
-         '<span class="macts">' +
-         (function () {
-           var e = it.id ? issuesFor(it.id) : null;
-           if (!e) return "";
-           var meta = ' data-id="' + esc(it.id) + '" data-label="' + esc(it.n) + '" data-kind="' + esc(it.k) +
-                      '" data-table="' + esc(it.tb || "") + '"';
-           return (e.h ? '<button class="mhealth" data-issue="health"' + meta + ' title="' +
-                         esc(plural(e.h, "health finding", "health findings")) + '">' + e.h + icon("nav_health", 14) + '</button>' : '') +
-                  (e.a ? '<button class="mhealth" data-issue="ai"' + meta + ' title="' +
-                         esc(plural(e.a, "AI readiness finding", "AI readiness findings")) + '">' + e.a + icon("nav_ai", 14) + '</button>' : '');
-         })() +
-         (it.x ? '<button class="mcodebtn" title="Show the ' + it.l + ' expression">' + it.l + '</button>' : '') +
-         (it.id ? '<button class="mlin" data-go-id="' + esc(it.id) + '" title="Show in lineage" aria-label="Show ' +
-                  esc(it.n) + ' in the lineage map">' + icon("nav_lineage", 14) + '</button>' : '') +
-         '</span></div>' +
-         (it.x ? '<pre class="mcode" data-i="' + i + '" hidden style="margin-left:' + (it.d * 24) + 'px">' + esc(it.x) + '</pre>' : '');
+    rows.push(h("div", {"class": "mrow card", "data-i": i, "data-p": it._p, "data-g": mRowGroup(it), "data-id": it.id || null,
+                        "data-open": it._kids ? (open ? 1 : 0) : null,
+                        style: "--c:" + mColor(it) + ";margin-left:" + (it.d * 24) + "px"}, [
+      h("span", {"class": "bar"}),
+      it._kids ? h("button", {"class": "mtw", "aria-label": "Show or hide contents"}) : h("span", {"class": "mtw-sp"}),
+      icon(mIcon(it), 16),
+      h("span", {"class": "mn" + (hidden ? " hid" : "")}, it.n),
+      h("span", {"class": "mt"}, it.t),
+      isKey ? h("span", {"class": "mk", title: "Key"}, icon("key", 14)) : null,
+      hidden ? h("span", {"class": "mk", title: "Hidden"}, icon("hidden", 14)) : null,
+      it._kids && !it.table ? h("span", {"class": "mcount"}, it._kids) : null,
+      h("span", {"class": "macts"}, [
+        issueButtons(it),
+        it.x ? h("button", {"class": "mcodebtn", title: "Show the " + it.l + " expression"}, it.l) : null,
+        it.id ? h("button", {"class": "mlin", "data-go-id": it.id, title: "Show in lineage",
+                             "aria-label": "Show " + it.n + " in the lineage map"}, icon("nav_lineage", 14)) : null
+      ])
+    ]));
+    if (it.x) rows.push(codeBlock(it.x, it.l === "DAX" ? "dax" : "m",
+                                  {"class": "mcode", "data-i": i, hidden: true, style: "margin-left:" + (it.d * 24) + "px"}));
   });
-  return h + '</div></section>';
+  addKids(body, rows);
+  return sec;
 }
 function buildModel() {
-  var h = "";
+  var out = [];
   if (!MODELS.length) {
     var ext = REPORTS.length && REPORTS[0].external;
-    h = '<p class="muted">' + (ext ? "The report connects live to the published semantic model <b>" + esc(ext) +
-        "</b>, so its tables are not in this project. The lineage shows the fields the report uses."
-        : "No semantic model was found in this project.") + '</p>';
+    out.push(h("p", {"class": "muted"}, ext
+      ? ["The report connects live to the published semantic model ", h("b", null, ext),
+         ", so its tables are not in this project. The lineage shows the fields the report uses."]
+      : "No semantic model was found in this project."));
   }
-  (D.meta.models || []).forEach(function (m) { h += modelBlock(m); });
-  $("modelDoc").innerHTML = h;
+  (D.meta.models || []).forEach(function (m) { out.push(modelBlock(m)); });
+  fill($("modelDoc"), out);
   applyModelView();
 }
 /* Which rows show: kind filter and search show matches with their parents;
@@ -275,14 +293,14 @@ mdAll.addEventListener("click", function () { if (!state.mdPick.size) return; st
 mdBox.appendChild(mdAll);
 var PRESENT = new Set();
 (D.meta.models || []).forEach(function (m) {
-  (m.outline || []).forEach(function (it) { if (!MSKIP[mGroup(it.k)]) PRESENT.add(mGroup(it.k)); });
+  (m.outline || []).forEach(function (it) { if (!MSKIP[mGroup(it.k)]) PRESENT.add(mRowGroup(it)); });
 });
 MKINDS.forEach(function (g) {
   if (!PRESENT.has(g.k)) return;
   var b = document.createElement("button");
   b.dataset.k = g.k; b.title = g.label; b.setAttribute("aria-label", g.label);
   b.style.setProperty("--c", g.c);
-  b.innerHTML = '<span style="display:flex;color:' + g.c + '">' + icon(g.icon, 16) + '</span>';
+  b.appendChild(h("span", {style: "display:flex;color:" + g.c}, icon(g.icon, 16)));
   b.addEventListener("click", function () {
     if (state.mdPick.has(g.k)) state.mdPick.delete(g.k); else state.mdPick.add(g.k);
     syncMdTypes(); applyModelView();
@@ -313,8 +331,7 @@ function syncMdView() {
   document.body.classList.toggle("show-actions", !state.mdHoverActions);
   var changed = (state.mdShowAuto ? 1 : 0) + (listOnly ? (state.mdShowRel ? 1 : 0) +
                 (state.mdShowRoles ? 1 : 0) + (state.mdHoverActions ? 0 : 1) : 0);
-  $("mdViewBtn").innerHTML = icon("ui_eye", 15) + '<span>View options</span><span class="vcount">' + (changed || "") + '</span>' +
-                             icon("ui_chev", 14, "chev");
+  fill($("mdViewBtn"), viewButtonKids(changed));
 }
 $("mdViewBtn").addEventListener("click", function (e) {
   e.stopPropagation();

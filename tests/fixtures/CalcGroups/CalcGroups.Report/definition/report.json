@@ -1,0 +1,21 @@
+{
+  "themeCollection": {},
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "f1",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "Product"
+              }
+            },
+            "Property": "Category"
+          }
+        },
+        "type": "Categorical"
+      }
+    ]
+  }
+}

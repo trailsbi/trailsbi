@@ -412,23 +412,25 @@ function layoutDiagramFit(dg) {
 function dFieldRow(f, kind, tname) {
   var ic = kind === "measure" ? "measure" : f.calc ? "calccolumn" : "column";
   var cls = kind === "measure" ? "t-measure" : f.calc ? "t-column s-calculated" : "t-column";
-  return '<div class="dfield' + (f.h ? " hid" : "") + '" data-t="' + esc(tname || "") + '" data-c="' + esc(f.n) + '">' +
-         icon(ic, 13, cls) + '<span>' + esc(f.n) + '</span>' + icon("key", 12, "is-muted") + '</div>';
+  return h("div", {"class": "dfield" + (f.h ? " hid" : ""), "data-t": tname || "", "data-c": f.n},
+           [icon(ic, 13, cls), h("span", null, f.n), icon("key", 12, "is-muted")]);
 }
 function dRelKeys(dg) {
   var keys = {};
   dg.rels.forEach(function (r) { keys[r.f[0] + "\u241e" + r.f[1]] = 1; keys[r.t[0] + "\u241e" + r.t[1]] = 1; });
   return keys;
 }
+function dTableIcon(t) {
+  return t.k === "calc" ? "calctable" : t.k === "fieldparam" ? "fieldparam" : t.k === "calcgroup" ? "calcgroup" : "table";
+}
 function dTableCard(t, p, mkey, keys) {
-  var ic = t.k === "calc" ? "calctable" : t.k === "fieldparam" ? "fieldparam" : t.k === "calcgroup" ? "calcitem" : "table";
-  var c = t.k === "calc" ? "var(--calc)" : "var(--table)";
+  var c = t.k === "calc" ? "var(--calc)" : t.k === "calcgroup" ? "var(--calcgroup)" : "var(--table)";
   var shown = t.cols.filter(function (f) { return keys[t.n + "\u241e" + f.n]; });   // relationship keys only
-  var fields = shown.map(function (f) { return dFieldRow(f, "column", t.n); });
-  return '<div class="dcard' + (t.h ? " hid" : "") + '" data-t="' + esc(t.n) + '" data-m="' + esc(mkey) + '" tabindex="0" ' +
-         'style="left:' + p.x + 'px;top:' + p.y + 'px;width:' + p.w + 'px;--c:' + c + '">' +
-         '<div class="dhead">' + icon(ic, 16) + '<b>' + esc(t.n) + '</b></div>' +
-         (fields.length ? '<div class="dfields">' + fields.join("") + '</div>' : "") + '</div>';
+  return h("div", {"class": "dcard" + (t.h ? " hid" : ""), "data-t": t.n, "data-m": mkey, tabindex: 0,
+                   style: "left:" + p.x + "px;top:" + p.y + "px;width:" + p.w + "px;--c:" + c}, [
+    h("div", {"class": "dhead"}, [icon(dTableIcon(t), 16), h("b", null, t.n)]),
+    shown.length ? h("div", {"class": "dfields"}, shown.map(function (f) { return dFieldRow(f, "column", t.n); })) : null
+  ]);
 }
 /* Elbow path from the fact's edge to the dimension's edge, with 1 and * marks. */
 /* At most one bend. A fact meets a dimension from its right edge to the
@@ -676,7 +678,7 @@ function dSegLen(sg) { return Math.abs(sg.x2 - sg.x1) + Math.abs(sg.y2 - sg.y1);
 var DARROW_TS = [0.5, 0.625, 0.375, 0.75, 0.25, 0.875, 0.125, 1, 0];
 function dArrow(pa, toSecond, both, others, lines, mine) {
   var runs = ((pa && (pa.all || pa.segs)) || []).filter(function (sg) { return dSegLen(sg) > 1; });
-  if (!runs.length) return "";
+  if (!runs.length) return null;
   var last = runs[runs.length - 1];
   var w = both ? 22 : 18;
   /* Stay off the end chips: both boxes are 18 tall, the arrow w wide. */
@@ -721,12 +723,12 @@ function dArrow(pa, toSecond, both, others, lines, mine) {
   var dx = on.x2 - on.x1, dy = on.y2 - on.y1;
   if (!toSecond) { dx = -dx; dy = -dy; }
   var deg = Math.round(Math.atan2(dy, dx) * 180 / Math.PI);
-  var glyph = both ? '<path d="M-6.5,0 L-1.5,-4 L-1.5,4 Z"/><path d="M6.5,0 L1.5,-4 L1.5,4 Z"/>'
-                   : '<path d="M-3.5,-4 L4,0 L-3.5,4 Z"/>';
-  return '<g class="darrow' + (bare ? " bare" : "") + '">' +
-         (bare ? "" : '<rect x="' + (mx - w / 2) + '" y="' + (my - 9) + '" width="' + w +
-                      '" height="18" rx="3"/>') +
-         '<g transform="translate(' + mx + ',' + my + ') rotate(' + deg + ')">' + glyph + '</g></g>';
+  var glyph = both ? [sg("path", {d: "M-6.5,0 L-1.5,-4 L-1.5,4 Z"}), sg("path", {d: "M6.5,0 L1.5,-4 L1.5,4 Z"})]
+                   : sg("path", {d: "M-3.5,-4 L4,0 L-3.5,4 Z"});
+  return sg("g", {"class": "darrow" + (bare ? " bare" : "")}, [
+    bare ? null : sg("rect", {x: mx - w / 2, y: my - 9, width: w, height: 18, rx: 3}),
+    sg("g", {transform: "translate(" + mx + "," + my + ") rotate(" + deg + ")"}, glyph)
+  ]);
 }
 /* The canvas fits the cards, but a rail routed under a row can reach past the
    lowest one, so the lines get a say in the size too. */
@@ -852,34 +854,57 @@ function dSegInBox(sg, cx, cy, hw, hh) {
   return lo.x <= cx + hw && hi.x >= cx - hw && lo.y <= cy + hh && hi.y >= cy - hh;
 }
 function dMark(p, text, live) {
-  if (!p) return "";                                    // a neighbouring bar speaks for this line
+  if (!p) return null;                                  // a neighbouring bar speaks for this line
   var many = (p.text || text) !== "1";
   var b = dChipBox(p);
   /* A bar stands for a whole run of lines, so it is not part of any one
      relationship's group: it goes in its own layer, over the lines, and names
      the run it speaks for so hovering it can light all of them. */
-  var attrs = "";
-  if (p.span) {
-    attrs = ' data-run="' + p.run + '"' + (live ? ' data-t="' + esc(p.table || "") + '"' : "");
-  }
-  return '<g class="dmark' + (p.span ? " all dbar" : "") + '"' + attrs + '>' +
-         '<rect x="' + (p.x - b.hw) + '" y="' + (p.y - b.hh) + '" width="' + (b.hw * 2) +
-         '" height="' + (b.hh * 2) + '" rx="3"/>' +
-         '<text class="' + (many ? "many" : "one") + '" x="' + p.x + '" y="' + (p.y + (many ? 5 : 1)) + '">' +
-         (many ? "*" : "1") + '</text>' +
-         (p.span ? '<title>' + esc(p.count + " relationship" + (p.count === 1 ? "" : "s") +
-                                  " on " + (p.table || "this table") + ", " +
-                                  (many ? "many" : "one") + " side") + '</title>' : "") +
-         '</g>';
+  return sg("g", {"class": "dmark" + (p.span ? " all dbar" : ""), "data-run": p.span ? p.run : null,
+                  "data-t": p.span && live ? p.table || "" : null}, [
+    sg("rect", {x: p.x - b.hw, y: p.y - b.hh, width: b.hw * 2, height: b.hh * 2, rx: 3}),
+    sg("text", {"class": many ? "many" : "one", x: p.x, y: p.y + (many ? 5 : 1)}, many ? "*" : "1"),
+    p.span ? sg("title", null, p.count + " relationship" + (p.count === 1 ? "" : "s") + " on " + (p.table || "this table") +
+                               ", " + (many ? "many" : "one") + " side") : null
+  ]);
+}
+/* The relationship lines of one diagram: each relationship's line with its
+   arrow and end marks, then the merged badge bars over all of them. Shared by
+   the diagram on screen (live) and the exported picture. */
+function dRelLayer(V, paths, slots, chips, segs, live, mkey) {
+  var out = [], bars = [];
+  V.rels.forEach(function (r, i) {
+    var pa = paths[i];
+    if (!pa) return;
+    var fromMark = r.fc === "many" ? "∗" : "1", toMark = r.tc === "many" ? "∗" : "1";
+    var m1 = pa.factFirst ? fromMark : toMark, m2 = pa.factFirst ? toMark : fromMark;
+    /* the filter flows from the one side to the many side */
+    var arrow = r.both ? dArrow(pa, true, true, chips, segs, i) : dArrow(pa, m1 === "1", false, chips, segs, i);
+    var marks = [];
+    [[pa.m1, m1], [pa.m2, m2]].forEach(function (e) {
+      if (!e[0]) return;
+      if (e[0].span) bars.push(dMark(e[0], e[1], live)); else marks.push(dMark(e[0], e[1]));
+    });
+    if (live) {
+      out.push(sg("g", {"class": "drel" + (r.active ? "" : " inactive"), "data-r": mkey + "|" + V.ridx[i],
+                        "data-runs": pa.runs ? pa.runs.join(" ") : null}, [
+        sg("path", {"class": "hit", d: pa.d}), sg("path", {"class": "line", d: pa.d}), arrow, marks,
+        sg("title", null, r.f[0] + "[" + r.f[1] + "] → " + r.t[0] + "[" + r.t[1] + "]")
+      ]));
+    } else {
+      out.push(sg("g", {"class": r.active ? null : "inactive"}, [sg("path", {"class": "line", d: pa.d}), arrow, marks]));
+    }
+  });
+  return {lines: out, bars: bars};
 }
 function buildDiagram() {
-  var models = diagramModels(), h = "";
+  var models = diagramModels(), out = [];
   /* A live-connected model carries no tables, so there is nothing to draw. It
      still gets a section that says where the model lives. */
   var live = (D.meta.models || []).filter(function (m) {
     return m.live && !(m.diagram && mdVisible(m).tables.length);
   });
-  if (!models.length && !live.length) h = '<p class="muted">No semantic model to draw.</p>';
+  if (!models.length && !live.length) out.push(h("p", {"class": "muted"}, "No semantic model to draw."));
   models.forEach(function (m) {
     var V = mdVisible(m), L = layoutDiagramFit(V);
     var slots = dSlots(V.rels, L.pos);
@@ -889,51 +914,30 @@ function buildDiagram() {
     dNudgeChips(paths, segs);
     var chips = dChipPoints(paths);        // an arrow dodges every chip, not only its own two
     var CW = dCanvasW(L, paths), CH = dCanvasH(L, paths);
-    h += '<section class="dsec" data-mkey="' + esc(m.key) + '">' +
-         '<h3 class="dtitle">' + icon("ws_model", 18, "k-model") + esc(m.name) + '<span class="muted">' +
-         plural(V.tables.length, "table", "tables") + ' · ' +
-         plural(V.rels.length, "relationship", "relationships") + '</span>' + dExportMenu() + '</h3>' +
-         '<div class="dwrap" data-w="' + CW + '" data-h="' + CH + '">' +
-         '<div class="dcanvas" style="width:' + CW + 'px;height:' + CH + 'px">' +
-         '<svg class="dlines" width="' + CW + '" height="' + CH + '">';
-    var bars = [];                        // drawn last, over the lines they speak for
-    V.rels.forEach(function (r, i) {
-      var pa = paths[i];
-      if (!pa) return;
-      var fromMark = r.fc === "many" ? "∗" : "1", toMark = r.tc === "many" ? "∗" : "1";
-      var m1 = pa.factFirst ? fromMark : toMark, m2 = pa.factFirst ? toMark : fromMark;
-      /* the filter flows from the one side to the many side */
-      var firstIsOne = m1 === "1";
-      var arrows = r.both ? dArrow(pa, true, true, chips, segs, i)
-                          : dArrow(pa, firstIsOne, false, chips, segs, i);
-      var marks = "";
-      [[pa.m1, m1], [pa.m2, m2]].forEach(function (e) {
-        if (!e[0]) return;
-        if (e[0].span) bars.push(dMark(e[0], e[1], true));
-        else marks += dMark(e[0], e[1]);
-      });
-      h += '<g class="drel' + (r.active ? "" : " inactive") + '" data-r="' + esc(m.key + "|" + V.ridx[i]) + '"' +
-           (pa.runs ? ' data-runs="' + pa.runs.join(" ") + '"' : "") + '>' +
-           '<path class="hit" d="' + pa.d + '"/><path class="line" d="' + pa.d + '"/>' + arrows + marks +
-           '<title>' + esc(r.f[0] + "[" + r.f[1] + "] → " + r.t[0] + "[" + r.t[1] + "]") + '</title></g>';
-    });
-    h += '<g class="dbars">' + bars.join("") + '</g></svg>';
+    var layer = dRelLayer(V, paths, slots, chips, segs, true, m.key);
     var keys = dRelKeys(V);
-    V.tables.forEach(function (t) {
-      var p = L.pos[t.n];
-      if (p) h += dTableCard(t, p, m.key, keys);
-    });
-    h += '</div></div></section>';
+    out.push(h("section", {"class": "dsec", "data-mkey": m.key}, [
+      h("h3", {"class": "dtitle"}, [
+        icon("ws_model", 18, "k-model"), m.name,
+        h("span", {"class": "muted"}, plural(V.tables.length, "table", "tables") + " · " +
+                                      plural(V.rels.length, "relationship", "relationships")),
+        dExportMenu()
+      ]),
+      h("div", {"class": "dwrap", "data-w": CW, "data-h": CH},
+        h("div", {"class": "dcanvas", style: "width:" + CW + "px;height:" + CH + "px"}, [
+          sg("svg", {"class": "dlines", width: CW, height: CH}, [layer.lines, sg("g", {"class": "dbars"}, layer.bars)]),
+          V.tables.map(function (t) { var p = L.pos[t.n]; return p ? dTableCard(t, p, m.key, keys) : null; })
+        ]))
+    ]));
   });
   live.forEach(function (m) {
-    h += '<section class="dsec" data-mkey="' + esc(m.key) + '">' +
-         '<h3 class="dtitle">' + icon("ws_model", 18, "k-model") + esc(m.name) +
-         '<span class="muted">' + esc(m.live.typeLabel) + '</span></h3>' +
-         '<p class="note">No diagram: this semantic model is a live connection to ' +
-         esc(m.live.database || m.live.server) + ', so its tables and relationships are defined ' +
-         'there rather than in the project.</p></section>';
+    out.push(h("section", {"class": "dsec", "data-mkey": m.key}, [
+      h("h3", {"class": "dtitle"}, [icon("ws_model", 18, "k-model"), m.name, h("span", {"class": "muted"}, m.live.typeLabel)]),
+      h("p", {"class": "note"}, "No diagram: this semantic model is a live connection to " +
+        (m.live.database || m.live.server) + ", so its tables and relationships are defined there rather than in the project.")
+    ]));
   });
-  $("mdDiagram").innerHTML = h;
+  fill($("mdDiagram"), out);
   applyDiagramZoom();
   showDiagramSelection();
 }

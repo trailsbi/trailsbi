@@ -1,0 +1,26 @@
+/// Switches any measure between the current period, last year and year to date.
+table 'Time Intelligence'
+	calculationGroup
+		precedence: 10
+
+		/// The measure as it is.
+		calculationItem Current = SELECTEDMEASURE()
+
+		calculationItem 'Last Year' = CALCULATE(SELECTEDMEASURE(), SAMEPERIODLASTYEAR('Date'[Date]))
+
+		calculationItem YTD = CALCULATE(SELECTEDMEASURE(), DATESYTD('Date'[Date]))
+			formatStringDefinition = SELECTEDMEASUREFORMATSTRING()
+
+		calculationItem 'Fixed Target' = 1000
+
+	column 'Time Calculation'
+		dataType: string
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		sourceColumn: Ordinal
+
+	partition 'Time Intelligence' = calculationGroup

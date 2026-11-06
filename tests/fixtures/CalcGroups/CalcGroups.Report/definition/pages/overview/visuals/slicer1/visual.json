@@ -1,0 +1,12 @@
+{
+  "name": "slicer1",
+  "position": {"x": 660, "y": 440, "z": 2, "width": 200, "height": 120},
+  "visual": {
+    "visualType": "slicer",
+    "query": {
+      "queryState": {
+        "Values": {"projections": [{"field": {"Column": {"Expression": {"SourceRef": {"Entity": "Currency"}}, "Property": "Currency Name"}}, "queryRef": "Currency.Currency Name"}]}
+      }
+    }
+  }
+}

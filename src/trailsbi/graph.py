@@ -115,6 +115,23 @@ class Resolver:
         return deps
 
 
+_SELECTED = re.compile(
+    r"(?i)\b(SELECTEDMEASURE|SELECTEDMEASURENAME|ISSELECTEDMEASURE|SELECTEDMEASUREFORMATSTRING)\s*\("
+)
+
+
+def calc_group_name_column(t):
+    """The column that lists a calculation group's items: the one fed by Name, else the first text column."""
+    cols = list(t["columns"].values())
+    for c in cols:
+        if (c.get("source") or "").lower() == "name" and not c["expr"]:
+            return c["name"]
+    for c in cols:
+        if (c.get("dataType") or "").lower() == "string":
+            return c["name"]
+    return cols[0]["name"] if cols else None
+
+
 def _build_model_part(G, model):
     R = Resolver(model)
     params = {n: e for n, e in model.expressions.items() if e["is_param"]}
@@ -238,17 +255,45 @@ def _build_model_part(G, model):
         lists = []
         if rel_by_table[tname]:
             lists.append({"title": "Relationships", "items": rel_by_table[tname]})
-        G.node(
-            tid(tname),
-            "table",
-            tname,
-            sub=sub,
-            hidden=t["hidden"],
-            auto=auto,
-            icon="fieldparam" if sub == "fieldparam" else ("calctable" if sub == "calculated" else "table"),
-            mode=(mode or ("DAX table" if sub == "calculated" else "")),
-            detail={"props": props, "steps": steps, "code": code, "lists": lists},
-        )
+        if sub == "calcgroup":
+            items = [m for m, md in t["measures"].items() if md["calc_item"]]
+            gprops = [["Type", "Calculation group"]]
+            gprops.append(
+                ["Precedence", str(t["precedence"]) if t["precedence"] is not None else "Not set (0)"]
+            )
+            gprops.append(["Calculation items", str(len(items))])
+            name_col = calc_group_name_column(t)
+            if name_col:
+                gprops.append(["Column", name_col])
+            if t["hidden"]:
+                gprops.append(["Hidden", "Yes"])
+            if t["description"]:
+                gprops.append(["Description", t["description"]])
+            G.node(
+                tid(tname),
+                "calcgroup",
+                tname,
+                hidden=t["hidden"],
+                icon="calcgroup",
+                prec=t["precedence"] if t["precedence"] is not None else 0,
+                nitems=len(items),
+                namecol=name_col or "",
+                detail={"props": gprops, "code": code},
+            )
+        else:
+            G.node(
+                tid(tname),
+                "table",
+                tname,
+                sub=sub,
+                hidden=t["hidden"],
+                auto=auto,
+                icon="fieldparam"
+                if sub == "fieldparam"
+                else ("calctable" if sub == "calculated" else "table"),
+                mode=(mode or ("DAX table" if sub == "calculated" else "")),
+                detail={"props": props, "steps": steps, "code": code, "lists": lists},
+            )
 
         if sub == "fieldparam":
             field_param_tables[tname] = tid(tname)
@@ -283,8 +328,31 @@ def _build_model_part(G, model):
                 detail={"props": cprops, "code": [{"title": "DAX", "text": c["expr"]}] if calc else []},
             )
 
-        for mname, md in t["measures"].items():
-            mprops = [["Table", tname], ["Kind", "Calculation item" if md["calc_item"] else "Measure"]]
+        for i, (mname, md) in enumerate(t["measures"].items()):
+            if md["calc_item"]:
+                iprops = [
+                    ["Calculation group", tname],
+                    ["Kind", "Calculation item"],
+                    ["Position", str(i + 1)],
+                ]
+                if md.get("desc"):
+                    iprops.append(["Description", md["desc"]])
+                icode = [{"title": "DAX", "text": md["expr"]}]
+                if md.get("fsExpr"):
+                    icode.append({"title": "Dynamic format string", "text": md["fsExpr"]})
+                G.node(
+                    mid(tname, mname),
+                    "calcitem",
+                    mname,
+                    table=tname,
+                    icon="calcitem",
+                    order=i,
+                    auto=auto,
+                    selm=bool(_SELECTED.search(md["expr"] or "")),
+                    detail={"props": iprops, "code": icode},
+                )
+                continue
+            mprops = [["Table", tname], ["Kind", "Measure"]]
             for label, key in (("Format", "format"), ("Display folder", "folder")):
                 if md.get(key):
                     mprops.append([label, md[key]])
@@ -351,9 +419,18 @@ def _build_model_part(G, model):
                 for dep in R.dax(p["source"], tname):
                     if dep != tid(tname) and not dep.startswith(f"c:{tname}{SEP}"):
                         G.edge(dep, tid(tname), "DAX")
+        group = G.nodes.get(tid(tname), {}).get("type") == "calcgroup"
+        name_col = G.nodes[tid(tname)].get("namecol") if group else None
+        items = [mid(tname, m) for m, md in t["measures"].items() if md["calc_item"]] if group else []
         for cname, c in t["columns"].items():
             me = cid(tname, cname)
-            G.edge(tid(tname), me, "contains")
+            if group and cname == name_col and items:
+                # A calculation group's column lists its items: each item feeds it, and
+                # visuals, slicers and filters use the items through it.
+                for it in items:
+                    G.edge(it, me, "item")
+            else:
+                G.edge(tid(tname), me, "contains")
             if c["expr"]:
                 for dep in R.dax(c["expr"], tname):
                     G.edge(dep, me, "DAX")
@@ -368,7 +445,7 @@ def _build_model_part(G, model):
                 G.edge(dep, me, "DAX")
             # A measure lives in its home table: deleting the table deletes the measure,
             # so the table owns it in lineage too (a measures-only table is not empty).
-            G.edge(tid(tname), me, "contains" if md["calc_item"] else "home")
+            G.edge(tid(tname), me, "item" if md["calc_item"] else "home")
     return R, field_param_tables, list(param_ids.values())
 
 
@@ -624,7 +701,7 @@ def build_graph(models: list, reports: list) -> tuple:
                     cands = [tid(n)]
                 elif k == "column" and tb:
                     cands = [cid(tb, n), tid(tb)]
-                elif k == "measure" and tb:
+                elif k in ("measure", "calculationItem") and tb:
                     cands = [mid(tb, n)]
                 elif k == "expression":
                     cands = [qid(n)] + [pid for pid in pids if pid.startswith("p:" + n + SEP)]
@@ -646,9 +723,9 @@ def build_graph(models: list, reports: list) -> tuple:
                             cand = tid(f["name"])
                         elif f["kind"] == "column" and f["table"]:
                             cand = cid(f["table"], f["name"])
-                        elif f["kind"] == "measure" and f["table"]:
+                        elif f["kind"] in ("measure", "calculationItem") and f["table"]:
                             cand = mid(f["table"], f["name"])
-                        elif f["kind"] in ("partition", "tablePermission", "calculationItem") and f["table"]:
+                        elif f["kind"] in ("partition", "tablePermission") and f["table"]:
                             cand = tid(f["table"])
                         if cand and cand in G.nodes:
                             f["id"] = cand
@@ -697,10 +774,78 @@ def build_graph(models: list, reports: list) -> tuple:
     for (a, _b), roles in G.edges.items():
         if G.nodes[a]["type"] in ("column", "measure") and any("filter" in r.lower() for r in roles):
             G.nodes[a]["filtered"] = True
+    calc_group_reach(G)
     # Some edges come from sets, whose order changes between runs. A fixed order
     # makes the same project give the same page every time.
     G.edges = dict(sorted(G.edges.items()))
     return G, page_rows
+
+
+def calc_group_reach(G: Graph) -> None:
+    """Which measures each calculation group, and each of its items, can change.
+
+    A calculation group changes the measures it is evaluated with: those in a visual
+    that has its column, and every measure on a page where a slicer or a filter
+    selects from it (every page, for a report filter). An item that names measures
+    with ISSELECTEDMEASURE changes only those. Listed in the details, not drawn as
+    lines, since a measure does not depend on the group that changes it.
+    """
+    col_group = {}
+    for nid, n in G.nodes.items():
+        if n["type"] == "calcgroup" and n.get("namecol"):
+            col_group[nid.replace("t:", "c:", 1) + SEP + n["namecol"]] = nid
+    if not col_group:
+        return
+    out, inn = defaultdict(list), defaultdict(list)
+    for (a, b), roles in G.edges.items():
+        out[a].append((b, roles))
+        inn[b].append(a)
+
+    def measures_of(vid):
+        return {a for a in inn[vid] if G.nodes[a]["type"] == "measure" and not G.nodes[a].get("broken")}
+
+    def visuals_on(pid):
+        return [a for a in inn[pid] if G.nodes[a]["type"] == "visual"]
+
+    reach = defaultdict(set)
+    for col, gid in col_group.items():
+        for target, _roles in out.get(col, ()):
+            t = G.nodes[target]
+            if t["type"] == "visual":
+                reach[gid] |= measures_of(target)
+                if "slicer" in (t.get("vtype") or "").lower():
+                    for pid, _r in out.get(target, ()):
+                        for v in visuals_on(pid):
+                            reach[gid] |= measures_of(v)
+            elif t["type"] == "page":
+                pages = [target]
+                if t.get("sub") == "report":
+                    pages = [
+                        p
+                        for p, n in G.nodes.items()
+                        if n["type"] == "page" and n.get("rkey") == t.get("rkey")
+                    ]
+                for pid in pages:
+                    for v in visuals_on(pid):
+                        reach[gid] |= measures_of(v)
+    by_measure = defaultdict(set)
+    for gid, found in reach.items():
+        g = G.nodes[gid]
+        ms = sorted(found, key=lambda m: G.nodes[m]["label"].lower())
+        g["detail"].setdefault("links", []).append({"title": "Measures it can change", "ids": ms})
+        for m in ms:
+            by_measure[m].add(gid)
+        for iid in [a for a in (b for b, _r in out.get(gid, ())) if G.nodes[a]["type"] == "calcitem"]:
+            named = [a for a in inn[iid] if G.nodes[a]["type"] == "measure"]
+            code = (G.nodes[iid]["detail"].get("code") or [{}])[0].get("text") or ""
+            mine = [m for m in ms if m in named] if re.search(r"(?i)\bISSELECTEDMEASURE\s*\(", code) else ms
+            G.nodes[iid]["detail"].setdefault("links", []).append(
+                {"title": "Measures it can change", "ids": mine}
+            )
+    for m, gids in by_measure.items():
+        G.nodes[m]["detail"].setdefault("links", []).append(
+            {"title": "Calculation groups that can change it", "ids": sorted(gids)}
+        )
 
 
 def downstream_counts(G: Graph) -> None:

@@ -1,5 +1,5 @@
 /* ---------- global search (acts on the open view) ---------- */
-$("gIcon").innerHTML = icon("ui_search", 16);
+fill($("gIcon"), icon("ui_search", 16));
 var PLACEHOLDER = {
   graph: "Search tables, columns, measures and visuals",
   report: "Search reports, pages, visuals and fields",

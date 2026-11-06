@@ -28,6 +28,18 @@ def health(G: Graph, models: list, reports: list) -> list:
             if y not in used:
                 used.add(y)
                 dq.append(y)
+    # A column that sorts a used column is used too: without it the sort order breaks.
+    for nid in list(used):
+        sb = G.nodes[nid].get("sortbyId")
+        if sb and sb not in used:
+            used.add(sb)
+            dq.append(sb)
+    while dq:
+        x = dq.popleft()
+        for y in rev[x]:
+            if y not in used:
+                used.add(y)
+                dq.append(y)
     for n in G.nodes.values():
         if n["type"] not in ("visual", "page"):
             n["used"] = n["id"] in used
@@ -121,6 +133,45 @@ def health(G: Graph, models: list, reports: list) -> list:
             "Nothing on any page depends on these tables.",
             items(lambda n: n["type"] == "table" and not n.get("used") and not n.get("auto")),
         )
+        own(
+            "CALC_GROUPS_NOT_USED_IN_REPORTS",
+            "Maintenance",
+            2,
+            "Calculation groups not used in the report",
+            "No visual, slicer or filter uses the column of these calculation groups, "
+            "so they change nothing.",
+            items(lambda n: n["type"] == "calcgroup" and not n.get("used")),
+        )
+    groups_by_model = defaultdict(list)
+    for n in G.nodes.values():
+        if n["type"] == "calcgroup":
+            groups_by_model[n.get("mkey", "")].append(n)
+    shared = []
+    for groups in groups_by_model.values():
+        by_prec = defaultdict(list)
+        for g in groups:
+            by_prec[g.get("prec", 0)].append(g)
+        shared += [g for gs in by_prec.values() if len(gs) > 1 for g in gs]
+    shared_ids = {g["id"] for g in shared}
+    own(
+        "CALC_GROUPS_SAME_PRECEDENCE",
+        "Error Prevention",
+        2,
+        "Calculation groups with the same precedence",
+        "When more than one calculation group changes a measure, precedence decides which applies first, "
+        "and the order changes the result (a year-to-date of a currency conversion, or the other way round). "
+        "Give each group its own precedence.",
+        items(lambda n: n["id"] in shared_ids, lambda n: f"precedence {n.get('prec', 0)}"),
+    )
+    own(
+        "CALC_ITEMS_IGNORE_THE_MEASURE",
+        "DAX Expressions",
+        1,
+        "Calculation items that ignore the measure",
+        "These items never call SELECTEDMEASURE(), so every measure they apply to shows the same value. "
+        "That is rarely intended; check the expression.",
+        items(lambda n: n["type"] == "calcitem" and not n.get("selm")),
+    )
     own(
         "QUERIES_NOT_REFERENCED",
         "Maintenance",

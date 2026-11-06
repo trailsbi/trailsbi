@@ -1,0 +1,44 @@
+/// One row per order line.
+table Sales
+
+	/// Sum of the order line amounts.
+	measure 'Total Sales' = SUM(Sales[Amount])
+		formatString: #,0
+		displayFolder: Base
+
+	measure 'Sales LY' = CALCULATE([Total Sales], SAMEPERIODLASTYEAR('Date'[Date]))
+		formatString: #,0
+
+	measure 'Sales Growth %' = DIVIDE([Total Sales] - [Sales LY], [Sales LY])
+		formatString: 0.0%
+
+	measure 'Unused Measure' = COUNTROWS(Sales)
+
+	column Amount
+		dataType: decimal
+		summarizeBy: sum
+		sourceColumn: Amount
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+	column OrderDate
+		dataType: dateTime
+		isHidden
+		sourceColumn: OrderDate
+
+	column 'Big Order' = IF(Sales[Amount] > 1000, "Yes", "No")
+		dataType: string
+
+	partition Sales = m
+		mode: import
+		source =
+				let
+				    Source = Sql.Database(ServerName, "Shop"),
+				    dbo_Sales = Source{[Schema="dbo",Item="Sales"]}[Data],
+				    Typed = Table.TransformColumnTypes(dbo_Sales, {{"Amount", type number}})
+				in
+				    Typed

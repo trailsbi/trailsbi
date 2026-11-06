@@ -15,7 +15,8 @@ from functools import lru_cache
 from importlib.resources import files
 
 from .brand import FAVICON, LOGO_SVG, LOGO_VB, MARK_SVG, MARK_VB, TAGLINE, VERSION
-from .icons import ICONS
+from .function_help import function_help
+from .icons import icon_trees
 
 _PLACEHOLDER = re.compile(r"__([A-Z]+)__")
 
@@ -56,6 +57,7 @@ def page_data(G, pages, sections, meta, ai_rules=None) -> str:
         "ai": ai_rules or [],
         "meta": meta,
     }
+    data["fnhelp"] = function_help(data)
     return _json_for_script(data)
 
 
@@ -65,8 +67,8 @@ def render_html(G, pages, sections, meta, ai_rules=None, blob=None) -> str:
         blob = page_data(G, pages, sections, meta, ai_rules)
     big = len(G.nodes) > _SPLASH_NODES or len(blob) > _SPLASH_BYTES
     values = {
-        "TITLE": meta["name"].replace("&", "&amp;").replace("<", "&lt;"),
-        "ICONS": _json_for_script(ICONS),
+        "TITLE": meta["name"].replace("&", "&amp;").replace("<", "&lt;").replace('"', "&quot;"),
+        "ICONS": _json_for_script(icon_trees()),
         "FAVICON": FAVICON,
         "MARKVB": MARK_VB,
         "MARK": MARK_SVG,

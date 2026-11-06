@@ -691,7 +691,7 @@ def ai_readiness(G: Graph, models: list, reports: list) -> list:
         for n in G.nodes.values():
             if n.get("mkey") != m["key"] or n.get("auto"):
                 continue
-            if n["type"] == "table" and not n.get("used"):
+            if n["type"] in ("table", "calcgroup") and not n.get("used"):
                 unused.add((n["label"], ""))
             elif n["type"] == "column" and not n.get("used") and n.get("table"):
                 unused.add((n["table"], n["label"]))
@@ -715,7 +715,7 @@ def ai_readiness(G: Graph, models: list, reports: list) -> list:
                         cand = tid(f["name"])
                     elif f["kind"] == "column" and f["table"]:
                         cand = cid(f["table"], f["name"])
-                    elif f["kind"] == "measure" and f["table"]:
+                    elif f["kind"] in ("measure", "calculationItem") and f["table"]:
                         cand = mid(f["table"], f["name"])
                     if cand and cand in G.nodes:
                         f["id"] = cand

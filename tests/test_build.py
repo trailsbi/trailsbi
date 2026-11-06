@@ -175,3 +175,22 @@ def test_page_script_is_valid_javascript(tmp_path):
     js = tmp_path / "page.js"
     js.write_text(m.group(1), encoding="utf-8")
     subprocess.run([node, "--check", str(js)], check=True)
+
+
+def test_page_script_never_writes_markup():
+    """Views are built from elements, so nothing read from a project can become markup."""
+    from trailsbi.render import page_template
+
+    m = re.search(r"<script>\n(\(function \(\) \{.*?)</script>", page_template(), re.S)
+    js = m.group(1)
+    for banned in ("innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "DOMParser", "eval("):
+        assert banned not in js, banned
+
+
+def test_icons_are_element_trees():
+    from trailsbi.icons import ICONS, icon_trees
+
+    trees = icon_trees()
+    assert set(ICONS) <= set(trees) and "_logo" in trees
+    tag, attrs = trees["db"][0][:2]
+    assert tag == "ellipse" and attrs["rx"] == "8"

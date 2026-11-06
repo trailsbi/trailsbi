@@ -20,7 +20,7 @@
   </div>
 </div>
 <header>
-  <div class="brand"><a class="logo-link" href="https://trailsbi.com" target="_blank" rel="noopener noreferrer" title="Trails for Power BI · trailsbi.com"><svg class="logo" viewBox="__LOGOVB__" role="img" aria-label="TrailsBI">__LOGO__</svg></a><span class="bsep" aria-hidden="true"></span><h1>__TITLE__</h1></div>
+  <div class="brand"><a class="logo-link" href="https://trailsbi.com" target="_blank" rel="noopener noreferrer" title="Trails for Power BI · trailsbi.com"><svg class="logo" viewBox="__LOGOVB__" role="img" aria-label="TrailsBI">__LOGO__</svg><svg class="logo-mark" viewBox="__MARKVB__" aria-hidden="true">__MARK__</svg></a><span class="bsep" aria-hidden="true"></span><h1 title="__TITLE__">__TITLE__</h1></div>
   <div class="gsearch" role="search">
     <span id="gIcon"></span>
     <input type="search" id="q" placeholder="Search" aria-label="Search" title="Enter jumps to the next match · Esc clears">
@@ -28,7 +28,8 @@
     <kbd>/</kbd>
   </div>
   <div class="hright"><p id="meta"></p>
-    <button id="aboutBtn" title="About Trails for Power BI" aria-label="About Trails for Power BI" aria-haspopup="dialog"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="7.25" y="7" width="1.5" height="4.6" rx=".7" fill="currentColor"/><circle cx="8" cy="4.9" r=".95" fill="currentColor"/></svg></button></div>
+    <button id="themeBtn" class="hbtn"></button>
+    <button id="aboutBtn" class="hbtn" title="About Trails for Power BI" aria-label="About Trails for Power BI" aria-haspopup="dialog"><svg viewBox="0 0 16 16" width="15" height="15" aria-hidden="true"><circle cx="8" cy="8" r="6.6" fill="none" stroke="currentColor" stroke-width="1.4"/><rect x="7.25" y="7" width="1.5" height="4.6" rx=".7" fill="currentColor"/><circle cx="8" cy="4.9" r=".95" fill="currentColor"/></svg></button></div>
 </header>
 <dialog id="about" aria-labelledby="aboutTitle">
   <div class="ab-head"><svg class="logo" viewBox="__LOGOVB__" role="img" aria-label="TrailsBI" id="aboutTitle">__LOGO__</svg>
@@ -36,6 +37,7 @@
   <p class="ab-tag">__TAGLINE__</p>
   <dl>
     <dt>Version</dt><dd>Trails for Power BI __VERSION__</dd>
+    <dt>Generated</dt><dd id="aboutGen"></dd>
     <dt>Licence</dt><dd>Apache License 2.0. Provided as is, without warranty of any kind.</dd>
     <dt>Your data</dt><dd>Runs entirely on your machine. Nothing is uploaded, collected or sent anywhere.</dd>
     <dt>Sharing</dt><dd>This page contains your model's table, column and measure names, DAX and data-source addresses. Share it only where that is allowed. For pictures you post publicly, export diagrams with <b>Hide table and column names</b>.</dd>
@@ -46,11 +48,11 @@
 
 <div class="shell">
 <nav class="rail" aria-label="Views">
-  <button data-tab="graph" class="on" aria-current="page"><span class="rail-ic" data-icon="nav_lineage"></span>Lineage</button>
-  <button data-tab="model"><span class="rail-ic" data-icon="nav_model"></span>Model</button>
-  <button data-tab="report"><span class="rail-ic" data-icon="nav_report"></span>Reports</button>
-  <button data-tab="health"><span class="rail-ic" data-icon="nav_health"><span class="rail-filter"></span></span>Health</button>
-  <button data-tab="ai"><span class="rail-ic" data-icon="nav_ai"><span class="rail-filter"></span></span>AI Readiness</button>
+  <button data-tab="graph" class="on" aria-current="page" title="Lineage"><span class="rail-ic" data-icon="nav_lineage"></span>Lineage</button>
+  <button data-tab="model" title="Model"><span class="rail-ic" data-icon="nav_model"></span>Model</button>
+  <button data-tab="report" title="Reports"><span class="rail-ic" data-icon="nav_report"></span>Reports</button>
+  <button data-tab="health" title="Health"><span class="rail-ic" data-icon="nav_health"><span class="rail-filter"></span></span>Health</button>
+  <button data-tab="ai" title="AI Readiness"><span class="rail-ic" data-icon="nav_ai"><span class="rail-filter"></span></span>AI Readiness</button>
 </nav>
 <div class="views">
   <div class="toolbar" id="toolbar">

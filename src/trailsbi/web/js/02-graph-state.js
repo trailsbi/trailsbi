@@ -16,11 +16,15 @@ var FILTERS = [
   {k: "table", label: "Tables", icon: "table"},
   {k: "column", label: "Columns", icon: "column"},
   {k: "measure", label: "Measures", icon: "measure"},
+  {k: "calcgroup", label: "Calculation groups", icon: "calcgroup"},
   {k: "visual", label: "Visuals", icon: "v_column"},
   {k: "page", label: "Pages", icon: "page"}
-];
+].filter(function (f) {                 // calculation groups only when the project has some
+  return f.k !== "calcgroup" || D.nodes.some(function (n) { return n.type === "calcgroup"; });
+});
 function filterKey(n) {
-  return n.type === "query" && n.sub === "parameter" ? "parameter" : n.type;
+  if (n.type === "query" && n.sub === "parameter") return "parameter";
+  return n.type === "calcitem" ? "calcgroup" : n.type;
 }
 function isVisible(n) {
   if (!state.types.has(filterKey(n))) return false;

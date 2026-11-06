@@ -23,3 +23,7 @@ TrailsBI Report - *.html
 !tests/fixtures/*/*.SemanticModel/
 !tests/fixtures/*/*.Report/
 uv.lock
+
+# Node tools for the page lint and smoke test
+node_modules/
+package-lock.json

@@ -11,43 +11,50 @@ function pagePreview(p) {
     // Shapes, buttons and images go underneath, data visuals on top, each group in z order,
     // so a page with dozens of overlay buttons still shows its charts clearly.
     .sort(function (a, b) { return ((a.id ? 1 : 0) - (b.id ? 1 : 0)) || ((a.z || 0) - (b.z || 0)); });
-  var s = '<div class="pv" style="max-width:' + Math.round(W + 16 * k) + 'px;max-height:' + Math.round(H + 16 * k) + 'px">' +
-          '<svg viewBox="' + (-8 * k) + ' ' + (-8 * k) + ' ' + (W + 16 * k) + ' ' + (H + 16 * k) +
-          '" preserveAspectRatio="xMidYMid meet" role="img" aria-label="' + esc("Layout of page " + p.name) + '">' +
-          '<defs><filter id="' + fid + '" x="-10%" y="-10%" width="120%" height="120%">' +
-          '<feDropShadow dx="0" dy="' + (2 * k) + '" stdDeviation="' + (4 * k) + '" flood-color="#17212b" flood-opacity=".18"/>' +
-          '</filter></defs>' +
-          '<rect class="pv-page" width="' + W + '" height="' + H + '" filter="url(#' + fid + ')"/>';
+  var kids = [
+    sg("defs", null, sg("filter", {id: fid, x: "-10%", y: "-10%", width: "120%", height: "120%"},
+      sg("feDropShadow", {dx: 0, dy: 2 * k, stdDeviation: 4 * k, "flood-color": "#17212b", "flood-opacity": ".18"}))),
+    sg("rect", {"class": "pv-page", width: W, height: H, filter: "url(#" + fid + ")"})
+  ];
   boxes.forEach(function (b) {
     var cls = "pv-box " + (b.id ? "t-visual" : "pv-other") + (b.hidden ? " pv-hidden" : "");
     var wpx = b.w / k, hpx = b.h / k;
-    s += '<g class="' + cls + '"' + (b.id ? ' data-vid="' + esc(b.id) + '"' : '') + '>' +
-         '<rect x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '" rx="' + (2 * k) +
-         '" vector-effect="non-scaling-stroke"/>';
+    var g = sg("g", {"class": cls, "data-vid": b.id || null},
+      sg("rect", {x: b.x, y: b.y, width: b.w, height: b.h, rx: 2 * k, "vector-effect": "non-scaling-stroke"}));
     if (wpx >= 30 && hpx >= 20) {
       // Labels are drawn in page units but rescaled to a fixed size, and clipped to the box.
       var cid2 = fid + "c" + (++clipSeq);
-      s += '<clipPath id="' + cid2 + '"><rect x="' + b.x + '" y="' + b.y + '" width="' + b.w + '" height="' + b.h + '"/></clipPath>' +
-           '<g clip-path="url(#' + cid2 + ')"><g transform="translate(' + (b.x + 5 * k) + ',' + (b.y + 4 * k) + ')">' +
-           '<g class="fit"><g class="pv-ico" transform="scale(' + (13 / 24) + ')">' +
-           (ICONS[b.icon] || ICONS.v_generic) + '</g>';
-      s += '<text x="17" y="10.5" font-size="11">' + esc(b.label + (b.hidden ? " (hidden)" : "")) + '</text>';
-      if (hpx >= 36 && b.label.indexOf(b.type) !== 0)
-        s += '<text class="sub" x="17" y="24" font-size="10">' + esc(b.type) + '</text>';
-      s += '</g></g></g>';
+      addKids(g, [
+        sg("clipPath", {id: cid2}, sg("rect", {x: b.x, y: b.y, width: b.w, height: b.h})),
+        sg("g", {"clip-path": "url(#" + cid2 + ")"},
+          sg("g", {transform: "translate(" + (b.x + 5 * k) + "," + (b.y + 4 * k) + ")"},
+            sg("g", {"class": "fit"}, [
+              iconG(b.icon, {"class": "pv-ico", transform: "scale(" + (13 / 24) + ")"}),
+              sg("text", {x: 17, y: 10.5, "font-size": 11}, b.label + (b.hidden ? " (hidden)" : "")),
+              hpx >= 36 && b.label.indexOf(b.type) !== 0
+                ? sg("text", {"class": "sub", x: 17, y: 24, "font-size": 10}, b.type) : null
+            ])))
+      ]);
     }
     if (b.id && wpx >= 46 && hpx >= 24) {
       /* Anchored to the box corner; sized in real pixels by sizePreviewActions(). */
-      s += '<g class="pv-act" data-go-vid="' + esc(b.id) + '" role="button" tabindex="0" aria-label="' +
-           esc("Show " + b.label + " in the lineage map") + '" transform="translate(' + (b.x + b.w) + ',' + b.y + ')">' +
-           '<g class="fit"><rect class="bg" x="-23" y="3" width="20" height="20" rx="4"/>' +
-           '<g transform="translate(-20,6) scale(' + (14 / 24) + ')">' + ICONS.nav_lineage + '</g></g>' +
-           '<title>Show in lineage</title></g>';
+      g.appendChild(sg("g", {"class": "pv-act", "data-go-vid": b.id, role: "button", tabindex: 0,
+                             "aria-label": "Show " + b.label + " in the lineage map",
+                             transform: "translate(" + (b.x + b.w) + "," + b.y + ")"}, [
+        sg("g", {"class": "fit"}, [
+          sg("rect", {"class": "bg", x: -23, y: 3, width: 20, height: 20, rx: 4}),
+          iconG("nav_lineage", {transform: "translate(-20,6) scale(" + (14 / 24) + ")"})
+        ]),
+        sg("title", null, "Show in lineage")
+      ]));
     }
-    s += '<title>' + esc(b.label + " · " + b.type + "\nPosition x " + Math.round(b.x) + ", y " + Math.round(b.y) +
-         " · size " + Math.round(b.w) + " × " + Math.round(b.h) + (b.hidden ? "\nHidden" : "")) + '</title></g>';
+    g.appendChild(sg("title", null, b.label + " · " + b.type + "\nPosition x " + Math.round(b.x) + ", y " + Math.round(b.y) +
+                  " · size " + Math.round(b.w) + " × " + Math.round(b.h) + (b.hidden ? "\nHidden" : "")));
+    kids.push(g);
   });
-  return s + '</svg></div>';
+  return h("div", {"class": "pv", style: "max-width:" + Math.round(W + 16 * k) + "px;max-height:" + Math.round(H + 16 * k) + "px"},
+    sg("svg", {viewBox: (-8 * k) + " " + (-8 * k) + " " + (W + 16 * k) + " " + (H + 16 * k),
+               preserveAspectRatio: "xMidYMid meet", role: "img", "aria-label": "Layout of page " + p.name}, kids));
 }
 
 /* The top row is as tall as a 16:9 canvas of the available width (within limits),
@@ -78,117 +85,134 @@ function sizePreviewActions(root) {
     });
   });
 }
-function filterCard(id, extra) {
+function filterCard(id) {
   var n = byId.get(id);
-  if (!n) return "";
-  return '<a class="card fcard ' + typeCls(n) + (extra ? " " + extra : "") + '" data-go="' + esc(id) + '"' +
-         (n.broken ? ' title="Missing from its semantic model"' : '') + '>' +
-         '<span class="bar"></span>' + icon(iconName(n), 16, typeCls(n)) +
-         '<span class="fname">' + esc(n.label) + '</span>' +
-         (n.table ? '<small>' + esc(n.table) + '</small>' : '') + '</a>';
+  if (!n) return null;
+  return h("a", {"class": "card fcard " + typeCls(n), "data-go": id, title: n.broken ? "Missing from its semantic model" : null}, [
+    h("span", {"class": "bar"}), icon(iconName(n), 16, typeCls(n)),
+    h("span", {"class": "fname"}, n.label), n.table ? h("small", null, n.table) : null
+  ]);
 }
 /* A field on a visual: the chip itself just belongs to the row; its two small
    buttons open the field in the lineage map or in the Model view. */
 function fieldChip(id) {
   var n = byId.get(id);
-  if (!n) return "";
+  if (!n) return null;
   var inModel = !n.broken && !n.external && (n.type === "column" || n.type === "measure" || n.type === "table");
-  return '<span class="card fcard fchip ' + typeCls(n) + '"' +
-         (n.broken ? ' title="Missing from its semantic model"' : '') + '>' +
-         '<span class="bar"></span>' + icon(iconName(n), 16, typeCls(n)) +
-         '<span class="fname">' + esc(n.label) + '</span>' +
-         (n.table ? '<small>' + esc(n.table) + '</small>' : '') +
-         '<span class="fact">' +
-         '<button data-fact="graph" data-fid="' + esc(id) + '" title="Show in lineage" aria-label="' +
-         esc("Show " + n.label + " in the lineage map") + '">' + icon("nav_lineage", 13) + '</button>' +
-         (inModel ? '<button data-fact="model" data-fid="' + esc(id) + '" title="Show in Model" aria-label="' +
-                    esc("Show " + n.label + " in the Model view") + '">' + icon("nav_model", 13) + '</button>' : '') +
-         '</span></span>';
+  return h("span", {"class": "card fcard fchip " + typeCls(n), title: n.broken ? "Missing from its semantic model" : null}, [
+    h("span", {"class": "bar"}), icon(iconName(n), 16, typeCls(n)),
+    h("span", {"class": "fname"}, n.label), n.table ? h("small", null, n.table) : null,
+    h("span", {"class": "fact"}, [
+      h("button", {"data-fact": "graph", "data-fid": id, title: "Show in lineage",
+                   "aria-label": "Show " + n.label + " in the lineage map"}, icon("nav_lineage", 13)),
+      inModel ? h("button", {"data-fact": "model", "data-fid": id, title: "Show in Model",
+                             "aria-label": "Show " + n.label + " in the Model view"}, icon("nav_model", 13)) : null
+    ])
+  ]);
 }
 function pageCard(p, on) {
   var kind = p.kind ? p.kind + " page" : "";
-  return '<button class="pcard card' + (on ? " on" : "") + '" data-p="' + esc(p.id) + '">' +
-         '<span class="bar"></span>' + icon("page", 18, "t-page") +
-         '<span class="ct"><b' + (p.hidden ? ' class="hid"' : '') + '>' + esc(p.name) + '</b>' +
-         '<small>' + Math.round(p.width || 1280) + ' × ' + Math.round(p.height || 720) + ' · ' +
-         plural(p.visuals.length, "data visual", "data visuals") + (kind ? ' · ' + esc(kind) : '') + '</small></span>' +
-         (p.hidden ? icon("hidden", 14, "is-muted") : "") + '</button>';
+  return h("button", {"class": "pcard card" + (on ? " on" : ""), "data-p": p.id}, [
+    h("span", {"class": "bar"}), icon("page", 18, "t-page"),
+    h("span", {"class": "ct"}, [
+      h("b", {"class": p.hidden ? "hid" : null}, p.name),
+      h("small", null, Math.round(p.width || 1280) + " × " + Math.round(p.height || 720) + " · " +
+                       plural(p.visuals.length, "data visual", "data visuals") + (kind ? " · " + kind : ""))
+    ]),
+    p.hidden ? icon("hidden", 14, "is-muted") : null
+  ]);
 }
 function visualRow(vid) {
   var v = byId.get(vid), d = v.detail, byRole = {};
   d.fields.forEach(function (f) { (byRole[f.role] = byRole[f.role] || []).push(f.id); });
   var vtype = (d.props.filter(function (x) { return x[0] === "Visual type"; })[0] || ["", ""])[1];
-  var cells = Object.keys(byRole).map(function (r) {
-    return '<div class="roleline"><span class="role">' + esc(r) + '</span><div class="fchips">' +
-           byRole[r].map(fieldChip).join("") + '</div></div>';
-  }).join("");
-  return '<div class="vrow card" data-vid="' + esc(vid) + '" tabindex="0" role="button">' +
-         '<span class="bar"></span>' +
-         '<div class="vname">' + icon(iconName(v), 18, "t-visual") + '<b>' + esc(v.label) + '</b>' +
-         (v.hidden ? '<span class="vhid" title="Hidden visual">' + icon("hidden", 15) + '</span>' : '') +
-         '<button class="rowact" data-go-vid="' + esc(vid) + '" title="Show in lineage" aria-label="' +
-         esc("Show " + v.label + " in the lineage map") + '">' + icon("nav_lineage", 14) + '</button></div>' +
-         '<div class="vtype">' + esc(vtype) + '</div><div class="vfields">' + cells + '</div></div>';
+  return h("div", {"class": "vrow card", "data-vid": vid, tabindex: 0, role: "button"}, [
+    h("span", {"class": "bar"}),
+    h("div", {"class": "vname"}, [
+      icon(iconName(v), 18, "t-visual"), h("b", null, v.label),
+      v.hidden ? h("span", {"class": "vhid", title: "Hidden visual"}, icon("hidden", 15)) : null,
+      h("button", {"class": "rowact", "data-go-vid": vid, title: "Show in lineage",
+                   "aria-label": "Show " + v.label + " in the lineage map"}, icon("nav_lineage", 14))
+    ]),
+    h("div", {"class": "vtype"}, vtype),
+    h("div", {"class": "vfields"}, Object.keys(byRole).map(function (r) {
+      return h("div", {"class": "roleline"}, [h("span", {"class": "role"}, r), h("div", {"class": "fchips"}, byRole[r].map(fieldChip))]);
+    }))
+  ]);
 }
+function fempty(text) { return h("p", {"class": "fempty"}, text); }
 function reportBlock(r, pages) {
   var uses = r.key ? (r.model ? (MODEL_BY_KEY.get(r.model) || {}).name : r.external + " (published)") : null;
-  var h = '<section class="rep" id="rep-' + esc(r.key || "") + '" data-rkey="' + esc(r.key || "") + '">' +
-          '<button class="rep-h" aria-expanded="true" title="Click to collapse this report">' +
-          icon("nav_report", 20, "k-report") + esc(r.name) +
-          (uses ? '<span class="muted">uses ' + esc(uses) + '</span>' : '') +
-          '<span class="rep-chev"></span></button>';
-  if (!pages.length) return h + '<p class="muted" style="padding:14px 16px">This report has no pages.</p></section>';
+  var sec = h("section", {"class": "rep", id: "rep-" + (r.key || ""), "data-rkey": r.key || ""},
+    h("button", {"class": "rep-h", "aria-expanded": "true", title: "Click to collapse this report"}, [
+      icon("nav_report", 20, "k-report"), r.name,
+      uses ? h("span", {"class": "muted"}, "uses " + uses) : null,
+      h("span", {"class": "rep-chev"})
+    ]));
+  if (!pages.length) return addKids(sec, h("p", {"class": "muted rep-empty"}, "This report has no pages."));
   var rfid = "pg:" + (r.key || "") + "\u241f__report__";
   var reportFilters = byId.has(rfid) ? (IN.get(rfid) || []) : [];
-  h += '<div class="row1"><div class="rside"><div class="pgroup"><h5 class="phead">Pages <span class="cnt">' + pages.length + '</span></h5>' +
-       pages.map(function (p, i) { return pageCard(p, i === 0); }).join("") + '</div>' +
-       '<div class="fgroup narrow-only"></div></div>';
-  h += '<div class="rcanvas">' + pages.map(function (p, i) {
-    return '<div class="pv-slot" data-p="' + esc(p.id) + '"' + (i ? ' hidden' : '') + '>' + pagePreview(p) + '</div>';
-  }).join("") + '</div>';
-  h += '<div class="rfilters">' +
-       '<div class="fhead"><span>Filters</span><button class="fbtn" aria-label="Hide filters" title="Hide filters"></button></div>' +
-       '<button class="frail" aria-label="Show filters" title="Show filters">' +
-       '<span class="frail-ic"></span><span class="rail-label">Filters</span></button>' +
-       '<div class="fsec"><h5>Visual level filters <span class="vfcount">—</span></h5>' +
-       '<p class="fempty">Select a visual on the canvas to see its filters.</p>' +
-       pages.map(function (p) {
-         return p.visuals.map(function (vid) {
-           var f = (byId.get(vid).detail.fields || []).filter(function (x) { return x.role === "Filter"; });
-           return '<div class="vfilters" data-vid="' + esc(vid) + '" hidden>' +
-                  (f.length ? f.map(function (x) { return filterCard(x.id); }).join("")
-                            : '<p class="fempty">This visual has no filters of its own.</p>') + '</div>';
-         }).join("");
-       }).join("") + '</div>' +
-       '<div class="fsec"><h5>Page level filters <span class="pfcount">0</span></h5>' +
-       pages.map(function (p, i) {
-         return '<div class="pfilters" data-p="' + esc(p.id) + '"' + (i ? ' hidden' : '') + '>' +
-                (p.filters.length ? p.filters.map(filterCard).join("") : '<p class="fempty">No page level filters.</p>') +
-                '</div>';
-       }).join("") + '</div>' +
-       '<div class="fsec"><h5>Report level filters <span>' + reportFilters.length + '</span></h5>' +
-       (reportFilters.length ? reportFilters.map(filterCard).join("") : '<p class="fempty">No report level filters.</p>') +
-       '</div></div></div>';
-  h += '<div class="row2">' + pages.map(function (p, i) {
-    return '<div class="vrows" data-p="' + esc(p.id) + '"' + (i ? ' hidden' : '') + '>' +
-           '<div class="tbar"><h5 class="phead">Visuals on this page <span class="cnt">' + p.visuals.length + '</span></h5>' +
-           '<span class="tsearch">' + icon("ui_search", 14) +
-           '<input type="search" class="rowq" placeholder="Search visuals and fields" aria-label="Search visuals and fields"></span></div>' +
-           (p.visuals.length ? p.visuals.map(visualRow).join("")
-                             : '<p class="muted">No visual on this page uses data.</p>') + '</div>';
-  }).join("") + '</div>';
-  return h + '</section>';
+  var row1 = h("div", {"class": "row1"}, [
+    h("div", {"class": "rside"}, [
+      h("div", {"class": "pgroup"}, [
+        h("h5", {"class": "phead"}, ["Pages ", h("span", {"class": "cnt"}, pages.length)]),
+        pages.map(function (p, i) { return pageCard(p, i === 0); })
+      ]),
+      h("div", {"class": "fgroup narrow-only"})
+    ]),
+    h("div", {"class": "rcanvas"}, pages.map(function (p, i) {
+      return h("div", {"class": "pv-slot", "data-p": p.id, hidden: i > 0}, pagePreview(p));
+    })),
+    h("div", {"class": "rfilters"}, [
+      h("div", {"class": "fhead"}, [h("span", null, "Filters"), h("button", {"class": "fbtn", "aria-label": "Hide filters", title: "Hide filters"})]),
+      h("button", {"class": "frail", "aria-label": "Show filters", title: "Show filters"},
+        [h("span", {"class": "frail-ic"}), h("span", {"class": "rail-label"}, "Filters")]),
+      h("div", {"class": "fsec"}, [
+        h("h5", null, ["Visual level filters ", h("span", {"class": "vfcount"}, "—")]),
+        fempty("Select a visual on the canvas to see its filters."),
+        pages.map(function (p) {
+          return p.visuals.map(function (vid) {
+            var f = (byId.get(vid).detail.fields || []).filter(function (x) { return x.role === "Filter"; });
+            return h("div", {"class": "vfilters", "data-vid": vid, hidden: true},
+              f.length ? f.map(function (x) { return filterCard(x.id); }) : fempty("This visual has no filters of its own."));
+          });
+        })
+      ]),
+      h("div", {"class": "fsec"}, [
+        h("h5", null, ["Page level filters ", h("span", {"class": "pfcount"}, 0)]),
+        pages.map(function (p, i) {
+          return h("div", {"class": "pfilters", "data-p": p.id, hidden: i > 0},
+            p.filters.length ? p.filters.map(filterCard) : fempty("No page level filters."));
+        })
+      ]),
+      h("div", {"class": "fsec"}, [
+        h("h5", null, ["Report level filters ", h("span", null, reportFilters.length)]),
+        reportFilters.length ? reportFilters.map(filterCard) : fempty("No report level filters.")
+      ])
+    ])
+  ]);
+  var row2 = h("div", {"class": "row2"}, pages.map(function (p, i) {
+    return h("div", {"class": "vrows", "data-p": p.id, hidden: i > 0}, [
+      h("div", {"class": "tbar"}, [
+        h("h5", {"class": "phead"}, ["Visuals on this page ", h("span", {"class": "cnt"}, p.visuals.length)]),
+        h("span", {"class": "tsearch"}, [icon("ui_search", 14),
+          h("input", {type: "search", "class": "rowq", placeholder: "Search visuals and fields", "aria-label": "Search visuals and fields"})])
+      ]),
+      p.visuals.length ? p.visuals.map(visualRow) : h("p", {"class": "muted"}, "No visual on this page uses data.")
+    ]);
+  }));
+  return addKids(sec, [row1, row2]);
 }
 function buildReport() {
   var reps = REPORTS.length ? REPORTS.slice().sort(function (a, b) { return a.name.localeCompare(b.name); })
                             : [{key: "", name: D.meta.name, model: null}];
-  var h = "";
-  if (!D.pages.length) h += '<p class="muted">No report was found in this project.</p>';
+  var out = [];
+  if (!D.pages.length) out.push(h("p", {"class": "muted"}, "No report was found in this project."));
   else reps.forEach(function (r) {
     var pages = r.key ? D.pages.filter(function (p) { return p.rkey === r.key; }) : D.pages;
-    h += reportBlock(r, pages);
+    out.push(reportBlock(r, pages));
   });
-  $("reportDoc").innerHTML = h;
+  fill($("reportDoc"), out);
   $("reportDoc").querySelectorAll("section.rep").forEach(function (sec) { syncPageFilterCount(sec); });
   reportSearch(state.query || "");
   if (typeof applyFilterPane === "function") {
@@ -297,13 +321,13 @@ function applyFilterPane(collapsed) {
     sec.classList.toggle("fcollapsed", collapsed);
     var btn = sec.querySelector(".fbtn"), ric = sec.querySelector(".frail-ic");
     if (btn) {
-      btn.innerHTML = '<span class="ic-wide">' + icon(collapsed ? "ui_show" : "ui_hide", 16) + '</span>' +
-                      '<span class="ic-narrow">' + icon("ui_chev", 16) + '</span>';
+      fill(btn, [h("span", {"class": "ic-wide"}, icon(collapsed ? "ui_show" : "ui_hide", 16)),
+                 h("span", {"class": "ic-narrow"}, icon("ui_chev", 16))]);
       btn.title = collapsed ? "Show filters" : "Hide filters";
       btn.setAttribute("aria-label", btn.title);
       btn.setAttribute("aria-expanded", String(!collapsed));
     }
-    if (ric) ric.innerHTML = icon("ui_show", 16);
+    if (ric) fill(ric, icon("ui_show", 16));
   });
   try { localStorage.setItem(FILTERS_KEY, collapsed ? "collapsed" : "expanded"); } catch (e) {}
   sizePreviewActions();

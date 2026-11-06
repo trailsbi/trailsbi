@@ -1,0 +1,12 @@
+table Currency
+	calculationGroup
+
+		calculationItem 'As reported' = SELECTEDMEASURE()
+
+		calculationItem 'In EUR' = IF(ISSELECTEDMEASURE([Total Sales], [Sales LY]), SELECTEDMEASURE() * 0.92, SELECTEDMEASURE())
+
+	column 'Currency Name'
+		dataType: string
+		sourceColumn: Name
+
+	partition Currency = calculationGroup

@@ -1,0 +1,14 @@
+{
+  "name": "matrix1",
+  "position": {"x": 20, "y": 440, "z": 1, "width": 600, "height": 260},
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Rows": {"projections": [{"field": {"Column": {"Expression": {"SourceRef": {"Entity": "Product"}}, "Property": "Category"}}, "queryRef": "Product.Category"}]},
+        "Columns": {"projections": [{"field": {"Column": {"Expression": {"SourceRef": {"Entity": "Time Intelligence"}}, "Property": "Time Calculation"}}, "queryRef": "Time Intelligence.Time Calculation"}]},
+        "Values": {"projections": [{"field": {"Measure": {"Expression": {"SourceRef": {"Entity": "Sales"}}, "Property": "Total Sales"}}, "queryRef": "Sales.Total Sales"}]}
+      }
+    }
+  }
+}

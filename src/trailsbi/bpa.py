@@ -1356,7 +1356,9 @@ def bpa_evaluate(inv: dict) -> tuple:
     rel_tables = {r["fromTable"] for r in rels} | {r["toTable"] for r in rels}
     for t in T:
         auto = t["name"].startswith("LocalDateTable_") or t["name"].startswith("DateTableTemplate_")
-        if t["name"] not in rel_tables and not auto:
+        if (
+            t["name"] not in rel_tables and not auto and not t["calcGroup"]
+        ):  # rule scope: tables, not calculation groups
             add("ENSURE_TABLES_HAVE_RELATIONSHIPS", "table", t["name"])
         if t["calcGroup"] and not t["calcItems"]:
             add("CALCULATION_GROUPS_WITH_NO_CALCULATION_ITEMS", "table", t["name"])

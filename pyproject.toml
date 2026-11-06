@@ -47,7 +47,7 @@ version = { attr = "trailsbi.brand.VERSION" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-trailsbi = ["web/*.html", "web/*.css", "web/js/*.js", "visual/*.pbiviz"]
+trailsbi = ["web/*.html", "web/*.css", "web/js/*.js", "visual/*.pbiviz", "data/*.json"]
 
 [tool.ruff]
 line-length = 110
@@ -64,8 +64,8 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 # Rule tables, icon paths and the logo are long strings by nature.
-"src/trailsbi/{ai_readiness,bpa,brand,icons}.py" = ["E501"]
-"tests/*" = ["PLC0415"]
+"src/trailsbi/{ai_readiness,bpa,brand,dax_functions,icons}.py" = ["E501"]
+"tests/*" = ["PLC0415", "E501"]   # fixtures and page snippets are clearer on one line
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

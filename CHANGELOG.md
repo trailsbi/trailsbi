@@ -2,6 +2,17 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.3.0 - 2026-11-07
+
+- **Calculation groups are their own kind of object.** They get their own colour, icon and filter in Lineage, and each item sits between its group and the group's column. So the map now runs from the columns an item uses, through the item, to the visuals and slicers that use the group. The details of a group, an item or a measure list which measures a calculation group can change. The Model view filters by calculation group and lists the items first.
+- New Health checks: calculation groups that nothing in the report uses, groups that share a precedence, and items that never call `SELECTEDMEASURE()`. The *Ensure tables have relationships* rule no longer flags calculation groups, matching the rule's scope in Microsoft's set.
+- **Function help in code.** Point at a DAX or Power Query function in any code block to see its syntax and what it does, with a link to its page on Microsoft Learn. The Power Query text comes from Microsoft's MIT-licensed Power Query language service (see NOTICE). 
+- **Dark theme.** The page follows the system's light or dark setting. The new button in the header switches between them, and the page remembers your choice. Exported diagrams stay light.
+- **Narrow windows and small visuals.** As the page gets narrower, the header gives up the generated date first (it is in About too), then the title, then the wordmark. The rail shows icons only, and the toolbar wraps.
+- The page builds every view from DOM elements instead of HTML strings, so text from a model can only ever be text. Its script passes the ESLint rules Microsoft uses for Power BI custom visuals, and CI checks this on every change.
+- A column that sorts a used column now counts as used, so it is no longer reported as unused.
+- Table descriptions from TMDL show in the details pane.
+
 ## 1.2.2 - 2026-11-04
 
 - `--embed` writes the TrailsBI table with just one column, **Chunk**. A TrailsBI table or page from an earlier `--embed` is switched over when you run it again.

@@ -22,7 +22,7 @@ function copyButton() {
   return copyBtn;
 }
 function setCopyState(done) {
-  copyBtn.innerHTML = icon(done ? "ui_check" : "ui_copy", 14);
+  fill(copyBtn, icon(done ? "ui_check" : "ui_copy", 14));
   copyBtn.classList.toggle("done", done);
   copyBtn.title = done ? "Copied" : "Copy";
   copyBtn.setAttribute("aria-label", done ? "Copied" : "Copy code");

@@ -13,7 +13,7 @@ var TERMINAL = {visual: true, page: true};
 var BLOCK_GAP = 0, SWEEPS = 4;
 
 // Stacking order of blocks inside a column (top to bottom).
-var BLOCK_ORDER = ["parameter", "source", "query", "table", "column", "measure", "visual", "page"];
+var BLOCK_ORDER = ["parameter", "source", "query", "table", "calcgroup", "column", "measure", "calcitem", "visual", "page"];
 function blockRank(n) {
   return BLOCK_ORDER.indexOf(n.type === "query" && n.sub === "parameter" ? "parameter" : n.type);
 }
@@ -28,6 +28,8 @@ function baseGroupLabel(n) {
     case "table":   return "Tables";
     case "column":  return "Columns · " + (n.table || "");
     case "measure": return "Measures · " + (n.table || "");
+    case "calcgroup": return "Calculation groups";
+    case "calcitem": return "Calculation items · " + (n.table || "");
     case "visual":  return n.page || "Visuals";
     default:        return "";
   }
@@ -276,13 +278,15 @@ function cardLine(n) {
     var what = n.objects || n.fn || (n.nsteps ? plural(n.nsteps, "step", "steps") : "No source");
     bits.push(what);
   } else if (n.type === "table") {
-    bits.push(n.sub === "calcgroup" ? "Calculation group"
-            : n.sub === "fieldparam" ? "Field parameter" : (caps(n.mode) || "Table"));
+    bits.push(n.sub === "fieldparam" ? "Field parameter" : (caps(n.mode) || "Table"));
+  } else if (n.type === "calcgroup") {
+    bits.push(plural(n.nitems || 0, "item", "items"), "precedence " + (n.prec || 0));
+  } else if (n.type === "calcitem") {
+    bits.push(n.table || "", "Calculation item");
   } else if (n.type === "column" || n.type === "measure") {
     if (n.table) bits.push(n.table);
     if (n.type === "column" && n.dtype) bits.push(caps(n.dtype));
     if (n.sortby) bits.push("sorted by " + n.sortby);
-    if (n.sub === "calcitem") bits.push("Calculation item");
   } else if (n.type === "visual") {
     if (n.page) bits.push(n.page);
   } else if (n.type === "page") {
@@ -293,33 +297,34 @@ function cardLine(n) {
 }
 var PAIR_ICON = [["column", "column"], ["measure", "measure"], ["v_column", "visual"],
                  ["query", "query"], ["table", "table"]];
-function pairSvg(icon, num, cls, x, tip) {
-  return '<g class="cnt ' + cls + '">' +
-         '<g class="cnt-ic" transform="translate(' + x + ',' + (NODE_TOP + 6) + ') scale(' + (12 / 24) + ')">' +
-         ICONS[icon] + '</g>' +
-         '<text class="cnt-n" x="' + (x + 15) + '" y="' + (NODE_TOP + 15) + '">' + num + '</text>' +
-         '<title>' + esc(tip) + '</title></g>';
+function pairSvg(ic, num, cls, x, tip) {
+  return sg("g", {"class": "cnt " + cls}, [
+    iconG(ic, {"class": "cnt-ic", transform: "translate(" + x + "," + (NODE_TOP + 6) + ") scale(" + (12 / 24) + ")"}),
+    sg("text", {"class": "cnt-n", x: x + 15, y: NODE_TOP + 15}, num),
+    sg("title", null, tip)
+  ]);
 }
 function countPairs(n) {
   var d = n.down || [0, 0, 0, 0, 0], want = [];
   if (n.type === "query" && n.sub === "parameter") want = [3, 4];
   else if (n.type === "query") want = [3, 4].filter(function (i) { return d[i]; });
   else if (n.type === "table") want = [0, 1, 2];
+  else if (n.type === "calcgroup" || n.type === "calcitem") want = [0, 2];
   else if (n.type === "column" || n.type === "measure") want = n.broken || n.external ? [2] : [1, 2];
   else if (n.broken || n.external) want = [2];
   // Totals first, then a divider, then the counts by type.
-  var up = n.nup || 0, down = n.ndown || 0, x = 14, out = "";
-  out += pairSvg("ui_up", up, "tot" + (up ? "" : " zero"), x, plural(up, "item", "items") + " feed this, directly or further back");
+  var up = n.nup || 0, down = n.ndown || 0, x = 14, out = [];
+  out.push(pairSvg("ui_up", up, "tot" + (up ? "" : " zero"), x, plural(up, "item", "items") + " feed this, directly or further back"));
   x += 25 + String(up).length * 6.6;
-  out += pairSvg("ui_down", down, "tot" + (down ? "" : " zero"), x, plural(down, "item", "items") + " depend on this, directly or further on");
+  out.push(pairSvg("ui_down", down, "tot" + (down ? "" : " zero"), x, plural(down, "item", "items") + " depend on this, directly or further on"));
   x += 25 + String(down).length * 6.6;
   if (want.length) {
-    out += '<path class="vdiv" d="M' + (x - 3) + ',' + NODE_TOP + 'V' + NODE_H + '"/>';
+    out.push(sg("path", {"class": "vdiv", d: "M" + (x - 3) + "," + NODE_TOP + "V" + NODE_H}));
     x += 8;
     want.forEach(function (i) {
       var num = String(d[i]), name = PAIR_ICON[i][1];
-      out += pairSvg(PAIR_ICON[i][0], num, "t-" + PAIR_ICON[i][1] + (d[i] ? "" : " zero"), x,
-                     plural(d[i], name, name + "s") + " depend on this");
+      out.push(pairSvg(PAIR_ICON[i][0], num, "t-" + PAIR_ICON[i][1] + (d[i] ? "" : " zero"), x,
+                       plural(d[i], name, name + "s") + " depend on this"));
       x += 25 + num.length * 6.6;
     });
   }
@@ -327,7 +332,8 @@ function countPairs(n) {
 }
 function nodeActions(n) {
   if (n.broken || n.external) return [];
-  if (n.type === "table" || n.type === "column" || n.type === "measure") return [["model", "nav_model", "Show in Model"]];
+  if (n.type === "table" || n.type === "column" || n.type === "measure" || n.type === "calcgroup" || n.type === "calcitem")
+    return [["model", "nav_model", "Show in Model"]];
   if (n.type === "visual") return [["visual", "nav_report", "Show in Reports"]];
   if (n.type === "page" && n.sub !== "report") return [["page", "nav_report", "Show in Reports"]];
   return [];
@@ -340,13 +346,14 @@ function flashRow(el) {
 function showInModel(n) {
   switchTab("model");
   if (state.mdMode !== "list") setModelMode("list");     // the row lives in Details, not the diagram
-  if (revealModelRow(n.type === "table" ? n.id : n.id)) return;
-  var tname = n.type === "table" ? n.label : n.table;
+  if (revealModelRow(n.id)) return;
+  var whole = n.type === "table" || n.type === "calcgroup";
+  var tname = whole ? n.label : n.table;
   var block = $("tbl-" + (n.mkey || "") + "|" + tname);
   if (!block) return;
   block.open = true;
   block.scrollIntoView({block: "start"});
-  if (n.type !== "table") {
+  if (!whole) {
     var row = null;
     block.querySelectorAll("tr[data-nid]").forEach(function (r) { if (r.getAttribute("data-nid") === n.id) row = r; });
     flashRow(row);
@@ -370,18 +377,76 @@ function runNodeAction(act, n) {
 
 var svg = $("svg"), L = null, nodeEls = new Map(), edgeEls = [];
 
+/* A card's action buttons (Show in Model, Show in Reports), right-aligned from x. */
+function cardActions(n, x, y) {
+  var out = [];
+  nodeActions(n).slice().reverse().forEach(function (a) {
+    x -= 22;
+    out.push(sg("g", {"class": "nact", "data-act": a[0], "data-id": n.id, tabindex: 0, role: "button",
+                         "aria-label": a[2] + ": " + (n.name || n.label), transform: "translate(" + x + "," + y + ")"}, [
+      sg("rect", {width: 22, height: 22, rx: 4}),
+      iconG(a[1], {"class": "aic", transform: "translate(4,4) scale(" + (14 / 24) + ")"}),
+      sg("title", null, a[2])
+    ]));
+    x -= 2;
+  });
+  return {els: out, left: x};
+}
+function cardText(cls, x, y, room, text) {
+  return sg("text", {"class": cls, x: x, y: y, "data-room": room, "data-full": text}, text);
+}
+function nodeCard(n, p) {
+  var cls = ["n", "t-" + n.type, n.sub ? "s-" + n.sub : "", n.hidden ? "hid" : "", n.broken ? "broken" : ""].join(" ");
+  var mk = markers(n), name = n.name || n.label;
+  var tip = kindName(n) + ": " + n.label +
+            (ownerName(n) ? "\nSemantic model: " + ownerName(n) : "") +
+            (n.table ? "\nTable: " + n.table : "") +
+            (n.page ? "\nPage: " + n.page : "") +
+            (mk.length ? "\n" + mk.map(function (x) { return x[1]; }).join(" · ") : "");
+  var kids = [sg("path", {"class": "box", d: CARD_PATH}), sg("rect", {"class": "bar", width: 4, height: NODE_H})];
+  var vtype = function (y) {
+    return n.type === "visual" && n.vtype
+      ? sg("text", {"class": "t1x", y: y, "data-after": "t1", "data-full": n.vtype}, n.vtype) : null;
+  };
+  if (state.dense === "compact") {
+    var ca = cardActions(n, NODE_W - 6, (NODE_H - 22) / 2);
+    var cmx = ca.els.length ? ca.left - 4 : NODE_W - 10;   // markers are a detailed-view thing
+    kids.push(iconG(iconName(n), {"class": "ico", transform: "translate(12," + ((NODE_H - 18) / 2) + ") scale(" + (18 / 24) + ")"}),
+              cardText("t1", 38, NODE_H / 2 + 4, Math.max(40, cmx - 38), name),
+              vtype(NODE_H / 2 + 4), ca.els);
+  } else {
+    var acts = cardActions(n, NODE_W - 6, NODE_TOP + 2), pairs = countPairs(n);
+    var ST = 14, st = [], mx = NODE_W - 10 - ST;            // right edge of the first marker
+    mk.slice().reverse().forEach(function (x) {
+      st.push(iconG(x[0], {"class": "st" + (x[0] === "missing" ? " bad" : ""),
+                           transform: "translate(" + mx + ",9) scale(" + (ST / 24) + ")"}));
+      mx -= ST + 4;
+    });
+    var line2 = cardLine(n);
+    kids.push(iconG(iconName(n), {"class": "ico", transform: "translate(14," + ((NODE_TOP - 20) / 2) + ") scale(" + (20 / 24) + ")"}),
+              cardText("t1", CARD_TEXT_X, 22, Math.max(40, mx + 6 - CARD_TEXT_X), name),
+              vtype(22),
+              line2 ? cardText("t2", CARD_TEXT_X, 39, Math.max(40, NODE_W - 10 - CARD_TEXT_X), line2) : null,
+              st,
+              sg("path", {"class": "divider", d: "M4," + NODE_TOP + "H" + NODE_W}),
+              pairs.svg, acts.els);
+  }
+  kids.push(sg("title", null, tip));
+  var g = sg("g", {"class": cls, transform: "translate(" + p.x + "," + p.y + ")", tabindex: 0, role: "button"}, kids);
+  g.__id = n.id;
+  return g;
+}
 function render() {
   L = layout();
-  var s = [];
-  L.heads.forEach(function (h) {
-    s.push('<text class="colhead" x="' + h.x + '" y="26">' + esc(h.label) +
-           ' <tspan class="cnt">' + h.count + '</tspan></text>');
+  var out = [];
+  L.heads.forEach(function (hd) {
+    out.push(sg("text", {"class": "colhead", x: hd.x, y: 26}, [hd.label + " ", sg("tspan", {"class": "cnt"}, hd.count)]));
   });
   L.groups.forEach(function (g) {
-    s.push('<text class="grp" x="' + (g.x + 2) + '" y="' + (g.y + 15) + '">' + esc(trunc(g.label, 40)) + '</text>');
+    out.push(sg("text", {"class": "grp", x: g.x + 2, y: g.y + 15}, trunc(g.label, 40)));
   });
-  var drawn = [];
-  s.push('<g>');
+  edgeEls = [];
+  var lines = sg("g");
   D.edges.forEach(function (e) {
     var pa = L.pos.get(e[0]), pb = L.pos.get(e[1]);
     if (!pa || !pb) return;
@@ -392,96 +457,31 @@ function render() {
     } else {
       d = "M" + x1 + "," + y1 + " C" + (x1 + 60) + "," + y1 + " " + (x2 - 60) + "," + y2 + " " + x2 + "," + y2;
     }
-    s.push('<path class="e" d="' + d + '"/>');
-    drawn.push(e);
+    var path = sg("path", {"class": "e", d: d});
+    lines.appendChild(path);
+    edgeEls.push({a: e[0], b: e[1], el: path});
   });
-  s.push('</g><g>');
+  out.push(lines);
+  var cards = sg("g");
   D.nodes.forEach(function (n) {           // sorted column ↔ its sort column
     if (!n.sortbyId) return;
     var a = L.pos.get(n.id), b = L.pos.get(n.sortbyId);
     if (!a || !b || a.x !== b.x) return;
     var top = Math.min(a.y, b.y) + NODE_H, bottom = Math.max(a.y, b.y), x = a.x + 22;
     if (bottom - top > NODE_H) return;     // only when the two sit together
-    s.push('<path class="sortlink" d="M' + x + ',' + top + 'V' + bottom + '"/>');
+    cards.appendChild(sg("path", {"class": "sortlink", d: "M" + x + "," + top + "V" + bottom}));
   });
-  var order = [];
+  nodeEls = new Map();
   L.pos.forEach(function (p, id) {
-    var n = byId.get(id);
-    var cls = ["n", "t-" + n.type, n.sub ? "s-" + n.sub : "", n.hidden ? "hid" : "", n.broken ? "broken" : ""].join(" ");
-    var mk = markers(n);
-    var tip = kindName(n) + ": " + n.label +
-              (ownerName(n) ? "\nSemantic model: " + ownerName(n) : "") +
-              (n.table ? "\nTable: " + n.table : "") +
-              (n.page ? "\nPage: " + n.page : "") +
-              (mk.length ? "\n" + mk.map(function (x) { return x[1]; }).join(" · ") : "");
-    if (state.dense === "compact") {
-      var cActs = nodeActions(n), cx = NODE_W - 6, cActSvg = "";
-      cActs.slice().reverse().forEach(function (a) {
-        cx -= 22;
-        cActSvg += '<g class="nact" data-act="' + a[0] + '" data-id="' + esc(n.id) + '" tabindex="0" role="button" aria-label="' +
-                   esc(a[2] + ": " + (n.name || n.label)) + '" transform="translate(' + cx + ',' + ((NODE_H - 22) / 2) + ')">' +
-                   '<rect width="22" height="22" rx="4"/><g class="aic" transform="translate(4,4) scale(' + (14 / 24) + ')">' +
-                   ICONS[a[1]] + '</g><title>' + esc(a[2]) + '</title></g>';
-        cx -= 2;
-      });
-      var cmx = cActs.length ? cx - 4 : NODE_W - 10;   // markers are a detailed-view thing
-      s.push('<g class="' + cls + '" transform="translate(' + p.x + ',' + p.y + ')" tabindex="0" role="button">' +
-             '<path class="box" d="' + CARD_PATH + '"/>' +
-             '<rect class="bar" width="4" height="' + NODE_H + '"/>' +
-             '<g class="ico" transform="translate(12,' + ((NODE_H - 18) / 2) + ') scale(' + (18 / 24) + ')">' +
-             (ICONS[iconName(n)] || ICONS.v_generic) + '</g>' +
-             '<text class="t1" x="38" y="' + (NODE_H / 2 + 4) + '" data-room="' + Math.max(40, cmx - 38) +
-             '" data-full="' + esc(n.name || n.label) + '">' + esc(n.name || n.label) + '</text>' +
-             (n.type === "visual" && n.vtype ? '<text class="t1x" y="' + (NODE_H / 2 + 4) + '" data-after="t1" data-full="' +
-               esc(n.vtype) + '">' + esc(n.vtype) + '</text>' : "") +
-             cActSvg + '<title>' + esc(tip) + '</title></g>');
-      order.push(id);
-      return;
-    }
-    var acts = nodeActions(n), pairs = countPairs(n);
-    var ax = NODE_W - 6, actSvg = "";
-    acts.slice().reverse().forEach(function (a) {
-      ax -= 22;
-      actSvg += '<g class="nact" data-act="' + a[0] + '" data-id="' + esc(n.id) + '" tabindex="0" role="button" aria-label="' +
-                esc(a[2] + ": " + (n.name || n.label)) + '" transform="translate(' + ax + ',' + (NODE_TOP + 2) + ')">' +
-                '<rect width="22" height="22" rx="4"/><g class="aic" transform="translate(4,4) scale(' + (14 / 24) + ')">' +
-                ICONS[a[1]] + '</g><title>' + esc(a[2]) + '</title></g>';
-      ax -= 2;
-    });
-    var ST = 14, st = "", mx = NODE_W - 10 - ST;     // right edge of the first marker
-    mk.slice().reverse().forEach(function (x) {
-      st += '<g class="st' + (x[0] === "missing" ? " bad" : "") + '" transform="translate(' + mx + ',9) scale(' +
-            (ST / 24) + ')">' + ICONS[x[0]] + '</g>';
-      mx -= ST + 4;
-    });
-    var room1 = Math.max(40, mx + 6 - CARD_TEXT_X);
-    var room2 = Math.max(40, NODE_W - 10 - CARD_TEXT_X);
-    var line2 = cardLine(n);
-    s.push('<g class="' + cls + '" transform="translate(' + p.x + ',' + p.y + ')" tabindex="0" role="button">' +
-           '<path class="box" d="' + CARD_PATH + '"/>' +
-           '<rect class="bar" width="4" height="' + NODE_H + '"/>' +
-           '<g class="ico" transform="translate(14,' + ((NODE_TOP - 20) / 2) + ') scale(' + (20 / 24) + ')">' +
-           (ICONS[iconName(n)] || ICONS.v_generic) + '</g>' +
-           '<text class="t1" x="' + CARD_TEXT_X + '" y="22" data-room="' + room1 + '" data-full="' + esc(n.name || n.label) + '">' +
-           esc(n.name || n.label) + '</text>' +
-           (n.type === "visual" && n.vtype ? '<text class="t1x" y="22" data-after="t1" data-full="' + esc(n.vtype) + '">' +
-             esc(n.vtype) + '</text>' : "") +
-           (line2 ? '<text class="t2" x="' + CARD_TEXT_X + '" y="39" data-room="' + room2 + '" data-full="' + esc(line2) + '">' +
-             esc(line2) + '</text>' : "") +
-           st +
-           '<path class="divider" d="M4,' + NODE_TOP + 'H' + NODE_W + '"/>' + pairs.svg + actSvg + '<title>' + esc(tip) + '</title></g>');
-    order.push(id);
+    var g = nodeCard(byId.get(id), p);
+    cards.appendChild(g);
+    nodeEls.set(id, g);
   });
-  s.push('</g>');
+  out.push(cards);
   svg.setAttribute("viewBox", "0 0 " + L.width + " " + L.height);
-  svg.innerHTML = s.join("");
+  fill(svg, out);
   fitCardLines(svg);
   sizeSvg();
-  var gs = svg.querySelectorAll("g.n");
-  nodeEls = new Map();
-  order.forEach(function (id, i) { nodeEls.set(id, gs[i]); gs[i].__id = id; });
-  var ps = svg.querySelectorAll("path.e");
-  edgeEls = drawn.map(function (e, i) { return {a: e[0], b: e[1], el: ps[i]}; });
   applyFocus();
   applySearch();
 }

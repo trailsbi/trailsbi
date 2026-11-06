@@ -22,6 +22,7 @@ src/trailsbi/
   ai_readiness.py   AI readiness rules
   health.py         the Health view: rule results plus lineage checks
   render.py         assembles the HTML page
+  function_help.py  DAX and Power Query function help for the page (dax_functions.py, data/)
   brand.py          product name, version and logo
   icons.py          inline SVG icons
   utils.py          warnings, file reading and small value helpers
@@ -33,6 +34,21 @@ src/trailsbi/
 
 The page must stay self-contained: no network requests, no external scripts, fonts or
 images. Its Content-Security-Policy enforces this.
+
+The page builds its views from elements with `h()` and `sg()` in `web/js/00-core.js`, never
+from HTML strings: no `innerHTML`, `outerHTML` or `insertAdjacentHTML`. The TrailsBI visual runs
+the same script inside Power BI, where Microsoft's custom-visual rules apply. Check with:
+
+```
+npm install --no-save eslint@9 eslint-plugin-powerbi-visuals
+npx eslint src/trailsbi/web/js
+```
+
+Colours are CSS variables at the top of `styles.css`, set once for the light theme and once for
+the dark one. Use the variables in new styles, not colour values.
+
+`src/trailsbi/data/m_functions.json` is generated: `python tools/build_m_functions.py
+path/to/standard-enUs.json`, from Microsoft's Power Query language service (see NOTICE).
 
 Some functions are long because they follow the file formats closely: `graph.build_graph`
 and `_build_model_part`, `bpa.bpa_evaluate` and the diagram layout in `web/js/10-diagram.js`.
