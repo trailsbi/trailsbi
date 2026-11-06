@@ -12,6 +12,7 @@ All notable changes to Trails for Power BI.
 - The page builds every view from DOM elements instead of HTML strings, so text from a model can only ever be text. Its script passes the ESLint rules Microsoft uses for Power BI custom visuals, and CI checks this on every change.
 - A column that sorts a used column now counts as used, so it is no longer reported as unused.
 - Table descriptions from TMDL show in the details pane.
+- `--embed` adds the TrailsBI visual 1.1.0, which shows all of the above inside Power BI.
 
 ## 1.2.2 - 2026-11-04
 
