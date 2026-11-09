@@ -73,6 +73,7 @@ function kindName(n) {
   if (n.type === "table" && n.sub === "calculated") return "Calculated table";
   if (n.type === "table" && n.sub === "fieldparam") return "Field parameter";
   if (n.type === "query" && n.sub === "parameter") return "Parameter";
+  if (n.type === "measure" && n.sub === "report") return "Report measure";
   if (n.broken) return "Missing " + n.type;
   return SINGULAR[n.type];
 }

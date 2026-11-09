@@ -170,6 +170,50 @@ def _inside(b, outer, tol=2.0):
     )
 
 
+def _extension_measures(extensions) -> list:
+    """Report-level measures: the measures a report adds to the semantic model it connects to.
+
+    PBIR keeps them in definition/reportExtensions.json; a legacy report.json keeps the same
+    shape under "modelExtensions" in its config. Each entity names the model table the
+    measures sit on; references list the model measures (and other report measures,
+    schema "extension") each one uses.
+    """
+    out = []
+    for ext in extensions or []:
+        if not isinstance(ext, dict):
+            continue
+        for ent in ext.get("entities") or []:
+            if not isinstance(ent, dict):
+                continue
+            table = ent.get("extends") or ent.get("name") or ""
+            for m in ent.get("measures") or []:
+                if not isinstance(m, dict) or not m.get("name"):
+                    continue
+                refs = []
+                for r in (m.get("references") or {}).get("measures") or []:
+                    if isinstance(r, dict) and r.get("name"):
+                        refs.append(
+                            {
+                                "report": bool(r.get("schema")),
+                                "table": r.get("entity") or "",
+                                "name": r["name"],
+                            }
+                        )
+                out.append(
+                    {
+                        "table": table,
+                        "name": m["name"],
+                        "expr": m.get("expression") or "",
+                        "format": m.get("formatString") or "",
+                        "folder": m.get("displayFolder") or "",
+                        "desc": m.get("description") or "",
+                        "hidden": bool(m.get("hidden")),
+                        "refs": refs,
+                    }
+                )
+    return out
+
+
 def load_pbir(def_dir: Path, report_name: str) -> dict:
     pages_dir = def_dir / "pages"
     meta = read_json(pages_dir / "pages.json") if (pages_dir / "pages.json").exists() else {}
@@ -227,7 +271,15 @@ def load_pbir(def_dir: Path, report_name: str) -> dict:
             page["visuals"].append(item)
         _resolve_group_offsets(page["visuals"], groups, page["width"], page["height"])
         pages.append(page)
-    return {"name": report_name, "format": "PBIR", "pages": pages, "filters": report_filters}
+    ext_file = def_dir / "reportExtensions.json"
+    measures = _extension_measures([read_json(ext_file) or {}]) if ext_file.exists() else []
+    return {
+        "name": report_name,
+        "format": "PBIR",
+        "pages": pages,
+        "filters": report_filters,
+        "measures": measures,
+    }
 
 
 def load_legacy_report(path: Path, report_name: str) -> dict:
@@ -279,7 +331,15 @@ def load_legacy_report(path: Path, report_name: str) -> dict:
             )
             page["visuals"].append(item)
         pages.append(page)
-    return {"name": report_name, "format": "PBIR-Legacy", "pages": pages, "filters": report_filters}
+    cfg = loads_maybe(rj.get("config")) or {}
+    measures = _extension_measures(cfg.get("modelExtensions") if isinstance(cfg, dict) else None)
+    return {
+        "name": report_name,
+        "format": "PBIR-Legacy",
+        "pages": pages,
+        "filters": report_filters,
+        "measures": measures,
+    }
 
 
 def load_report_dir(rdir: Path) -> dict | None:

@@ -58,6 +58,7 @@ function switchTab(name) {
   if (typeof syncFilterBar === "function") syncFilterBar();
   $("mdTypes").hidden = !onModel || state.mdMode === "diagram";
   $("densitySeg").hidden = onModel || onRep || onRules;
+  if (typeof graphOnShow === "function") graphOnShow();
   // Cards drawn while their view was hidden could not be measured: trim them now.
   if (typeof fitCardLines === "function") {
     if (onGraph) fitCardLines($("svg"));

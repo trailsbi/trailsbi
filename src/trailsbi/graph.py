@@ -462,7 +462,44 @@ def _build_report_part(G, rep, model, R, page_rows, field_params):
     rkey = rep["key"]
     ext = rep.get("external")
 
+    # Report-level measures: measures the report adds to the model it connects to. They
+    # are the report's, not the model's, so they get nodes of their own (sub "report").
+    report_measures = {}
+    for rm in rep.get("measures") or []:
+        nid = f"rm:{_NS[0]}{rkey}{SEP}{rm['name']}"
+        props = [
+            ["Table", rm["table"]],
+            ["Kind", "Report measure"],
+            ["Defined in", f"the report {rep['name']}, not the semantic model"],
+        ]
+        for label, key in (("Format", "format"), ("Display folder", "folder"), ("Description", "desc")):
+            if rm.get(key):
+                props.append([label, rm[key]])
+        if rm["hidden"]:
+            props.append(["Hidden", "Yes"])
+        G.node(
+            nid,
+            "measure",
+            rm["name"],
+            table=rm["table"],
+            sub="report",
+            icon="rmeasure",
+            hidden=rm["hidden"],
+            rkeys=[rkey],
+            mkey=rep["model"],
+            reportname=rep["name"],
+            detail={
+                "props": props,
+                "code": [{"title": "DAX", "text": rm["expr"]}] if rm["expr"] else [],
+                "note": "This measure lives in the report, so only this report can use it. "
+                "Other reports, Excel and Copilot see the semantic model only.",
+            },
+        )
+        report_measures[rm["name"].lower()] = (nid, rm)
+
     def field_node(kind, ent, prop):
+        if kind == "measure" and (prop or "").lower() in report_measures:
+            return report_measures[prop.lower()][0]
         if R is None:
             if kind == "level":
                 prop, kind = prop[1], "column"
@@ -535,6 +572,35 @@ def _build_report_part(G, rep, model, R, page_rows, field_params):
         if rkey not in n["rkeys"]:
             n["rkeys"].append(rkey)
         return xid
+
+    # What each report measure uses: the measures its references list (model measures, or
+    # other report measures), and the columns its DAX names.
+    for nid, rm in report_measures.values():
+        used = set()
+        for r in rm["refs"]:
+            used.add(r["name"].lower())
+            if r["name"].lower() in report_measures:
+                G.edge(report_measures[r["name"].lower()][0], nid, "DAX")
+            else:
+                G.edge(field_node("measure", r["table"] or rm["table"], r["name"]), nid, "DAX")
+        qual, bare, _tables = dax_refs(rm["expr"])
+        for name in bare:  # [Measure] with no table: a measure
+            low = name.lower()
+            if low in used or low in report_measures and report_measures[low][0] == nid:
+                continue
+            used.add(low)
+            if low in report_measures:
+                G.edge(report_measures[low][0], nid, "DAX")
+            else:
+                G.edge(field_node("measure", rm["table"], name), nid, "DAX")
+        for t, name in qual:
+            low = name.lower()
+            if low in used or low in report_measures:
+                continue
+            if R is not None and low in R.measures and not R.column(t, name):
+                G.edge(field_node("measure", t, name), nid, "DAX")
+            else:
+                G.edge(field_node("column", t, name), nid, "DAX")
 
     if rep["filters"]:
         rid = f"pg:{rkey}{SEP}__report__"

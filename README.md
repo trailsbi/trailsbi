@@ -28,6 +28,8 @@ no sign-in, no upload, no telemetry.
 - Pick a column or measure and see every data source, table and measure it depends on, in navy.
 - Everything built on it, down to the visuals and pages, lights up in teal.
 - Compact cards for the whole picture, detailed cards with usage counts when you need them.
+- Switch to **Graph** to see the whole lineage in graph view, from the sources in the middle through tables to pages and visuals.
+- Measures we add in live-connected reports are also tracked and show apart from the model's.
 - Point at any DAX or Power Query function in the code for its syntax, a short description and a link to Microsoft Learn.
 
 <img src="docs/images/view-lineage.jpg" width="100%" alt="TrailsBI Lineage view on Microsoft's Human Resources sample">

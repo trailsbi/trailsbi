@@ -97,13 +97,27 @@ def health(G: Graph, models: list, reports: list) -> list:
             items(
                 lambda n: (
                     n["type"] == "measure"
-                    and n.get("sub") == "measure"
+                    and n.get("sub") in ("measure", "report")
                     and not n.get("used")
                     and not n.get("auto")
                 ),
                 lambda n: "hidden" if n.get("hidden") else "",
             ),
         )
+        if any(n["type"] == "measure" and n.get("sub") == "report" for n in G.nodes.values()):
+            own(
+                "REPORT_MEASURES_IN_MODEL",
+                "Maintenance",
+                2,
+                "Keep measures in the model",
+                "These measures are defined in a report, not in the semantic model it connects to. "
+                "Only that report can use them: other reports, Excel, Copilot and data agents can't, "
+                "and a copy in each report drifts apart over time. Move them into the semantic model.",
+                items(
+                    lambda n: n["type"] == "measure" and n.get("sub") == "report",
+                    lambda n: "in report " + n.get("reportname", ""),
+                ),
+            )
         own(
             "COLUMNS_NOT_USED_IN_REPORTS",
             "Maintenance",

@@ -695,7 +695,7 @@ def ai_readiness(G: Graph, models: list, reports: list) -> list:
                 unused.add((n["label"], ""))
             elif n["type"] == "column" and not n.get("used") and n.get("table"):
                 unused.add((n["table"], n["label"]))
-            elif n["type"] == "measure" and n.get("table"):
+            elif n["type"] == "measure" and n.get("table") and n.get("sub") != "report":
                 targets = [G.nodes[x]["type"] for x in out_edges[n["id"]] if x in G.nodes]
                 if targets and "visual" not in targets and "page" not in targets and "measure" in targets:
                     helpers.add((n["table"], n["label"]))
@@ -739,6 +739,20 @@ def ai_readiness(G: Graph, models: list, reports: list) -> list:
                         "kind": f["kind"],
                     }
                 )
+        if rid == "AI_REPORT_MEASURES":
+            # From the lineage, so reports on live or published models are covered too.
+            items = [
+                {
+                    "id": n["id"],
+                    "label": n["label"],
+                    "table": n.get("table", ""),
+                    "mkey": n.get("mkey") or "",
+                    "note": "defined in report " + n.get("reportname", ""),
+                    "kind": "measure",
+                }
+                for n in G.nodes.values()
+                if n["type"] == "measure" and n.get("sub") == "report"
+            ]
         items.sort(key=lambda x: (x["table"].lower(), x["label"].lower()))
         rules.append(
             {
@@ -748,7 +762,7 @@ def ai_readiness(G: Graph, models: list, reports: list) -> list:
                 "name": name,
                 "desc": desc,
                 "source": "ai",
-                "checked": ran and bool(results),
+                "checked": (ran and bool(results)) or (rid == "AI_REPORT_MEASURES" and bool(items)),
                 "items": items,
             }
         )

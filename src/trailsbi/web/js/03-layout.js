@@ -27,7 +27,8 @@ function baseGroupLabel(n) {
     case "query":   return n.sub === "parameter" ? "Parameters" : "Queries";
     case "table":   return "Tables";
     case "column":  return "Columns · " + (n.table || "");
-    case "measure": return "Measures · " + (n.table || "");
+    case "measure": return n.sub === "report" ? "Report measures · " + (n.reportname || "")
+                                              : "Measures · " + (n.table || "");
     case "calcgroup": return "Calculation groups";
     case "calcitem": return "Calculation items · " + (n.table || "");
     case "visual":  return n.page || "Visuals";
@@ -272,6 +273,7 @@ function cardLine(n) {
   var bits = [];
   if (n.broken) bits.push("Not in " + (ownerName(n) || "the semantic model"));
   else if (n.external) bits.push("In " + (n.extmodel || "another semantic model"));
+  else if (n.sub === "report") bits.push("In the report " + (n.reportname || "") + " · " + (n.table || ""));
   else if (n.type === "source") bits.push(n.sub || "Data source");
   else if (n.type === "query" && n.sub === "parameter") bits.push(n.value || "No value stored");
   else if (n.type === "query") {
@@ -401,6 +403,7 @@ function nodeCard(n, p) {
   var tip = kindName(n) + ": " + n.label +
             (ownerName(n) ? "\nSemantic model: " + ownerName(n) : "") +
             (n.table ? "\nTable: " + n.table : "") +
+            (n.sub === "report" ? "\nDefined in the report " + (n.reportname || "") + ", not the semantic model" : "") +
             (n.page ? "\nPage: " + n.page : "") +
             (mk.length ? "\n" + mk.map(function (x) { return x[1]; }).join(" · ") : "");
   var kids = [sg("path", {"class": "box", d: CARD_PATH}), sg("rect", {"class": "bar", width: 4, height: NODE_H})];
@@ -484,6 +487,7 @@ function render() {
   sizeSvg();
   applyFocus();
   applySearch();
+  if (typeof graphOnRender === "function") graphOnRender();
 }
 function sizeSvg() {
   svg.setAttribute("width", Math.round(L.width * state.zoom));
@@ -508,7 +512,7 @@ function applyFocus() {
   svg.classList.toggle("focusing", !!state.focus);
   nodeEls.forEach(function (el) { el.classList.remove("up", "down", "focus"); });
   edgeEls.forEach(function (e) { e.el.classList.remove("lit", "upe", "downe", "direct"); });
-  if (!state.focus) return;
+  if (!state.focus) { if (typeof graphOnFocus === "function") graphOnFocus(); return; }
   var lin = lineage(state.focus);
   lin.up.forEach(function (id) { var el = nodeEls.get(id); if (el) el.classList.add("up"); });
   lin.down.forEach(function (id) { var el = nodeEls.get(id); if (el) el.classList.add("down"); });
@@ -528,9 +532,11 @@ function applyFocus() {
     else indirect.push(e.el);
   });
   indirect.concat(direct).forEach(function (el) { el.parentNode.appendChild(el); });
+  if (typeof graphOnFocus === "function") graphOnFocus();
 }
 
 function scrollToNode(id) {
+  if (state.lnMode === "graph" && typeof graphCenterOn === "function") { graphCenterOn(id); return; }
   var p = L && L.pos.get(id); if (!p) return;
   var cv = $("canvas");
   cv.scrollTo({left: Math.max(0, p.x * state.zoom - cv.clientWidth / 3),

@@ -112,9 +112,11 @@ function setZoom(z) {
   $("zLevel").textContent = Math.round(state.zoom * 100) + "%";
   sizeSvg();
 }
-$("zIn").addEventListener("click", function () { setZoom(state.zoom * 1.25); });
-$("zOut").addEventListener("click", function () { setZoom(state.zoom / 1.25); });
-$("zLevel").addEventListener("click", function () { setZoom(1); });
+/* The zoom buttons act on whichever lineage view is showing: the map or the graph. */
+function graphZoomBtn(f) { graphZoomAt(f, GV.w / 2, GV.h / 2); }
+$("zIn").addEventListener("click", function () { if (graphOn()) graphZoomBtn(1.25); else setZoom(state.zoom * 1.25); });
+$("zOut").addEventListener("click", function () { if (graphOn()) graphZoomBtn(1 / 1.25); else setZoom(state.zoom / 1.25); });
+$("zLevel").addEventListener("click", function () { if (graphOn()) graphZoomBtn(1 / GV.k); else setZoom(1); });
 /* Fit: the largest zoom at which the whole lineage is visible without scrolling. */
 function fitLineage() {
   var cv = $("canvas");
@@ -122,7 +124,7 @@ function fitLineage() {
   setZoom(Math.min((cv.clientWidth - 16) / L.width, (cv.clientHeight - 16) / L.height, 1));
   cv.scrollTo(0, 0);
 }
-$("zFit").addEventListener("click", fitLineage);
+$("zFit").addEventListener("click", function () { if (graphOn()) { GV.autoFit = false; graphFit(); graphRun(); } else fitLineage(); });
 
 /* toolbar menus (View options): one open at a time, close on outside click or Esc */
 function closeMenus(except) {
@@ -189,4 +191,5 @@ function applySearch() {
   });
   svg.classList.toggle("searching", !!q);
   updateSearchUi();
+  if (typeof graphOnSearch === "function") graphOnSearch();
 }

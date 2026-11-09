@@ -141,6 +141,96 @@ def test_live_connected_report(build, tmp_path):
     assert revenue.get("extmodel") == "Finance Model"
 
 
+def _live_project(tmp_path, measures, visual_measure):
+    proj = tmp_path / "Live"
+    defn = proj / "Live.Report" / "definition"
+    page = defn / "pages" / "p1"
+    (page / "visuals" / "v1").mkdir(parents=True)
+    conn = "Data Source=powerbi://api.powerbi.com/v1.0/myorg/Finance;Initial Catalog=Finance Model"
+    (proj / "Live.Report" / "definition.pbir").write_text(
+        json.dumps({"datasetReference": {"byConnection": {"connectionString": conn}}})
+    )
+    (proj / "Live.pbip").write_text(json.dumps({"artifacts": [{"report": {"path": "Live.Report"}}]}))
+    (defn / "pages" / "pages.json").write_text(json.dumps({"pageOrder": ["p1"]}))
+    (page / "page.json").write_text(json.dumps({"name": "p1", "displayName": "Revenue"}))
+    field = {"Measure": {"Expression": {"SourceRef": {"Entity": "Sales"}}, "Property": visual_measure}}
+    visual = {
+        "name": "v1",
+        "position": {"x": 0, "y": 0, "width": 100, "height": 100},
+        "visual": {
+            "visualType": "card",
+            "query": {"queryState": {"Values": {"projections": [{"field": field}]}}},
+        },
+    }
+    (page / "visuals" / "v1" / "visual.json").write_text(json.dumps(visual))
+    ext = {"name": "extension", "entities": [{"name": "Sales", "measures": measures}]}
+    (defn / "reportExtensions.json").write_text(json.dumps(ext))
+    return proj
+
+
+def test_report_measures(build, tmp_path):
+    measures = [
+        {
+            "name": "Revenue LY",
+            "dataType": "Double",
+            "expression": "CALCULATE([Revenue], SAMEPERIODLASTYEAR('Date'[Date]))",
+            "formatString": "#,0",
+            "references": {"measures": [{"entity": "Sales", "name": "Revenue"}]},
+        },
+        {
+            "name": "Revenue vs LY",
+            "dataType": "Double",
+            "expression": "[Revenue] - [Revenue LY]",
+            "references": {
+                "measures": [
+                    {"entity": "Sales", "name": "Revenue"},
+                    {"schema": "extension", "entity": "Sales", "name": "Revenue LY"},
+                ]
+            },
+        },
+        {"name": "Unused here", "dataType": "Double", "expression": "1"},
+    ]
+    _, data = build(_live_project(tmp_path, measures, "Revenue vs LY"))
+    nodes = {n["id"]: n for n in data["nodes"]}
+    rms = {n["label"]: n for n in nodes.values() if n["type"] == "measure" and n.get("sub") == "report"}
+    assert set(rms) == {"Revenue LY", "Revenue vs LY", "Unused here"}
+    model_rev = next(n for n in nodes.values() if n["label"] == "Revenue" and n["type"] == "measure")
+    assert model_rev.get("sub") != "report" and model_rev.get("extmodel") == "Finance Model"
+    edges = {(a, b) for a, b, *_ in data["edges"]}
+    vs, ly = rms["Revenue vs LY"]["id"], rms["Revenue LY"]["id"]
+    assert (ly, vs) in edges and (model_rev["id"], vs) in edges and (model_rev["id"], ly) in edges
+    date = next(n for n in nodes.values() if n["label"] == "Date" and n["type"] == "column")
+    assert (date["id"], ly) in edges
+    visual = next(n for n in nodes.values() if n["type"] == "visual")
+    assert (vs, visual["id"]) in edges
+    assert not any(n.get("broken") for n in nodes.values())
+    rule = next(r for r in data["health"] if r["id"] == "REPORT_MEASURES_IN_MODEL")
+    assert {i["label"] for i in rule["items"]} == set(rms)
+    unused = next(r for r in data["health"] if r["id"] == "MEASURES_NOT_USED_IN_REPORTS")
+    assert [i["label"] for i in unused["items"]] == ["Unused here"]
+    ai = next(r for r in data["ai"] if r["id"] == "AI_REPORT_MEASURES")
+    assert ai["checked"] and {i["label"] for i in ai["items"]} == set(rms)
+    assert all(i["id"] in nodes for i in ai["items"])
+
+
+def test_no_report_measures_no_rule(build, tmp_path, fixtures):
+    _, data = build(fixtures / "Shop")
+    assert not any(r["id"] == "REPORT_MEASURES_IN_MODEL" for r in data["health"])
+
+
+def test_legacy_report_measures(tmp_path):
+    from trailsbi.report import _extension_measures
+
+    cfg = [
+        {
+            "name": "extension",
+            "entities": [{"name": "Sales", "measures": [{"name": "X", "expression": "[A]"}]}],
+        }
+    ]
+    [m] = _extension_measures(cfg)
+    assert (m["table"], m["name"], m["expr"]) == ("Sales", "X", "[A]")
+
+
 def test_names_cannot_break_the_page(build, tmp_path, fixtures):
     import shutil
 
@@ -194,3 +284,17 @@ def test_icons_are_element_trees():
     assert set(ICONS) <= set(trees) and "_logo" in trees
     tag, attrs = trees["db"][0][:2]
     assert tag == "ellipse" and attrs["rx"] == "8"
+
+
+def test_page_has_the_graph_view():
+    from trailsbi.render import page_template
+
+    page = page_template()
+    for part in (
+        'id="lnGraph"',
+        'id="gcanvas"',
+        'id="gLocal"',
+        "function graphRebuild(",
+        "function ringLayout(",
+    ):
+        assert part in page, part

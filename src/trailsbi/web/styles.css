@@ -198,6 +198,8 @@ svg .n:focus,svg .n:focus-visible{outline:none}
 .n .nact:focus-visible rect{fill:var(--hover);stroke:var(--table);stroke-width:1.5}
 .n .st{fill:none;stroke:var(--muted);color:var(--muted);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .n .st.bad{stroke:var(--bad);color:var(--bad)}
+.n.s-report .box{stroke:var(--c);stroke-dasharray:5 3}
+.card.s-report{border-style:dashed;border-color:var(--c)}
 .n.broken .box{stroke:var(--bad);stroke-dasharray:4 3;fill:var(--bad-soft)}
 .n.broken,.is-bad{--c:var(--bad)}
 .is-muted{--c:var(--muted)}
@@ -596,3 +598,27 @@ pre .fn:hover{color:#c8ecff;text-decoration-color:currentColor}
   .brand .logo-mark{display:block}
   header{gap:8px;padding:8px 10px}
 }
+
+/* Graph view: the lineage as one network, drawn on a canvas. */
+#gwrap{flex:1;position:relative;min-width:0;overflow:hidden;background:var(--ground)}
+#gcanvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+#gcanvas.dragging{cursor:grabbing}
+#gcanvas.over{cursor:pointer}
+#gcanvas:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+#gwrap .ghint{position:absolute;left:16px;bottom:14px;margin:0;font-size:12px;color:var(--muted);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:4px 10px;pointer-events:none;opacity:.92}
+#gwrap .gset-btn{position:absolute;top:10px;right:10px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:var(--paper);border:1px solid var(--rule);border-radius:8px;color:var(--muted);cursor:pointer}
+#gwrap .gset-btn:hover,#gwrap .gset-btn[aria-expanded="true"]{color:var(--ink);border-color:var(--brand)}
+#gwrap .gset{position:absolute;top:48px;right:10px;width:260px;max-height:calc(100% - 60px);overflow:auto;background:var(--card);border:1px solid var(--rule);border-radius:8px;box-shadow:0 8px 24px rgba(var(--shadow),.14);padding:4px 12px 10px;font-size:12.5px}
+#gwrap .gset details{border-bottom:1px solid var(--rule);padding:6px 0}
+#gwrap .gset details:last-of-type{border-bottom:0}
+#gwrap .gset summary{cursor:pointer;font-weight:600;padding:4px 0}
+#gwrap .gset label{display:block;margin:8px 0 2px;color:var(--muted)}
+#gwrap .gset label.gchk{display:flex;align-items:center;gap:6px;color:var(--ink)}
+#gwrap .gset input[type=range]{width:100%;accent-color:var(--brand)}
+#gwrap .gset .gval{float:right;color:var(--ink);font-variant-numeric:tabular-nums}
+#gwrap .gset .greset{margin-top:8px;font:inherit;font-size:12px;background:none;border:1px solid var(--rule);border-radius:6px;padding:4px 10px;color:var(--ink);cursor:pointer}
+#gwrap .gempty{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);margin:0;font-size:14px;color:var(--muted);background:var(--paper);border:1px solid var(--rule);border-radius:8px;padding:10px 16px;max-width:80%;text-align:center}
+.glocal{display:flex;align-items:center;gap:8px}
+.glocal label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap}
+.glocal .seg button{padding:0 10px;min-width:30px}
+.glocal.off .seg{opacity:.45;pointer-events:none}

@@ -20,6 +20,12 @@ async function check(browser, file) {
   await step("density", async () => { await page.click("#dDetailed"); await page.click("#dCompact"); });
   await step("fit", () => page.click("#zFit"));
   await step("search", async () => { await page.fill("#q", "a"); await page.press("#q", "Enter"); await page.press("#q", "Escape"); });
+  await step("graph view", async () => {
+    await page.click("#lnGraph"); await page.waitForTimeout(800);
+    await page.mouse.move(700, 500); await page.mouse.wheel(0, -300);
+    await page.check("#gLocal"); await page.click('#gDepthSeg button[data-depth="1"]'); await page.uncheck("#gLocal");
+    await page.click("#zFit"); await page.click("#lnMap");
+  });
   for (const tab of ["model", "report", "health", "ai", "graph"]) {
     await step(`open ${tab}`, () => page.click(`.rail button[data-tab="${tab}"]`));
   }

@@ -148,7 +148,13 @@ function buildHealth() {
 var AICATS = ["Foundation", "Naming", "Descriptions", "Prep data for AI", "What AI can see"];
 state.aiSev = new Set();
 function buildAI() {
-  buildRuleView("aiDoc", D.ai || [], AICATS, state.aiSev, true);
+  var ai = D.ai || [];
+  // With no semantic model in the project, only the report measures are checked: no score.
+  var modelChecked = ai.some(function (r) { return r.checked && r.id !== "AI_REPORT_MEASURES"; });
+  buildRuleView("aiDoc", ai, AICATS, state.aiSev, modelChecked);
+  if (!modelChecked && ai.some(function (r) { return r.checked; }))
+    $("aiDoc").insertBefore(h("p", {"class": "muted pnote"}, "The semantic model is not in this project, so only the " +
+      "measures the reports add were checked. Scan the model's project too for a readiness score."), $("aiDoc").firstChild);
 }
 function ruleViewClick(sevSet, rebuild) { return function (e) {
   if (e.target.closest && e.target.closest(".hclear")) {

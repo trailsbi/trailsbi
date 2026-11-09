@@ -112,6 +112,7 @@ var LEGEND = [
   ["calctable", "t-table s-calculated", "Calculated table"], ["fieldparam", "t-table", "Field parameter"],
   ["column", "t-column", "Data column"],
   ["calccolumn", "t-column s-calculated", "Calculated column"], ["measure", "t-measure", "Measure"],
+  ["rmeasure", "t-measure s-report", "Report measure (defined in the report, not the model)"],
   ["calcgroup", "t-calcgroup", "Calculation group"], ["calcitem", "t-calcgroup", "Calculation item"],
   ["v_column", "t-visual", "Visual (icon shows the visual type)"],
   ["page", "t-page", "Page"], ["allpages", "t-page", "Report-level filters"],
