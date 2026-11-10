@@ -80,6 +80,7 @@ function syncRailFilter() {
 function ruleItemsInView(r) {
   return r.items.filter(function (it) {
     if (state.issueEntity && it.id !== state.issueEntity.id) return false;
+    if (!scopeKeepsItem(it)) return false;
     return true;
   });
 }

@@ -108,8 +108,9 @@ def test_same_project_gives_the_same_page(fixtures, tmp_path):
 
 def test_cli_exit_codes(fixtures, tmp_path, capsys):
     assert main([str(fixtures / "Shop"), "-o", str(tmp_path / "a.html")]) == 0
-    assert main([str(fixtures / "TwoProjects")]) == 2
-    assert "one project at a time" in capsys.readouterr().err
+    assert main([str(fixtures / "TwoProjects"), "--embed"]) == 2
+    assert "one report at a time" in capsys.readouterr().err
+    assert main([str(tmp_path / "missing")]) == 2
 
 
 def test_live_connected_report(build, tmp_path):

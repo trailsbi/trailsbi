@@ -85,19 +85,43 @@ no sign-in, no upload, no telemetry.
 Options:
 
 ```
-trailsbi [PROJECT] [-o OUTPUT] [--open] [--embed]
+trailsbi [PROJECT] [-o OUTPUT] [--open] [--embed] [--csv] [--list] [-m NAME] [-r NAME] [--with-reports] [--include FILE]
 
-  PROJECT       a .pbip file, the folder that holds it, or a .Report folder
-                (default: the current folder, so `trailsbi` alone works inside a project)
-  -o, --output  where to write the page: a file name, or a folder for the default name
-                (default: "TrailsBI Report - <project> - <date time>.html" here)
+  PROJECT       a .pbip file, the folder that holds it, a .Report folder, or a workspace folder (default: the current folder, so `trailsbi` alone works inside a project)
+  -o, --output  where to write the page: a file name, or a folder for the default name (default: "TrailsBI Report - <project> - <date time>.html" here)
   --open        open the page in your browser when it is ready
-  --embed       show the report inside Power BI: adds a hidden TrailsBI table to the
-                model and a TrailsBI page with the visual to the report (see below).
-                Writes the HTML page only with -o or --open
+  --embed       show the report inside Power BI: adds a hidden TrailsBI table to the model and a TrailsBI page with the visual to the report (see below). Writes the HTML page only with -o or --open
+  --csv         also write the lineage as two CSV files, nodes and edges, next to the page (they load into Power BI)
+
+  In a workspace folder (several reports and models), without these the whole folder is built:
+  --list        list the semantic models and reports in the folder, then stop
+  -m, --model   build this semantic model
+  -r, --report  build this report
+  --with-reports  also build every report on the chosen semantic models
+  --include     a JSON file naming what to build: the file the page's Scope menu saves
 ```
 
-TrailsBI builds one project per run. To cover several reports, run it once for each.
+### Workspace lineage
+
+Point TrailsBI at a folder that holds several reports and semantic models, such as the Git folder a Power BI or Fabric workspace syncs to, and it builds one page for all of them:
+
+```
+trailsbi "D:\Git\Sales workspace"
+```
+
+- A **Workspace** map shows every data source, semantic model and report in the folder, in columns from data source to report, with lines for what feeds what. 
+- Reports live-connected to a model that the folder also holds are joined to it, so one change to a model shows everything it touches in every report.
+- **Scope** in the toolbar picks the semantic models and reports that the lineage, the model, the reports and the findings show. Save a scope as JSON and build just that with `--include`.
+
+To build part of a folder, list what it holds and pick by name (wildcards work):
+
+```
+trailsbi "D:\Git\Sales workspace" --list
+trailsbi "D:\Git\Sales workspace" --model "Sales*" --with-reports
+trailsbi "D:\Git\Sales workspace" --report "Finance/Monthly" --report "Margin Check"
+```
+
+`--embed` still works on one report at a time.
 
 ### See it inside Power BI
 

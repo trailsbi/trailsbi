@@ -48,6 +48,7 @@
 
 <div class="shell">
 <nav class="rail" aria-label="Views">
+  <button data-tab="ws" title="Workspace" hidden><span class="rail-ic" data-icon="nav_workspace"></span>Workspace</button>
   <button data-tab="graph" class="on" aria-current="page" title="Lineage"><span class="rail-ic" data-icon="nav_lineage"></span>Lineage</button>
   <button data-tab="model" title="Model"><span class="rail-ic" data-icon="nav_model"></span>Model</button>
   <button data-tab="report" title="Reports"><span class="rail-ic" data-icon="nav_report"></span>Reports</button>
@@ -58,6 +59,11 @@
   <div class="toolbar" id="toolbar">
     <div class="types" id="types" role="group" aria-label="Show types"></div>
     <div class="types" id="mdTypes" role="group" aria-label="Show object kinds" hidden></div>
+    <div class="types" id="wsTypes" role="group" aria-label="Show item kinds" hidden></div>
+    <div class="menu scope" id="scopeBox" hidden>
+      <button class="tbtn" id="scopeBtn" aria-haspopup="true" aria-expanded="false" aria-controls="scopePop"></button>
+      <div class="pop scope-pop" id="scopePop" role="dialog" aria-label="Choose semantic models and reports" hidden></div>
+    </div>
     <span class="spacer"></span>
     <div class="menu" id="viewBox">
       <button class="tbtn" id="viewBtn" aria-haspopup="true" aria-expanded="false" aria-controls="viewPop"></button>
@@ -131,6 +137,24 @@
               title="Show details pane" aria-label="Show details pane">
         <span class="side-show-ic" id="sideShowIcon"></span>
         <span class="rail-label"><span>Details</span><span class="rail-item" id="railItem"></span></span>
+      </button>
+    </aside>
+  </div>
+</section>
+<section class="tab" id="tab-ws">
+  <div class="split">
+    <div class="canvas-wrap"><div id="wsCanvas"><svg id="wsSvg" xmlns="http://www.w3.org/2000/svg"></svg></div></div>
+    <aside class="side" id="wsSide">
+      <div class="side-head">
+        <span class="side-title">Details</span>
+        <button class="side-btn side-hide" aria-controls="wsPanel" aria-expanded="true"
+                title="Hide details pane" aria-label="Hide details pane"></button>
+      </div>
+      <div id="wsPanel" class="pane"></div>
+      <button class="side-rail side-show" aria-controls="wsPanel" aria-expanded="false"
+              title="Show details pane" aria-label="Show details pane">
+        <span class="side-show-ic"></span>
+        <span class="rail-label"><span>Details</span><span class="rail-item" id="wsRailItem"></span></span>
       </button>
     </aside>
   </div>

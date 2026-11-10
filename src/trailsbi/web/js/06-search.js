@@ -3,7 +3,8 @@ fill($("gIcon"), icon("ui_search", 16));
 var PLACEHOLDER = {
   graph: "Search tables, columns, measures and visuals",
   report: "Search reports, pages, visuals and fields",
-  model: "Search tables, columns, measures and other model objects"
+  model: "Search tables, columns, measures and other model objects",
+  ws: "Search data sources, semantic models and reports"
 };
 function openTab() { var b = document.querySelector(".rail button.on"); return b ? b.dataset.tab : "graph"; }
 function updateSearchUi() {
@@ -13,16 +14,18 @@ function updateSearchUi() {
   var q = state.query, n = hits.length;
   if (tab === "report") { n = RHITS.length; }
   if (tab === "model") { n = MHITS.length; }
+  if (tab === "ws" && typeof WSV !== "undefined") { n = WSV.hits.length; }
   $("hits").textContent = q ? (n ? n + " found" : "No matches") : "";
 }
 /* One search box, three views. Only the one being looked at is searched now; the
    others are marked stale and catch up when they are opened, so typing stays
    quick on a large model. */
-var SEARCH_STALE = {graph: false, report: false, model: false};
+var SEARCH_STALE = {graph: false, report: false, model: false, ws: false};
 function searchTab(tab) {
   if (tab === "graph") applySearch();
   else if (tab === "report") { if (typeof reportSearch === "function") reportSearch(state.query || ""); }
   else if (tab === "model") { if (typeof applyModelView === "function") applyModelView(); }
+  else if (tab === "ws") { if (typeof wsApplySearch === "function") wsApplySearch(); }
   else return;
   SEARCH_STALE[tab] = false;
 }
@@ -66,6 +69,12 @@ $("q").addEventListener("keydown", function (e) {
     state.mHitIdx = ((state.mHitIdx === undefined ? -1 : state.mHitIdx) + 1) % MHITS.length;
     MHITS[state.mHitIdx].scrollIntoView({block: "center"});
     flashRow(MHITS[state.mHitIdx]);
+    return;
+  }
+  if (openTab() === "ws") {
+    if (!WSV.hits.length) return;
+    WSV.hitIdx = (WSV.hitIdx + 1) % WSV.hits.length;
+    wsFocus(WSV.hits[WSV.hitIdx], true);
     return;
   }
   if (openTab() === "report") {

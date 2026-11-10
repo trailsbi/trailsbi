@@ -95,6 +95,7 @@ function setDensity(mode) {
   applyDensity();
   syncControls();
   render();
+  if (WORKSPACE) wsRender();
 }
 $("dCompact").addEventListener("click", function () { setDensity("compact"); });
 $("dDetailed").addEventListener("click", function () { setDensity("detailed"); });
@@ -128,7 +129,7 @@ $("zFit").addEventListener("click", function () { if (graphOn()) { GV.autoFit = 
 
 /* toolbar menus (View options): one open at a time, close on outside click or Esc */
 function closeMenus(except) {
-  [["viewPop", "viewBtn"], ["mdViewPop", "mdViewBtn"]].forEach(function (m) {
+  [["viewPop", "viewBtn"], ["mdViewPop", "mdViewBtn"], ["scopePop", "scopeBtn"]].forEach(function (m) {
     if (m[0] === except || $(m[0]).hidden) return;
     $(m[0]).hidden = true;
     $(m[1]).setAttribute("aria-expanded", "false");
@@ -150,7 +151,7 @@ $("viewPop").addEventListener("click", function (e) { e.stopPropagation(); });
 document.addEventListener("click", function () { closeMenus(); });
 document.addEventListener("keydown", function (e) {
   if (e.key !== "Escape") return;
-  var open = !$("viewPop").hidden ? "viewBtn" : !$("mdViewPop").hidden ? "mdViewBtn" : null;
+  var open = !$("viewPop").hidden ? "viewBtn" : !$("mdViewPop").hidden ? "mdViewBtn" : !$("scopePop").hidden ? "scopeBtn" : null;
   if (open) { closeMenus(); $(open).focus(); return; }
   var t = e.target;
   if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA")) return;

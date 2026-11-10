@@ -46,8 +46,11 @@ def _json_for_script(value) -> str:
     return json.dumps(value, ensure_ascii=False).replace("<", "\\u003c")
 
 
-def page_data(G, pages, sections, meta, ai_rules=None) -> str:
-    """Everything the page shows, as the JSON it carries (and the TrailsBI visual reads)."""
+def page_data(G, pages, sections, meta, ai_rules=None, extra=None) -> str:
+    """Everything the page shows, as the JSON it carries (and the TrailsBI visual reads).
+
+    `extra` adds keys of its own: a workspace's overview items and their links.
+    """
     edges = [[a, b, ", ".join(sorted(r for r in roles if r))] for (a, b), roles in G.edges.items()]
     data = {
         "nodes": list(G.nodes.values()),
@@ -57,6 +60,7 @@ def page_data(G, pages, sections, meta, ai_rules=None) -> str:
         "ai": ai_rules or [],
         "meta": meta,
     }
+    data.update(extra or {})
     data["fnhelp"] = function_help(data)
     return _json_for_script(data)
 

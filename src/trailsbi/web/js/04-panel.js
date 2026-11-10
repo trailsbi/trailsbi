@@ -137,6 +137,8 @@ function emptyPanel() {
     legend.push(h("span", null, x[2]));
   });
   var out = [
+    WORKSPACE && !scopeIsAll() ? h("div", {"class": "note"}, ["Showing " + scopeLabel() + ". Use ", h("b", null, "Scope"),
+      " above the map to add or remove semantic models and reports."]) : null,
     h("div", {"class": "empty"}, [h("b", null, "Select any item to trace it."),
       "Its upstream chain lights up in navy and everything that depends on it in teal. The side panel lists the full chain, the M steps and the DAX."]),
     h("div", {"class": "legend"}, legend),

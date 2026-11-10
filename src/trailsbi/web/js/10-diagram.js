@@ -938,6 +938,7 @@ function buildDiagram() {
     ]));
   });
   fill($("mdDiagram"), out);
+  if (WORKSPACE) applyScopeToDocs();
   applyDiagramZoom();
   showDiagramSelection();
 }

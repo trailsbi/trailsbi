@@ -16,6 +16,23 @@ async function check(browser, file) {
   const step = async (name, fn) => {
     try { await fn(); await page.waitForTimeout(200); } catch (e) { errors.push(`${name}: ${e.message.split("\n")[0]}`); }
   };
+  const ws = await page.$eval('.rail button[data-tab="ws"]', (b) => !b.hidden).catch(() => false);
+  if (ws) {                                // a workspace opens on its overview
+    await step("workspace card", () => page.click("#wsSvg g.wi.k-model"));
+    await step("workspace search", async () => { await page.fill("#q", "a"); await page.press("#q", "Enter"); await page.press("#q", "Escape"); });
+    await step("item filter", async () => { await page.click('#wsTypes button[data-k="report"]'); await page.click("#wsTypes .t-all"); });
+    await step("scope menu", async () => {
+      await page.click("#scopeBtn");
+      await page.fill("#scopeFind", "a");
+      await page.click("#scopeNone");
+      await page.fill("#scopeFind", "");
+      await page.click("#scopeAll");
+      await page.press("#scopeFind", "Escape");
+    });
+    await step("open in lineage", () => page.click('#wsPanel button[data-act="lineage"]'));
+    await step("select all again", async () => { await page.click("#scopeBtn"); await page.click("#scopeAll"); await page.click("body"); });
+    await step("open lineage", () => page.click('.rail button[data-tab="graph"]'));
+  }
   await step("select a card", () => page.click("#svg g.n"));
   await step("density", async () => { await page.click("#dDetailed"); await page.click("#dCompact"); });
   await step("fit", () => page.click("#zFit"));
@@ -26,7 +43,7 @@ async function check(browser, file) {
     await page.check("#gLocal"); await page.click('#gDepthSeg button[data-depth="1"]'); await page.uncheck("#gLocal");
     await page.click("#zFit"); await page.click("#lnMap");
   });
-  for (const tab of ["model", "report", "health", "ai", "graph"]) {
+  for (const tab of ["model", "report", "health", "ai", "graph"].concat(ws ? ["ws"] : [])) {
     await step(`open ${tab}`, () => page.click(`.rail button[data-tab="${tab}"]`));
   }
   await step("model diagram", async () => {

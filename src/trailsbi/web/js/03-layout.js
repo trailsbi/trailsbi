@@ -551,8 +551,10 @@ function focusNode(id, scroll) {
 }
 
 function go(id) {
+  if (typeof ITEM_BY_ID !== "undefined" && ITEM_BY_ID.has(id) && !byId.has(id)) { openItem(id); return; }
   var n = byId.get(id); if (!n) return;
   var changed = false;
+  if (!inScope(n)) { addToScope(n); changed = true; }
   if (!isVisible(n)) {
     changed = true;
     if (state.typePick.size) { state.typePick.add(filterKey(n)); applyTypePick(); }

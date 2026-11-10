@@ -9,7 +9,11 @@ var BOOT = [
   [25, "Reading " + plural((D.meta.models || []).length, "semantic model", "semantic models"),
        function () { buildModel(); }],
   [10, "Checking best practices", function () { buildHealth(); }],
-  [5,  "Checking AI readiness", function () { buildAI(); }]
+  [5,  "Checking AI readiness", function () { buildAI(); }],
+  [3,  "Laying out the workspace", function () {
+    if (!WORKSPACE) return;
+    applyScopeToDocs(); wsRender(); wsEmptyPanel(); switchTab("ws");
+  }]
 ];
 var BOOT_TOTAL = BOOT.reduce(function (a, b) { return a + b[0]; }, 0);
 var bootStart = Date.now(), bootDone = 0;

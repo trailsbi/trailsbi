@@ -622,3 +622,64 @@ pre .fn:hover{color:#c8ecff;text-decoration-color:currentColor}
 .glocal label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap}
 .glocal .seg button{padding:0 10px;min-width:30px}
 .glocal.off .seg{opacity:.45;pointer-events:none}
+
+/* ---------- workspace ---------- */
+.k-source{--c:var(--source)} .k-model,.k-external{--c:var(--model)} .k-report{--c:var(--report)}
+.ic.k-source,.ic.k-model,.ic.k-external,.ic.k-report{color:var(--c)}
+.out-scope{display:none!important}
+.scope > .tbtn .chev{color:var(--muted)}
+.scope > .tbtn.narrowed{border-color:var(--brand);box-shadow:inset 0 0 0 1px var(--brand)}
+.scope .scope-pop{left:0;right:auto;width:380px;border-radius:0 8px 8px 8px}
+.pop .pop-top{position:sticky;top:-10px;z-index:1;background:var(--card);padding-top:10px;margin-top:-10px}
+.pop .pop-find{display:flex;align-items:center;gap:7px;border:1px solid var(--rule);border-radius:6px;padding:0 8px;margin-bottom:6px}
+.pop .pop-find:focus-within{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
+.pop .pop-find input{flex:1;min-width:0;border:0;outline:0;background:none;color:var(--ink);padding:6px 0;font-size:13px}
+.pop .pop-none{margin:14px 2px;font-size:13px;color:var(--muted)}
+.scope-pop label{display:flex;align-items:center;gap:7px;padding:4px 2px;font-size:13px;cursor:pointer;border-radius:4px;color:var(--ink);white-space:normal}
+.scope-pop label:hover{background:var(--hover)}
+.scope-pop label > span:not(.muted){flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.scope-pop label .muted{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
+.scope-pop label.sc-r{padding-left:24px}
+.scope-pop label.sc-x{padding-left:2px}
+#wsCanvas{flex:1;overflow:auto;position:relative}
+#wsSvg{display:block}
+#wsSvg .ws-none{font-size:14px;fill:var(--muted)}
+.wi{cursor:pointer;transition:opacity .15s}
+.wi .box{fill:var(--card);stroke:var(--card-line);stroke-width:1;filter:drop-shadow(0 1px 2px rgba(var(--shadow),.09))}
+.wi .bar{fill:var(--c)}
+.wi.k-external .box{stroke:var(--c);stroke-dasharray:5 3}
+.wi .ico{fill:none;stroke:var(--c);color:var(--c);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wi .t1{font-size:13px;font-weight:600;fill:var(--ink)}
+.wi .t2{font-size:11.5px;fill:var(--muted)}
+.wi .flag{font-size:11px;font-weight:600;fill:var(--bad)}
+.wi .flag.soft{fill:var(--muted);font-weight:500}
+.wi .fic{fill:none;stroke:var(--bad);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.wi .divider{stroke:var(--line);stroke-width:1}
+.wi .vdiv{stroke:var(--card-line);stroke-width:1}
+.wi .cnt-ic{fill:none;stroke:var(--c);color:var(--c);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.wi .cnt-n{font-size:11.5px;fill:var(--ink);font-variant-numeric:tabular-nums}
+.wi .cnt.tot .cnt-ic{stroke:var(--muted);color:var(--muted)}
+.wi .cnt.tot .cnt-n{fill:var(--muted);font-weight:600}
+.wi .cnt.zero{opacity:.45}
+.wi .act{cursor:pointer;opacity:0}
+.wi:hover .act,.wi:focus-within .act,.wi.focus .act{opacity:1}
+.wi .act rect{fill:transparent}
+.wi .act:hover rect{fill:var(--hover)}
+.wi .act .aic{fill:none;stroke:var(--muted);color:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.wi .act:hover .aic{stroke:var(--ink);color:var(--ink)}
+.wi .act:focus{outline:none}
+.wi .act:focus-visible rect{fill:var(--hover);stroke:var(--brand);stroke-width:1.5}
+.wi:hover .box{stroke:var(--c);stroke-width:1.5}
+.wi:focus,.wi:focus-visible{outline:none}
+.wi:focus-visible:not(.focus) .box{stroke:var(--c);stroke-width:2.5;stroke-dasharray:5 3}
+.wi.focus .box{stroke:var(--c);stroke-width:3}
+#wsSvg.focusing .wi{opacity:.2}
+#wsSvg.focusing .wi.up,#wsSvg.focusing .wi.down,#wsSvg.focusing .wi.focus{opacity:1}
+#wsSvg.searching .wi:not(.match){opacity:.2}
+.wi.match .box{fill:var(--hit);stroke:var(--brand);stroke-width:1.5}
+.wi.focus.match .box{stroke:var(--c);stroke-width:3}
+.ws-pacts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.ws-pacts .tbtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.ws-pacts .tbtn .ic{color:var(--muted)}
+.ws-pacts .tbtn:hover{border-color:var(--brand)}
+a.fcard[data-item],a.fcard[data-item]:hover{text-decoration:none}

@@ -49,12 +49,17 @@ function switchTab(name) {
   });
   var onGraph = name === "graph", onModel = name === "model", onRep = name === "report";
   var onRules = name === "health" || name === "ai";
-  $("toolbar").hidden = !(onGraph || onModel || (onRules && !!state.issueEntity));
+  var ws = !!D.meta.workspace;
+  var onWs = name === "ws";
+  $("toolbar").hidden = !(onGraph || onModel || onWs || (onRules && !!state.issueEntity) || (ws && (onRules || onRep)));
+  $("scopeBox").hidden = !(ws && (onGraph || onWs || onModel || onRules || onRep));
+  $("wsTypes").hidden = !onWs;
   $("types").hidden = !onGraph;
   $("viewBox").hidden = !onGraph;
   $("mdViewBox").hidden = !onModel;
   $("mdModeSeg").hidden = !onModel;
   if (onRules) { buildHealth(); buildAI(); }
+  if (name === "ws" && typeof wsFitText === "function") wsFitText();
   if (typeof syncFilterBar === "function") syncFilterBar();
   $("mdTypes").hidden = !onModel || state.mdMode === "diagram";
   $("densitySeg").hidden = onModel || onRep || onRules;

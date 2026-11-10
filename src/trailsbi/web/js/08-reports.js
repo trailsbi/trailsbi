@@ -281,6 +281,7 @@ var RHITS = [];
 function reportSearch(q) {
   RHITS = [];
   $("reportDoc").querySelectorAll("section.rep").forEach(function (sec) {
+    if (sec.classList.contains("out-scope")) return;      // a workspace report left out of scope
     var rk = sec.getAttribute("data-rkey");
     var repName = (sec.querySelector(".rep-h") || {}).textContent || "";
     var repHit = !!q && repName.toLowerCase().indexOf(q) >= 0;

@@ -61,6 +61,8 @@ ICONS = {
     "ui_hide": "<path d='M6 7l5 5-5 5M13 7l5 5-5 5'/>",
     "ui_show": "<path d='M18 7l-5 5 5 5M11 7l-5 5 5 5'/>",
     "nav_lineage": "<rect x='2' y='9' width='5' height='6' rx='1'/><rect x='17' y='3' width='5' height='6' rx='1'/><rect x='17' y='15' width='5' height='6' rx='1'/><path d='M7 12h2.5c2.5 0 2.5-6 5-6H17M9.5 12c2.5 0 2.5 6 5 6H17'/>",
+    "nav_workspace": "<rect x='3' y='3' width='7' height='7' rx='1.4'/><rect x='14' y='3' width='7' height='7' rx='1.4'/><rect x='3' y='14' width='7' height='7' rx='1.4'/><rect x='14' y='14' width='7' height='7' rx='1.4'/>",
+    "ui_scope": "<path d='M4 6h10M18 6h2M4 12h4M12 12h8M4 18h10M18 18h2'/><circle cx='16' cy='6' r='2'/><circle cx='10' cy='12' r='2'/><circle cx='16' cy='18' r='2'/>",
     "nav_report": "<rect x='3' y='4' width='18' height='16' rx='2'/><path d='M3 8.5h18'/><rect x='6' y='11.5' width='5' height='5.5' rx='.6'/><path d='M14 12.5h4M14 15.5h4'/>",
     "nav_model": "<rect x='2.5' y='3.5' width='9' height='8' rx='1.2'/><path d='M2.5 6.5h9'/><rect x='12.5' y='12.5' width='9' height='8' rx='1.2'/><path d='M12.5 15.5h9'/><path d='M7 11.5v5h5.5'/><circle cx='7' cy='16.5' r='.9' fill='currentColor'/>",
     "nav_health": "<path d='M3 12h4l2.2-5.5 4.2 11 2.3-5.5H21'/>",

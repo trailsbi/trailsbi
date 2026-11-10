@@ -253,6 +253,7 @@ function applyModelView() {
   var q = (state.query || "").toLowerCase(), picks = state.mdPick, filtering = !!q || picks.size > 0;
   MHITS = [];
   $("modelDoc").querySelectorAll("section.mdl").forEach(function (sec) {
+    if (sec.classList.contains("out-scope")) return;      // a workspace model left out of scope
     var c = mdRows(sec), rows = c.rows;
     var show = new Array(rows.length).fill(false), ctx = new Array(rows.length).fill(false), any = false;
     var blocked = c.kind.map(mHiddenKind);

@@ -16,12 +16,13 @@ from .embed import EmbedError, adopt, embed
 from .graph import build_graph, downstream_counts
 from .health import health
 from .model import Model, load_model_dir, model_diagram
-from .project import Project, ProjectError, resolve_project
+from .project import Project, ProjectError, Workspace, resolve
 from .render import page_data, render_html
 from .report import load_report_dir
 from .report_page import PageError, add_page
 from .report_page import check as check_page
 from .utils import WARNINGS, warn
+from .workspace import SelectionError, build_items, default_scope, labels, list_lines, select, write_csv
 
 _COUNT_WORDS = {
     "model": ("semantic model", "semantic models"),
@@ -54,7 +55,8 @@ def build_parser() -> argparse.ArgumentParser:
         "project",
         nargs="?",
         default=".",
-        help="a .pbip file, the folder that holds it, or a .Report folder (default: the current folder)",
+        help="a .pbip file, the folder that holds it, a .Report folder, or a folder with several "
+        "projects for a workspace page (default: the current folder)",
     )
     ap.add_argument(
         "-o",
@@ -71,38 +73,87 @@ def build_parser() -> argparse.ArgumentParser:
         "visual on it. Close the project in Power BI Desktop first. The HTML page is then written "
         "only when -o or --open is given.",
     )
+    ap.add_argument(
+        "--csv",
+        action="store_true",
+        help="also write the lineage as two CSV files, nodes and edges, next to the page "
+        "(they load into Power BI)",
+    )
+    sel = ap.add_argument_group(
+        "choosing what to build in a workspace folder",
+        "Without these the whole folder is built. A name may be the display name, the path inside "
+        "the folder or the folder name, with or without the .SemanticModel / .Report suffix, and "
+        "may use * wildcards. Repeat a flag or separate names with commas.",
+    )
+    sel.add_argument("-m", "--model", action="append", metavar="NAME", help="build this semantic model")
+    sel.add_argument("-r", "--report", action="append", metavar="NAME", help="build this report")
+    sel.add_argument(
+        "--with-reports", action="store_true", help="also build every report on the chosen semantic models"
+    )
+    sel.add_argument(
+        "--include",
+        metavar="FILE",
+        help='a JSON file naming what to build, {"models": [...], "reports": [...]}: '
+        "the same file the page's Scope menu saves",
+    )
+    sel.add_argument(
+        "--list", action="store_true", help="list the semantic models and reports in the folder, then stop"
+    )
     return ap
 
 
-def _load(project: Project):
-    """Reads the project's semantic model and report. Returns (models, reports) lists."""
-    models, reports = [], []
-    model_key = None
-    if project.model_dir:
-        label, rel = project.label(project.model_dir)
+def _load(target):
+    """Reads the semantic models and reports of a project or workspace. Returns (models, reports)."""
+    if isinstance(target, Project):
+        model_dirs = [target.model_dir] if target.model_dir else []
+        items = [(target.report_dir, target.model_dir, target.external_model)] if target.report_dir else []
+    else:
+        model_dirs, items = target.models, target.reports
+    workspace = isinstance(target, Workspace)
+    models, reports, key_of = [], [], {}
+    for model_dir in model_dirs:
+        label, rel = target.label(model_dir)
         print(f"  Semantic model: {rel}")
         model = Model()
-        fmt = load_model_dir(project.model_dir, model)
+        try:
+            fmt = load_model_dir(model_dir, model)
+        except Exception as exc:  # one broken model should not stop a whole workspace
+            if not workspace:
+                raise
+            warn(f"Could not read the semantic model {rel}: {exc}")
+            continue
         models.append(
-            {"key": rel, "name": label, "rel": rel, "model": model, "format": fmt, "dir": project.model_dir}
+            {"key": rel, "name": label, "rel": rel, "model": model, "format": fmt, "dir": model_dir}
         )
-        model_key = rel
-    for note in project.notes:
+        key_of[model_dir] = rel
+    for note in target.notes:
         warn(note)
-    if project.report_dir:
-        label, rel = project.label(project.report_dir)
-        print(f"  Report:         {rel}")
-        report = load_report_dir(project.report_dir)
+    for report_dir, model_dir, published in items:
+        external = published
+        label, rel = target.label(report_dir)
+        model_key = key_of.get(model_dir) if model_dir else None
+        if model_dir and not model_key:  # its model was left out of the build (or could not be read)
+            external = {"label": target.label(model_dir)[0], "workspace": "", "id": ""}
+        uses = f" (uses {target.label(model_dir)[0]})" if workspace and model_key else ""
+        if workspace and not model_key and external:
+            uses = f" (live: {external.get('label')})"
+        print(f"  Report:         {rel}{uses}")
+        try:
+            report = load_report_dir(report_dir)
+        except Exception as exc:
+            if not workspace:
+                raise
+            warn(f"Could not read the report {rel}: {exc}")
+            continue
         if report:
-            external = project.external_model
             report.update(
                 {
                     "key": rel,
                     "name": label,
                     "rel": rel,
-                    "dir": project.report_dir,
+                    "dir": report_dir,
                     "model": model_key,
-                    "external": external,
+                    "external": None if model_key else external,
                 }
             )
             reports.append(report)
@@ -142,7 +193,18 @@ def _output_path(output, name: str, when: _dt.datetime) -> Path:
     return out / default if out.is_dir() else out
 
 
-def run(project_path=".", output=None, open_page=False, embed_data=False) -> Path | None:
+def run(
+    project_path=".",
+    output=None,
+    open_page=False,
+    embed_data=False,
+    csv_files=False,
+    models=None,
+    reports=None,
+    include=None,
+    with_reports=False,
+    list_only=False,
+) -> Path | None:
     """Builds the page for one project and returns where it was written.
 
     With `embed_data`, also writes the page data into the project's semantic model and adds the
@@ -151,7 +213,37 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
     """
     WARNINGS.clear()
     started = _dt.datetime.now()
-    project = resolve_project(project_path)
+    project = resolve(project_path)
+    workspace = isinstance(project, Workspace)
+    chosen = False
+    if workspace:
+        project.names = labels(project.models, project.root)
+        project.names.update(labels([r for r, _m, _p in project.reports], project.root))
+        rlabels = {r: project.names[r] for r, _m, _p in project.reports}
+        mlabels = {m: project.names[m] for m in project.models}
+        if list_only:
+            print(f"Workspace: {project.name}")
+            print("\n".join(list_lines(project, mlabels, rlabels)))
+            return None
+        try:
+            chosen = select(project, mlabels, rlabels, models, reports, include, with_reports)
+        except SelectionError as exc:
+            raise ProjectError(str(exc)) from exc
+    elif list_only or models or reports or include:
+        if list_only:
+            print(f"{project.name} is one project:")
+            if project.model_dir:
+                print(f"  Semantic model: {project.label(project.model_dir)[0]}")
+            if project.report_dir:
+                print(f"  Report:         {project.label(project.report_dir)[0]}")
+            return None
+        warn("--model, --report and --include choose within a workspace folder; this is one project.")
+    if workspace and embed_data:
+        raise ProjectError(
+            f"{project.name} holds {len(project.reports)} reports and "
+            f"{len(project.models)} semantic models.\n"
+            "--embed adds TrailsBI to one report at a time: run it on that report's .pbip file or folder."
+        )
     no_page = None
     if embed_data:
         try:
@@ -159,7 +251,15 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
         except PageError as exc:
             no_page = str(exc)
         adopt(project.model_dir)  # an unmarked TrailsBI table from the preview: leave it out from now on
-    print(f"Scanning: {project.name}")
+    if workspace:
+        print(
+            f"Scanning workspace: {project.name} "
+            f"({len(project.reports)} reports, {len(project.models)} semantic models"
+            + (", as chosen" if chosen else "")
+            + ")"
+        )
+    else:
+        print(f"Scanning: {project.name}")
     models, reports = _load(project)
 
     graph, pages = build_graph(models, reports)
@@ -175,6 +275,7 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
     counts["report"] = len(reports)
     meta = {
         "name": project.name,
+        "workspace": workspace,
         "generated": started.strftime("%Y-%m-%d %H:%M"),
         "modelFormat": ", ".join(sorted({m["format"] for m in models if m["format"]})) or "none",
         "reportFormat": ", ".join(sorted({r["format"] for r in reports})) or "none",
@@ -202,9 +303,16 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
             for r in reports
         ],
     }
+    extra = None
+    if workspace:
+        meta["scope"] = default_scope(graph, models, reports, chosen)
+        items, item_edges = build_items(graph, models, reports)
+        extra = {"items": items, "itemEdges": item_edges}
 
-    blob = page_data(graph, pages, sections, meta, ai_rules)
+    blob = page_data(graph, pages, sections, meta, ai_rules, extra)
     print("\n" + _summary(counts, graph, sections))
+    if workspace and not meta["scope"]["all"]:
+        print("  The workspace is large, so the page opens on one semantic model. Use Scope to pick others.")
 
     if embed_data:
         path, n, new, table = embed(project.model_dir, blob)
@@ -239,6 +347,9 @@ def run(project_path=".", output=None, open_page=False, embed_data=False) -> Pat
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(graph, pages, sections, meta, ai_rules, blob), encoding="utf-8")
     print(f"\nWrote {out}")
+    if csv_files:
+        for pth in write_csv(graph, out.parent, out.stem):
+            print(f"Wrote {pth}")
     if open_page:
         webbrowser.open(out.resolve().as_uri())
     return out
@@ -257,7 +368,18 @@ def main(argv=None) -> int:
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(errors="replace")
     try:
-        run(args.project, args.output, args.open, args.embed)
+        run(
+            args.project,
+            args.output,
+            args.open,
+            args.embed,
+            csv_files=args.csv,
+            models=args.model,
+            reports=args.report,
+            include=args.include,
+            with_reports=args.with_reports,
+            list_only=args.list,
+        )
     except (ProjectError, EmbedError, PageError) as exc:
         print(f"\n{exc}", file=sys.stderr)
         return 2

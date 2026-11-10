@@ -622,11 +622,41 @@ def model_diagram(inv: dict | None) -> dict | None:
 
 
 def connection_parts(conn: str) -> dict:
-    """ "Data Source=x;Initial Catalog=y" -> {"data source": "x", "initial catalog": "y"}."""
-    return {
-        k.strip().lower(): v.strip()
-        for k, _, v in (x.partition("=") for x in (conn or "").split(";") if "=" in x)
-    }
+    """ "Data Source=x;Initial Catalog=y" -> {"data source": "x", "initial catalog": "y"}.
+
+    A value may be quoted, with "" or '' for a quote inside it, and may then hold ; or =.
+    """
+    out, text, i, n = {}, conn or "", 0, len(conn or "")
+    while i < n:
+        eq = text.find("=", i)
+        if eq < 0:
+            break
+        key = text[i:eq].strip().strip(";").strip().lower()
+        j = eq + 1
+        while j < n and text[j] == " ":
+            j += 1
+        if j < n and text[j] in "\"'":
+            q, j, val = text[j], j + 1, []
+            while j < n:
+                if text[j] == q:
+                    if j + 1 < n and text[j + 1] == q:
+                        val.append(q)
+                        j += 2
+                        continue
+                    j += 1
+                    break
+                val.append(text[j])
+                j += 1
+            value = "".join(val)
+            semi = text.find(";", j)
+            i = n if semi < 0 else semi + 1
+        else:
+            semi = text.find(";", j)
+            value = text[j:] if semi < 0 else text[j:semi]
+            i = n if semi < 0 else semi + 1
+        if key:
+            out[key] = value.strip()
+    return out
 
 
 _LIVE_TYPE_LABELS = {

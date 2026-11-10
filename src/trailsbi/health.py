@@ -62,6 +62,13 @@ def health(G: Graph, models: list, reports: list) -> list:
         return sorted(out, key=lambda x: (x["table"].lower(), x["label"].lower()))
 
     has_report = any(n["type"] == "visual" for n in G.nodes.values())
+    workspace = len(models) + len(reports) > 2 or len(reports) > 1
+    # Models some report here uses: the "not used in the report" checks only make sense for those.
+    reported = {r.get("model") for r in reports if r.get("model")}
+
+    def on_reported_model(n):
+        return not workspace or (n.get("mkey") in reported)
+
     rules = []
 
     def own(rid, category, severity, name, desc, found):
@@ -100,6 +107,7 @@ def health(G: Graph, models: list, reports: list) -> list:
                     and n.get("sub") in ("measure", "report")
                     and not n.get("used")
                     and not n.get("auto")
+                    and (n.get("sub") == "report" or on_reported_model(n))
                 ),
                 lambda n: "hidden" if n.get("hidden") else "",
             ),
@@ -132,6 +140,7 @@ def health(G: Graph, models: list, reports: list) -> list:
                     and not n.get("auto")
                     and not n.get("broken")
                     and not n.get("external")
+                    and on_reported_model(n)
                 ),
                 lambda n: (
                     ("relationship key" if n.get("relkey") else "")
@@ -145,7 +154,11 @@ def health(G: Graph, models: list, reports: list) -> list:
             2,
             "Tables not used in the report",
             "Nothing on any page depends on these tables.",
-            items(lambda n: n["type"] == "table" and not n.get("used") and not n.get("auto")),
+            items(
+                lambda n: (
+                    n["type"] == "table" and not n.get("used") and not n.get("auto") and on_reported_model(n)
+                )
+            ),
         )
         own(
             "CALC_GROUPS_NOT_USED_IN_REPORTS",
@@ -154,8 +167,50 @@ def health(G: Graph, models: list, reports: list) -> list:
             "Calculation groups not used in the report",
             "No visual, slicer or filter uses the column of these calculation groups, "
             "so they change nothing.",
-            items(lambda n: n["type"] == "calcgroup" and not n.get("used")),
+            items(lambda n: n["type"] == "calcgroup" and not n.get("used") and on_reported_model(n)),
         )
+    if workspace:
+        unused_models = [
+            {"id": "", "label": m["name"], "table": "", "mkey": m["key"], "note": m["key"], "kind": "model"}
+            for m in models
+            if m["key"] not in reported
+        ]
+        own(
+            "WS_MODELS_WITHOUT_REPORTS",
+            "Maintenance",
+            1,
+            "Semantic models no report here uses",
+            "No report in this folder uses these semantic models. Reports elsewhere, Excel or other tools "
+            "may still use them. If nothing does, they only cost refresh time and capacity.",
+            sorted(unused_models, key=lambda x: x["label"].lower()),
+        )
+        by_name = defaultdict(list)
+        for n in G.nodes.values():
+            if n["type"] == "measure" and n.get("sub") == "report":
+                by_name[(n.get("table", "").lower(), n["label"].lower())].append(n)
+        repeated = [
+            {
+                "id": n["id"],
+                "label": n["label"],
+                "table": n.get("table", ""),
+                "mkey": n.get("mkey") or "",
+                "note": f"in {len(group)} reports: "
+                + ", ".join(sorted(g.get("reportname", "") for g in group)),
+            }
+            for group in by_name.values()
+            if len({g.get("reportname") for g in group}) > 1
+            for n in group[:1]
+        ]
+        if repeated:
+            own(
+                "WS_REPEATED_REPORT_MEASURES",
+                "Maintenance",
+                2,
+                "The same report measure in several reports",
+                "Several reports define their own measure with this name. Each copy can drift from the "
+                "others; one measure in the semantic model would give every report the same number.",
+                sorted(repeated, key=lambda x: (x["table"].lower(), x["label"].lower())),
+            )
     groups_by_model = defaultdict(list)
     for n in G.nodes.values():
         if n["type"] == "calcgroup":
