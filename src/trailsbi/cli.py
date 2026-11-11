@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as _dt
+import glob
 import sys
 import webbrowser
 from collections import defaultdict
@@ -22,7 +23,7 @@ from .report import load_report_dir
 from .report_page import PageError, add_page
 from .report_page import check as check_page
 from .utils import WARNINGS, warn
-from .workspace import SelectionError, build_items, default_scope, labels, list_lines, select, write_csv
+from .workspace import SelectionError, build_items, default_scope, labels, list_lines, select
 
 _COUNT_WORDS = {
     "model": ("semantic model", "semantic models"),
@@ -53,10 +54,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--version", action="version", version=f"{PRODUCT} {VERSION}")
     ap.add_argument(
         "project",
-        nargs="?",
-        default=".",
+        nargs="*",
+        default=["."],
         help="a .pbip file, the folder that holds it, a .Report folder, or a folder with several "
-        "projects for a workspace page (default: the current folder)",
+        "projects for a workspace page; give several folders to read workspaces together, such as "
+        "one with reports and one with the semantic models they use (default: the current folder)",
     )
     ap.add_argument(
         "-o",
@@ -73,17 +75,18 @@ def build_parser() -> argparse.ArgumentParser:
         "visual on it. Close the project in Power BI Desktop first. The HTML page is then written "
         "only when -o or --open is given.",
     )
-    ap.add_argument(
-        "--csv",
-        action="store_true",
-        help="also write the lineage as two CSV files, nodes and edges, next to the page "
-        "(they load into Power BI)",
-    )
     sel = ap.add_argument_group(
         "choosing what to build in a workspace folder",
         "Without these the whole folder is built. A name may be the display name, the path inside "
         "the folder or the folder name, with or without the .SemanticModel / .Report suffix, and "
         "may use * wildcards. Repeat a flag or separate names with commas.",
+    )
+    sel.add_argument(
+        "-w",
+        "--workspace",
+        action="append",
+        metavar="NAME",
+        help="build the reports and models of this workspace",
     )
     sel.add_argument("-m", "--model", action="append", metavar="NAME", help="build this semantic model")
     sel.add_argument("-r", "--report", action="append", metavar="NAME", help="build this report")
@@ -123,7 +126,15 @@ def _load(target):
             warn(f"Could not read the semantic model {rel}: {exc}")
             continue
         models.append(
-            {"key": rel, "name": label, "rel": rel, "model": model, "format": fmt, "dir": model_dir}
+            {
+                "key": rel,
+                "name": label,
+                "rel": rel,
+                "model": model,
+                "format": fmt,
+                "dir": model_dir,
+                "space": target.space_of(model_dir) if workspace else "",
+            }
         )
         key_of[model_dir] = rel
     for note in target.notes:
@@ -133,7 +144,11 @@ def _load(target):
         label, rel = target.label(report_dir)
         model_key = key_of.get(model_dir) if model_dir else None
         if model_dir and not model_key:  # its model was left out of the build (or could not be read)
-            external = {"label": target.label(model_dir)[0], "workspace": "", "id": ""}
+            external = {
+                "label": target.label(model_dir)[0],
+                "workspace": target.space_of(model_dir) if workspace else "",
+                "id": "",
+            }
         uses = f" (uses {target.label(model_dir)[0]})" if workspace and model_key else ""
         if workspace and not model_key and external:
             uses = f" (live: {external.get('label')})"
@@ -154,10 +169,20 @@ def _load(target):
                     "dir": report_dir,
                     "model": model_key,
                     "external": None if model_key else external,
+                    "space": target.space_of(report_dir) if workspace else "",
                 }
             )
             reports.append(report)
     return models, reports
+
+
+def _expand(targets: list) -> list:
+    """Folder names with * or ?, which the Windows command prompt passes on as typed."""
+    out = []
+    for t in targets:
+        hits = sorted(p for p in glob.glob(t) if Path(p).is_dir()) if any(c in t for c in "*?") else []
+        out += hits or [t]
+    return out
 
 
 def _summary(counts, graph, sections) -> str:
@@ -198,12 +223,12 @@ def run(
     output=None,
     open_page=False,
     embed_data=False,
-    csv_files=False,
     models=None,
     reports=None,
     include=None,
     with_reports=False,
     list_only=False,
+    workspaces=None,
 ) -> Path | None:
     """Builds the page for one project and returns where it was written.
 
@@ -217,8 +242,8 @@ def run(
     workspace = isinstance(project, Workspace)
     chosen = False
     if workspace:
-        project.names = labels(project.models, project.root)
-        project.names.update(labels([r for r, _m, _p in project.reports], project.root))
+        project.names = labels(project.models, project.rel)
+        project.names.update(labels([r for r, _m, _p in project.reports], project.rel))
         rlabels = {r: project.names[r] for r, _m, _p in project.reports}
         mlabels = {m: project.names[m] for m in project.models}
         if list_only:
@@ -226,7 +251,7 @@ def run(
             print("\n".join(list_lines(project, mlabels, rlabels)))
             return None
         try:
-            chosen = select(project, mlabels, rlabels, models, reports, include, with_reports)
+            chosen = select(project, mlabels, rlabels, models, reports, include, with_reports, workspaces)
         except SelectionError as exc:
             raise ProjectError(str(exc)) from exc
     elif list_only or models or reports or include:
@@ -254,7 +279,8 @@ def run(
     if workspace:
         print(
             f"Scanning workspace: {project.name} "
-            f"({len(project.reports)} reports, {len(project.models)} semantic models"
+            + (f"[{', '.join(sp[0] for sp in project.spaces)}] " if len(project.spaces) > 1 else "")
+            + f"({len(project.reports)} reports, {len(project.models)} semantic models"
             + (", as chosen" if chosen else "")
             + ")"
         )
@@ -276,6 +302,7 @@ def run(
     meta = {
         "name": project.name,
         "workspace": workspace,
+        "spaces": [sp[0] for sp in project.spaces] if workspace and len(project.spaces) > 1 else [],
         "generated": started.strftime("%Y-%m-%d %H:%M"),
         "modelFormat": ", ".join(sorted({m["format"] for m in models if m["format"]})) or "none",
         "reportFormat": ", ".join(sorted({r["format"] for r in reports})) or "none",
@@ -290,6 +317,7 @@ def run(
                 "live": getattr(m["model"], "live_ref", None),
                 "liveId": m.get("live_src"),
                 "diagram": model_diagram(getattr(m["model"], "bpa_inv", None)),
+                "space": m.get("space") or "",
             }
             for m in models
         ],
@@ -299,6 +327,7 @@ def run(
                 "name": r["name"],
                 "model": r["model"],
                 "external": (r["external"] or {}).get("label"),
+                "space": r.get("space") or "",
             }
             for r in reports
         ],
@@ -347,9 +376,6 @@ def run(
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(graph, pages, sections, meta, ai_rules, blob), encoding="utf-8")
     print(f"\nWrote {out}")
-    if csv_files:
-        for pth in write_csv(graph, out.parent, out.stem):
-            print(f"Wrote {pth}")
     if open_page:
         webbrowser.open(out.resolve().as_uri())
     return out
@@ -369,15 +395,15 @@ def main(argv=None) -> int:
             stream.reconfigure(errors="replace")
     try:
         run(
-            args.project,
+            _expand(args.project),
             args.output,
             args.open,
             args.embed,
-            csv_files=args.csv,
             models=args.model,
             reports=args.report,
             include=args.include,
             with_reports=args.with_reports,
+            workspaces=args.workspace,
             list_only=args.list,
         )
     except (ProjectError, EmbedError, PageError) as exc:

@@ -9,6 +9,15 @@ ITEMS.forEach(function (i) { IOUT.set(i.id, []); IIN.set(i.id, []); });
 (D.itemEdges || []).forEach(function (e) {
   if (IOUT.has(e[0]) && IIN.has(e[1])) { IOUT.get(e[0]).push(e[1]); IIN.get(e[1]).push(e[0]); }
 });
+var SPACES = D.meta.spaces || [];
+var MODEL_BY_KEY = new Map(MODELS.map(function (m) { return [m.key, m]; }));
+/* With several workspaces a repeated name carries its workspace ("Sales/Model"); the
+   workspace is shown beside it, so the name drops it. */
+function shortName(x) {
+  var nm = x.name || x.label || "";
+  return x.space && nm.indexOf(x.space + "/") === 0 ? nm.slice(x.space.length + 1) : nm;
+}
+ITEMS.forEach(function (i) { if (i.space) i.name = shortName({label: i.label, space: i.space}); });
 var KIND_NAME = {source: "Data source", model: "Semantic model", external: "Semantic model from another workspace", report: "Report"};
 function reportsOfModel(key) { return REPORTS.filter(function (r) { return r.model === key; }); }
 
@@ -102,23 +111,51 @@ function fillScopeList() {
     return h("input", a);
   }
   SCOPE_SHOWN = {models: [], reports: []};
-  var out = [], body = [], boxes = [];
-  MODELS.forEach(function (m) {
-    var rs = byModel[m.key] || [], mOk = hit(m.name);
+  var out = [], body = [], boxes = [], spBoxes = [];
+  function modelRows(m, rows, force) {
+    var rs = byModel[m.key] || [], mOk = force || hit(m.name);
     var list = mOk ? rs : rs.filter(function (r) { return hit(r.name); });
     if (!mOk && !list.length) return;                    // neither the model nor any of its reports match
     SCOPE_SHOWN.models.push(m.key);
     var cb = box("data-m", m.key, state.scopeModels.has(m.key));
     boxes.push([cb, rs]);
-    body.push(h("label", {"class": "sc-m", title: m.rel || m.key}, [cb, icon("ws_model", 14, "k-model"),
-      h("span", null, hlKids(m.name, q)), rs.length ? null : h("span", {"class": "muted"}, "no reports")]));
+    rows.push(h("label", {"class": "sc-m", title: m.rel || m.key}, [cb, icon("ws_model", 14, "k-model"),
+      h("span", null, hlKids(shortName(m), q)), rs.length ? null : h("span", {"class": "muted"}, "no reports")]));
     list.forEach(function (r) {
       SCOPE_SHOWN.reports.push(r.key);
-      body.push(h("label", {"class": "sc-r", title: r.rel || r.key}, [box("data-r", r.key, state.scopeReports.has(r.key)),
-        icon("nav_report", 14, "k-report"), h("span", null, hlKids(r.name, q))]));
+      var away = SPACES.length > 1 && r.space && r.space !== m.space;
+      rows.push(h("label", {"class": "sc-r", title: r.rel || r.key}, [box("data-r", r.key, state.scopeReports.has(r.key)),
+        icon("nav_report", 14, "k-report"), h("span", null, hlKids(shortName(r), q)),
+        away ? h("span", {"class": "muted"}, hlKids(r.space, q)) : null]));
     });
-  });
-  if (body.length) out.push(h("h5", null, "Semantic models and their reports"), body);
+  }
+  if (SPACES.length > 1) {                               // one group per workspace
+    SPACES.forEach(function (sp) {
+      var ms = MODELS.filter(function (m) { return m.space === sp; });
+      var rs = REPORTS.filter(function (r) { return r.space === sp; });
+      var spOk = !!q && hit(sp), rows = [];
+      ms.forEach(function (m) { modelRows(m, rows, spOk); });
+      var elsewhere = rs.filter(function (r) { var m = MODEL_BY_KEY.get(r.model); return m && m.space !== sp; });
+      if (!rows.length && !spOk && !elsewhere.some(function (r) { return hit(r.name); })) return;
+      if (spOk) rs.forEach(function (r) { if (SCOPE_SHOWN.reports.indexOf(r.key) < 0) SCOPE_SHOWN.reports.push(r.key); });
+      var keys = ms.map(function (m) { return state.scopeModels.has(m.key); })
+        .concat(rs.map(function (r) { return state.scopeReports.has(r.key); }));
+      var on = keys.filter(Boolean).length;
+      var cb = box("data-s", sp, on > 0 && on === keys.length);
+      spBoxes.push([cb, on > 0 && on < keys.length]);
+      body.push(h("label", {"class": "sc-s", title: "Workspace " + sp}, [cb, icon("nav_workspace", 14, "is-muted"),
+        h("span", null, hlKids(sp, q)),
+        h("span", {"class": "muted"}, plural(ms.length, "model", "models") + ", " + plural(rs.length, "report", "reports"))]));
+      body.push(rows);
+      if (elsewhere.length) body.push(h("p", {"class": "sc-note"},
+        plural(elsewhere.length, "report", "reports") + " here " + (elsewhere.length === 1 ? "is" : "are") +
+        " listed under " + (elsewhere.length === 1 ? "its semantic model" : "their semantic models") + " in another workspace."));
+    });
+    if (body.length) out.push(body);
+  } else {
+    MODELS.forEach(function (m) { modelRows(m, body, false); });
+    if (body.length) out.push(h("h5", null, "Semantic models and their reports"), body);
+  }
   var ext = (byModel[""] || []).filter(function (r) { return hit(r.name) || hit(r.external); });
   if (ext.length) {
     out.push(h("h5", null, "Reports on semantic models from other workspaces"));
@@ -129,7 +166,9 @@ function fillScopeList() {
         h("span", {"class": "muted"}, hlKids(r.external || "", q))]));
     });
   }
+  $("scopeList").classList.toggle("by-space", SPACES.length > 1);
   fill($("scopeList"), out.length ? out : h("p", {"class": "pop-none"}, "Nothing matches “" + state.scopeFind + "”."));
+  spBoxes.forEach(function (x) { x[0].indeterminate = x[1]; });
   boxes.forEach(function (x) {                            // a model with only some of its reports
     var on = x[1].filter(function (r) { return state.scopeReports.has(r.key); }).length;
     x[0].indeterminate = x[0].checked && on > 0 && on < x[1].length;
@@ -238,8 +277,19 @@ $("scopePop").addEventListener("input", function (e) {
   fillScopeList();
 });
 $("scopePop").addEventListener("change", function (e) {
-  var cb = e.target, mk = cb.getAttribute("data-m"), rk = cb.getAttribute("data-r");
-  if (mk !== null) {
+  var cb = e.target, mk = cb.getAttribute("data-m"), rk = cb.getAttribute("data-r"), sk = cb.getAttribute("data-s");
+  if (sk !== null) {                                     // a whole workspace
+    MODELS.forEach(function (m) {
+      if (m.space !== sk) return;
+      if (cb.checked) state.scopeModels.add(m.key);
+      else { state.scopeModels.delete(m.key); reportsOfModel(m.key).forEach(function (r) { state.scopeReports.delete(r.key); }); }
+    });
+    REPORTS.forEach(function (r) {
+      if (r.space !== sk) return;
+      if (cb.checked) { state.scopeReports.add(r.key); if (r.model) state.scopeModels.add(r.model); }
+      else state.scopeReports.delete(r.key);
+    });
+  } else if (mk !== null) {
     var rs = reportsOfModel(mk);
     if (cb.checked) { state.scopeModels.add(mk); rs.forEach(function (r) { state.scopeReports.add(r.key); }); }
     else { state.scopeModels.delete(mk); rs.forEach(function (r) { state.scopeReports.delete(r.key); }); }
@@ -305,13 +355,14 @@ function wsColumns() {
 }
 function itemLine(it) {
   if (it.kind === "source") return it.line || "Data source";
-  if (it.kind === "external") return "Semantic model · from another workspace";
+  if (it.kind === "external") return "Semantic model · not in these folders";
+  var head = it.space || (it.kind === "model" ? "Semantic model" : "Report");
   if (it.kind === "model") {
-    if (it.live) return "Semantic model · live connection";
+    if (it.live) return head + " · live connection";
     var mode = (it.props || []).filter(function (p) { return p[0] === "Storage mode"; })[0];
-    return "Semantic model" + (mode && mode[1] && mode[1] !== "—" ? " · " + caps(mode[1]) : "");
+    return head + (mode && mode[1] && mode[1] !== "—" ? " · " + caps(mode[1]) : "");
   }
-  if (it.kind === "report") return "Report";
+  if (it.kind === "report") return it.space ? "Report · " + it.space : "Report";
   return it.line || "";
 }
 function itemReach(id, adj) {
@@ -396,7 +447,7 @@ function wsActs(it, y) {
 }
 function wsTip(it) {
   var unused = it.kind === "model" && !(it.reports || []).length;
-  return KIND_NAME[it.kind] + ": " + it.label + (it.rel ? "\n" + it.rel : "") + (it.line ? "\n" + it.line : "") +
+  return KIND_NAME[it.kind] + ": " + (it.name || it.label) + (it.space ? "\nWorkspace: " + it.space : "") + (it.rel ? "\n" + it.rel : "") + (it.line ? "\n" + it.line : "") +
          (it.missing ? "\n" + plural(it.missing, "field", "fields") + " missing from its semantic model" : "") +
          (unused ? "\nNo report in this folder uses it" : "");
 }

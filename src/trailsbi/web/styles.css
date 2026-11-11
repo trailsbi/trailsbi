@@ -641,6 +641,12 @@ pre .fn:hover{color:#c8ecff;text-decoration-color:currentColor}
 .scope-pop label .muted{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40%}
 .scope-pop label.sc-r{padding-left:24px}
 .scope-pop label.sc-x{padding-left:2px}
+.scope-pop label.sc-s{font-weight:600;margin-top:8px;padding-top:7px;border-top:1px solid var(--line)}
+.scope-pop label.sc-s:first-child{margin-top:0;border-top:0}
+#scopeList.by-space label.sc-m{padding-left:20px}
+#scopeList.by-space label.sc-r{padding-left:42px}
+#scopeList.by-space label.sc-x{padding-left:2px}
+.scope-pop .sc-note{margin:2px 0 4px 20px;font-size:11.5px;color:var(--muted)}
 #wsCanvas{flex:1;overflow:auto;position:relative}
 #wsSvg{display:block}
 #wsSvg .ws-none{font-size:14px;fill:var(--muted)}

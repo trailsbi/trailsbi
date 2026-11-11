@@ -16,6 +16,7 @@ import os
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import unquote
 
 from .model import connection_parts
 from .utils import read_json
@@ -61,7 +62,7 @@ def _published_model(ref: dict) -> dict:
     parts = connection_parts(ref.get("connectionString") or "")
     name = parts.get("initial catalog")
     server = parts.get("data source", "")
-    ws = server.rsplit("/", 1)[-1] if server.startswith("powerbi://") else ""
+    ws = unquote(server.rsplit("/", 1)[-1]) if server.startswith("powerbi://") else ""
     ident = parts.get("semanticmodelid") or ref.get("pbiModelDatabaseName") or ""
     label = name or (f"Semantic model {ident[:8]}…" if ident else "Published semantic model")
     return {
@@ -197,28 +198,63 @@ def resolve_project(target) -> Project:
 
 @dataclass
 class Workspace:
-    """Every report and semantic model in a folder.
+    """Every report and semantic model in one or more folders.
 
     reports: (report folder, model folder or None, published model or None) for each report.
     models: every semantic model folder, including those no report here uses.
+    spaces: (workspace name, folder) for each Power BI workspace read. Each folder given is one
+    workspace, except a folder of Git checkouts (subfolders with their own .git), where each
+    checkout is one.
     """
 
     name: str
-    root: Path
+    root: Path | None  # the folder paths are shown from; None for folders on different drives
     models: list = field(default_factory=list)
     reports: list = field(default_factory=list)
     notes: list = field(default_factory=list)
+    spaces: list = field(default_factory=list)
 
     names: dict = field(default_factory=dict)  # {folder: (display name, path)}, set by the CLI
+
+    def space_of(self, item_dir: Path) -> str:
+        """The workspace an item is in, or "" when the run covers only one."""
+        if len(self.spaces) < 2:
+            return ""
+        best = ("", -1)
+        for name, folder in self.spaces:
+            if _under(item_dir, folder) and len(folder.parts) > best[1]:
+                best = (name, len(folder.parts))
+        return best[0]
+
+    def rel(self, item_dir: Path) -> str:
+        """The item's path as the page shows it: from its workspace when there are several, else
+        from the folder given."""
+        if len(self.spaces) > 1:
+            for name, folder in sorted(self.spaces, key=lambda sp: -len(sp[1].parts)):
+                if _under(item_dir, folder):
+                    return f"{name}/{item_dir.relative_to(folder).as_posix()}"
+        if self.root and _under(item_dir, self.root):
+            return item_dir.relative_to(self.root).as_posix()
+        return item_dir.name
 
     def label(self, item_dir: Path) -> tuple:
         if item_dir in self.names:
             return self.names[item_dir]
-        try:
-            rel = item_dir.relative_to(self.root).as_posix()
-        except ValueError:
-            rel = item_dir.name
-        return display_name(item_dir), rel
+        return display_name(item_dir), self.rel(item_dir)
+
+
+def _under(path: Path, folder: Path) -> bool:
+    try:
+        path.relative_to(folder)
+        return True
+    except ValueError:
+        return False
+
+
+def space_key(name: str) -> str:
+    """A workspace name to compare by: "Sales Datasets", "sales-datasets" and "Sales_Datasets"
+    are the same workspace."""
+    return re.sub(r"[^0-9a-z]+", "", unquote(name or "").lower())
 
 
 def display_name(item_dir: Path) -> str:
@@ -229,7 +265,13 @@ def display_name(item_dir: Path) -> str:
 
 
 def _find_items(folder: Path, depth: int = _WORKSPACE_DEPTH) -> tuple:
-    """(report folders, model folders) at most `depth` folders below `folder`."""
+    """(report folders, model folders) at most `depth` folders below `folder`. A report or
+    model folder given directly counts as itself."""
+    low = folder.name.lower()
+    if low.endswith(".report"):
+        return [folder.resolve()], []
+    if low.endswith((".semanticmodel", ".dataset")):
+        return [], [folder.resolve()]
     reports, models = [], []
     base = len(folder.parts)
     for dirpath, dirnames, _files in os.walk(folder):
@@ -247,7 +289,21 @@ def _find_items(folder: Path, depth: int = _WORKSPACE_DEPTH) -> tuple:
     return reports, models
 
 
-def _bind(report_dir: Path, models: list, by_name: dict, notes: list) -> tuple:
+def _spaces(folder: Path, items: list) -> list:
+    """The workspaces in one folder given on the command line (see Workspace)."""
+    folder = folder.resolve()
+    if ITEM_SUFFIX.search(folder.name):
+        return [(folder.parent.name or str(folder.parent), folder.parent)]
+    subs = sorted(
+        {folder / p.relative_to(folder).parts[0] for p in items if p.parent != folder and _under(p, folder)}
+    )
+    repos = [d for d in subs if (d / ".git").exists()]
+    if len(repos) < 2:
+        return [(folder.name or str(folder), folder)]
+    return [(d.name, d) for d in repos]
+
+
+def _bind(report_dir: Path, by_name: dict, notes: list, space_of=None) -> tuple:
     """(model folder or None, published model or None) for one report in a workspace."""
     pbir = report_dir / "definition.pbir"
     ref = ((read_json(pbir) or {}).get("datasetReference") or {}) if pbir.exists() else {}
@@ -262,11 +318,27 @@ def _bind(report_dir: Path, models: list, by_name: dict, notes: list) -> tuple:
         parts = connection_parts(ref["byConnection"].get("connectionString") or "")
         name = (parts.get("initial catalog") or ref["byConnection"].get("name") or "").strip().lower()
         cands = by_name.get(name, []) if name else []
-        if cands:
-            # the copy in the report's own folder first, then the nearest one
-            near = sorted(cands, key=lambda m: (m.parent != report_dir.parent, len(m.parts)))
-            return near[0], None
-        return None, pub
+        if not cands:
+            return None, pub
+        # the copy in the workspace the connection names, then the report's own folder, then the nearest
+        want = space_key(pub.get("workspace", ""))
+        here = space_of or (lambda _p: "")
+
+        def in_want(m):  # its workspace, or a folder on its path, has the name the connection gives
+            return bool(want) and (
+                space_key(here(m)) == want or want in {space_key(x) for x in m.parts[-8:-1]}
+            )
+
+        def rank(m):
+            return (not in_want(m), m.parent != report_dir.parent, len(m.parts))
+
+        best = sorted(cands, key=rank)[0]
+        if want and here(best) and not in_want(best):
+            notes.append(
+                f"{item_name(report_dir)} connects to {pub['label']} in the workspace {pub['workspace']}, "
+                f"which is not among the folders read; it uses the copy in {here(best)}."
+            )
+        return best, None
     twin = report_dir.parent / f"{item_name(report_dir)}.SemanticModel"
     if twin.is_dir():
         return twin.resolve(), None
@@ -274,23 +346,47 @@ def _bind(report_dir: Path, models: list, by_name: dict, notes: list) -> tuple:
     return None, _unknown_model()
 
 
-def find_workspace(folder: Path) -> Workspace | None:
-    """The workspace in `folder` when it holds more than one report or model; None otherwise."""
-    reports, models = _find_items(folder)
-    if len(reports) + len(models) <= 1:
+def _common_root(folders: list) -> Path | None:
+    try:
+        return Path(os.path.commonpath([str(f) for f in folders]))
+    except ValueError:  # different drives
         return None
-    ws = Workspace(name=folder.name or str(folder), root=folder)
+
+
+def find_workspace(folders) -> Workspace | None:
+    """The workspace in one folder, or in several, when they hold more than one report or model;
+    None for a single ordinary project."""
+    folders = [Path(f).resolve() for f in (folders if isinstance(folders, (list, tuple)) else [folders])]
+    reports, models, spaces = [], [], []
+    for f in folders:
+        rs, ms = _find_items(f)
+        reports += [r for r in rs if r not in reports]
+        models += [m for m in ms if m not in models]
+        for sp in _spaces(f, rs + ms):
+            if sp[1] not in [x[1] for x in spaces]:
+                spaces.append(sp)
+    if len(reports) + len(models) <= 1 and len(folders) == 1:
+        return None
+    if len(folders) == 1:
+        root = folders[0] if not ITEM_SUFFIX.search(folders[0].name) else folders[0].parent
+        name = root.name or str(root)
+    else:
+        root = _common_root([sp[1] for sp in spaces])
+        name = "Multiple Workspaces" if len(spaces) > 1 else spaces[0][0] if spaces else "Workspace"
+    ws = Workspace(name=name, root=root, spaces=spaces)
     by_name: dict = {}
     for m in models:
         by_name.setdefault(display_name(m).lower(), []).append(m)
     bound = []
     for r in reports:
-        model_dir, pub = _bind(r, models, by_name, ws.notes)
+        model_dir, pub = _bind(r, by_name, ws.notes, ws.space_of)
         bound.append((r, model_dir, pub))
         if model_dir and model_dir not in models:  # a model outside the folder that a report points to
             models.append(model_dir)
     ws.models = models
     ws.reports = bound
+    if len(folders) > 1:
+        return ws
     if len(reports) == 1 and len(models) == 1 and bound[0][1] == models[0]:
         return None  # one ordinary project
     if len(reports) == 1 and not models:
@@ -299,7 +395,21 @@ def find_workspace(folder: Path) -> Workspace | None:
 
 
 def resolve(target):
-    """A Project, or a Workspace when `target` is a folder with several reports or models."""
+    """A Project, or a Workspace when `target` is a folder with several reports or models, or a
+    list of folders to read together."""
+    if isinstance(target, (list, tuple)):
+        if len(target) > 1:
+            paths = [Path(t).expanduser().resolve() for t in target]
+            for p in paths:
+                if not p.is_dir():
+                    raise ProjectError(
+                        f"{p} is not a folder. Give folders to read several workspaces together."
+                    )
+            ws = find_workspace(paths)
+            if not ws.models and not ws.reports:
+                raise ProjectError("No reports or semantic models found in " + ", ".join(map(str, paths)))
+            return ws
+        target = target[0] if target else "."
     path = Path(target).expanduser().resolve()
     if path.is_dir() and path.name.lower().endswith((".semanticmodel", ".dataset")):
         return Workspace(name=item_name(path), root=path.parent, models=[path])  # a model on its own

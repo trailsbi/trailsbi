@@ -183,14 +183,6 @@ def test_bad_selection_fails_cleanly(fixtures, tmp_path, capsys):
     assert "--list" in capsys.readouterr().err
 
 
-def test_csv_writes_nodes_and_edges(fixtures, tmp_path, build):
-    out, data = build(_workspace(fixtures, tmp_path), csv_files=True)
-    nodes = out.with_name(out.stem + " - nodes.csv")
-    edges = out.with_name(out.stem + " - edges.csv")
-    assert nodes.is_file() and edges.is_file()
-    assert len(nodes.read_text(encoding="utf-8-sig").strip().splitlines()) == len(data["nodes"]) + 1
-
-
 def test_same_display_name_is_told_apart_by_path(tmp_path):
     from trailsbi.workspace import labels
 
@@ -232,3 +224,89 @@ def test_items_and_default_scope(fixtures, tmp_path, build):
     small = default_scope(G, models, reports, False, limit=5)
     assert small == {"models": ["b"], "reports": ["r1", "r2"], "all": False}
     assert default_scope(G, models, reports, True, limit=5)["all"] is True
+
+
+# ---------------------------------------------------------------- several workspaces
+
+
+def _spaces(fixtures, tmp_path):
+    """Reports in one workspace, their semantic model in two others (a Dev and a Prod copy):
+
+    Datasets/Prod/Shop.SemanticModel
+    Datasets/Dev/Shop.SemanticModel
+    Elsewhere/Reports/Prod View.Report  -> "Shop" in the workspace Prod
+    Elsewhere/Reports/Dev View.Report   -> "Shop" in the workspace "Dev" (URL-encoded name)
+    """
+    model = fixtures / "Shop" / "Shop.SemanticModel"
+    for ws in ("Prod", "Dev"):
+        shutil.copytree(model, tmp_path / "Datasets" / ws / "Shop.SemanticModel")
+    reports = tmp_path / "Elsewhere" / "Reports"
+    for name, ws in (("Prod View", "Prod"), ("Dev View", "Dev")):
+        dst = reports / f"{name}.Report"
+        shutil.copytree(fixtures / "Shop" / "Shop.Report", dst)
+        conn = f'Data Source="powerbi://api.powerbi.com/v1.0/myorg/{ws}";Initial Catalog="Shop"'
+        (dst / "definition.pbir").write_text(
+            json.dumps({"version": "4.0", "datasetReference": {"byConnection": {"connectionString": conn}}})
+        )
+    return tmp_path / "Datasets", reports
+
+
+def test_several_folders_read_together(fixtures, tmp_path):
+    datasets, reports = _spaces(fixtures, tmp_path)
+    ws = resolve([str(datasets / "Prod"), str(datasets / "Dev"), str(reports)])
+    assert [sp[0] for sp in ws.spaces] == ["Prod", "Dev", "Reports"]
+    bound = {r.name: (m.parent.name if m else None) for r, m, _p in ws.reports}
+    assert bound == {"Prod View.Report": "Prod", "Dev View.Report": "Dev"}  # the copy the connection names
+    assert ws.rel(reports / "Dev View.Report") == "Reports/Dev View.Report"
+    assert ws.space_of(datasets / "Dev" / "Shop.SemanticModel") == "Dev"
+
+
+def test_one_folder_still_binds_by_workspace_name(fixtures, tmp_path):
+    _spaces(fixtures, tmp_path)
+    ws = resolve(tmp_path)
+    assert len(ws.spaces) == 1  # not Git checkouts: one workspace
+    bound = {r.name: m.parent.name for r, m, _p in ws.reports}
+    assert bound == {"Prod View.Report": "Prod", "Dev View.Report": "Dev"}
+
+
+def test_git_checkouts_are_workspaces(fixtures, tmp_path):
+    datasets, _ = _spaces(fixtures, tmp_path)
+    for ws in ("Prod", "Dev"):
+        (datasets / ws / ".git").mkdir()
+    assert sorted(sp[0] for sp in resolve(datasets).spaces) == ["Dev", "Prod"]
+
+
+def test_page_and_selection_by_workspace(fixtures, tmp_path, build, capsys):
+    datasets, reports = _spaces(fixtures, tmp_path)
+    folders = [str(datasets / "Prod"), str(datasets / "Dev"), str(reports)]
+    _, data = build(folders)
+    assert data["meta"]["spaces"] == ["Prod", "Dev", "Reports"]
+    assert data["meta"]["name"] == "Multiple Workspaces"
+    spaces = {r["name"]: r["space"] for r in data["meta"]["reports"]}
+    assert spaces == {"Prod View": "Reports", "Dev View": "Reports"}
+    model_items = [i for i in data["items"] if i["kind"] == "model"]
+    assert sorted(i["space"] for i in model_items) == ["Dev", "Prod"]
+    assert all(i["props"][0][0] == "Workspace" for i in model_items)
+    _, data = build(folders, workspaces=["prod"], with_reports=True)
+    assert [m["space"] for m in data["meta"]["models"]] == ["Prod"]
+    assert [r["name"] for r in data["meta"]["reports"]] == ["Prod View"]
+    assert main([*folders, "--list"]) == 0
+    text = capsys.readouterr().out
+    assert "Workspace Reports:" in text and "-> Dev/Shop (in Dev)" in text
+
+
+def test_wildcard_folders(fixtures, tmp_path):
+    from trailsbi.cli import _expand
+
+    datasets, reports = _spaces(fixtures, tmp_path)
+    got = _expand([str(datasets / "*"), str(reports)])
+    assert sorted(got[:2]) == sorted([str(datasets / "Dev"), str(datasets / "Prod")]) and got[2] == str(
+        reports
+    )
+
+
+def test_file_among_several_folders_is_refused(fixtures, tmp_path, capsys):
+    datasets, reports = _spaces(fixtures, tmp_path)
+    pbir = reports / "Dev View.Report" / "definition.pbir"
+    assert main([str(datasets), str(pbir), "-o", str(tmp_path / "x.html")]) == 2
+    assert "is not a folder" in capsys.readouterr().err

@@ -2,12 +2,18 @@
 
 All notable changes to Trails for Power BI.
 
+## 1.5.1 - 2026-11-12
+
+- **Multiple workspaces** Give TrailsBI more than one workspaces folders, and it builds one report covering everything from all workspaces.
+- Cards, the details pane and `--list` show each item's workspace. 
+- **Scope** groups models and reports by workspace, with an option to pick a whole workspace.
+- `-w/--workspace NAME` builds the reports and models of one workspace.
+
 ## 1.5.0 - 2026-11-12
 
 - **Workspace lineage.** Point TrailsBI at a folder with several reports and semantic models, such as the Git folder a Power BI or Fabric workspace syncs to, and it builds one report for all of them.
 - **Scope** in the toolbar picks the semantic models and reports that the lineage, the model, the report pages and the findings show.
-- Build part of a folder with `--model`, `--report`, `--with-reports` or `--include`; names may be
-    display names or paths and may use wildcards. `--list` shows what the folder holds.
+- Build part of a folder with `--model`, `--report`, `--with-reports` or `--include`; names may be display names or paths and may use wildcards. `--list` shows what the folder holds.
 
 ## 1.4.0 - 2026-11-09
 

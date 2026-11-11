@@ -15,12 +15,11 @@ This module holds what only a workspace needs:
 
 from __future__ import annotations
 
-import csv
 import fnmatch
 from collections import defaultdict
 from pathlib import Path, PurePosixPath
 
-from .project import ITEM_SUFFIX, display_name
+from .project import ITEM_SUFFIX, display_name, space_key
 from .utils import read_json, warn
 
 SCOPE_LIMIT = 1500  # above this many items the page opens on one model, not the whole folder
@@ -37,11 +36,14 @@ def _plural(n: int, word: str) -> str:
 # ---------------------------------------------------------------- names
 
 
-def labels(paths, root: Path) -> dict:
+def labels(paths, root) -> dict:
     """{path: (display name, path inside the folder)}. Two items with the same display name
-    are told apart by their path inside the folder."""
+    are told apart by their path inside the folder. `root` is the folder, or a function that
+    gives an item's path."""
 
     def rel(p):
+        if callable(root):
+            return root(p)
         try:
             return p.relative_to(root).as_posix()
         except ValueError:
@@ -90,7 +92,16 @@ def sel_match(pats, label: str, rel: str) -> bool:
     return False
 
 
-def select(ws, mlabels: dict, rlabels: dict, models=None, reports=None, include=None, with_reports=False):
+def select(
+    ws,
+    mlabels: dict,
+    rlabels: dict,
+    models=None,
+    reports=None,
+    include=None,
+    with_reports=False,
+    workspaces=None,
+):
     """Narrows the workspace to the models and reports asked for, in place.
 
     Returns True when a selection was given. A report whose model is left out is still built,
@@ -98,6 +109,7 @@ def select(ws, mlabels: dict, rlabels: dict, models=None, reports=None, include=
     """
     models = sel_names(models)
     reports = sel_names(reports)
+    spaces = sel_names(workspaces)
     if include:
         inc = read_json(Path(include)) if Path(include).is_file() else None
         if not isinstance(inc, dict):
@@ -107,10 +119,23 @@ def select(ws, mlabels: dict, rlabels: dict, models=None, reports=None, include=
             )
         models += [str(x) for x in (inc.get("models") or [])]
         reports += [str(x) for x in (inc.get("reports") or [])]
-    if not models and not reports:
+        spaces += [str(x) for x in (inc.get("workspaces") or [])]
+    if not models and not reports and not spaces:
         return False
-    keep_m = [d for d in ws.models if sel_match(models, *mlabels[d])]
-    keep_r = [item for item in ws.reports if sel_match(reports, *rlabels[item[0]])]
+    names = [sp[0] for sp in getattr(ws, "spaces", [])]
+    for pat in spaces:
+        if not any(sel_match([pat], n, n) for n in names):
+            warn(
+                f"No workspace matches {pat!r}"
+                + (f" (the workspaces are {', '.join(names)})" if names else "")
+            )
+
+    def in_space(d):
+        here = ws.space_of(d) if len(names) > 1 else (names[0] if names else "")
+        return bool(spaces) and bool(here) and sel_match(spaces, here, here)
+
+    keep_m = [d for d in ws.models if sel_match(models, *mlabels[d]) or in_space(d)]
+    keep_r = [item for item in ws.reports if sel_match(reports, *rlabels[item[0]]) or in_space(item[0])]
     for pat in models:
         if not any(sel_match([pat], *mlabels[d]) for d in ws.models):
             warn(f"No semantic model matches {pat!r}")
@@ -133,20 +158,40 @@ def select(ws, mlabels: dict, rlabels: dict, models=None, reports=None, include=
 
 
 def list_lines(ws, mlabels: dict, rlabels: dict) -> list:
-    """What --list prints."""
-    out = [f"\n  {_plural(len(ws.models), 'semantic model')}:"]
-    for md in ws.models:
-        label, rel = mlabels[md]
-        out.append(f"    {label}" + (f"   [{rel}]" if rel != label else ""))
-    out.append(f"\n  {_plural(len(ws.reports), 'report')}:")
-    for rd, md, pub in ws.reports:
-        label, rel = rlabels[rd]
-        bound = mlabels[md][0] if md in mlabels else (pub or {}).get("label", "")
-        live = " (published)" if md is None and pub else ""
-        where = f"   [{rel}]" if rel != label else ""
-        out.append(f"    {label}{where}" + (f"   -> {bound}{live}" if bound else ""))
+    """What --list prints: grouped by workspace when the run covers several."""
+    spaces = [sp[0] for sp in getattr(ws, "spaces", [])] if len(getattr(ws, "spaces", [])) > 1 else [""]
+
+    def where(d):
+        return ws.space_of(d) if spaces != [""] else ""
+
+    out = []
+    for sp in spaces:
+        ms = [d for d in ws.models if where(d) == sp]
+        rs = [item for item in ws.reports if where(item[0]) == sp]
+        if sp:
+            if not ms and not rs:
+                continue
+            out.append(f"\n  Workspace {sp}:")
+        pad = "  " if sp else ""
+        if ms or not sp:
+            out.append(f"\n  {pad}{_plural(len(ms), 'semantic model')}:")
+        for md in ms:
+            label, rel = mlabels[md]
+            out.append(f"    {pad}{label}" + (f"   [{rel}]" if rel != label else ""))
+        if rs or not sp:
+            out.append(f"\n  {pad}{_plural(len(rs), 'report')}:")
+        for rd, md, pub in rs:
+            label, rel = rlabels[rd]
+            bound = mlabels[md][0] if md in mlabels else (pub or {}).get("label", "")
+            if md in mlabels and sp and where(md) and where(md) != sp:
+                bound += f" (in {where(md)})"
+            live = " (published)" if md is None and pub else ""
+            loc = f"   [{rel}]" if rel != label else ""
+            out.append(f"    {pad}{label}{loc}" + (f"   -> {bound}{live}" if bound else ""))
     out.append(
-        "\n  Build a subset with --model NAME, --report NAME, --with-reports or --include FILE.\n"
+        "\n  Build a subset with --model NAME, --report NAME, --with-reports"
+        + (", --workspace NAME" if spaces != [""] else "")
+        + " or --include FILE.\n"
         "  Names may be the display name or the path shown in [ ], and may use * wildcards."
     )
     return out
@@ -168,6 +213,13 @@ def default_scope(G, models: list, reports: list, chosen: bool, limit: int = SCO
 
 
 # ---------------------------------------------------------------- the overview
+
+
+def _put_space(it: dict, space) -> None:
+    """Notes which workspace an item is in, when the run covers several."""
+    if space:
+        it["space"] = space
+        it["props"].insert(0, ["Workspace", space])
 
 
 def _external_item(xid: str, e: dict, reports: list) -> dict:
@@ -283,6 +335,7 @@ def build_items(G, models: list, reports: list) -> tuple:
             "unused": st["unused"],
             "reports": reports_of.get("M:" + m["key"], []),
         }
+        _put_space(it, m.get("space"))
         if live:  # a pointer to a model, not a definition
             it["line"] = live["typeLabel"] + " · " + (live["database"] or live["server"])
             it["counts"] = []
@@ -293,6 +346,8 @@ def build_items(G, models: list, reports: list) -> tuple:
                 + ([["Database", live["database"]]] if live["database"] else [])
                 + ([["Perspective", live["cube"]]] if live["cube"] else [])
             )
+        if live:
+            _put_space(it, m.get("space"))
         items.append(it)
 
     ext_seen = {}
@@ -336,9 +391,20 @@ def build_items(G, models: list, reports: list) -> tuple:
                 + ([["Report measures", str(n_rm)]] if n_rm else []),
             }
         )
+        _put_space(items[-1], r.get("space"))
         edges.append([("M:" + r["model"]) if r["model"] else ext_key(r), "R:" + r["key"]])
 
-    by_model_name = {m["name"].lower(): m["key"] for m in models}
+    by_model_name = defaultdict(list)
+    for m in models:
+        by_model_name[m["name"].lower()].append(m)
+
+    def find_model(ds):
+        """The model in the run a composite model reads: the one in the workspace it names first."""
+        cands = by_model_name.get((ds.get("model") or "").lower()) or []
+        want = space_key(ds.get("workspace") or "")
+        cands = sorted(cands, key=lambda m: not want or space_key(m.get("space") or "") != want)
+        return cands[0]["key"] if cands else None
+
     upstream = defaultdict(list)  # model key -> models it reads
     for n in G.nodes.values():
         if n["type"] != "source" or not (n.get("mkeys") or n.get("mkey")):
@@ -346,7 +412,7 @@ def build_items(G, models: list, reports: list) -> tuple:
         mkeys = n.get("mkeys") or [n["mkey"]]
         ds = n.get("dataset")
         if ds:  # this "source" is another semantic model: a composite model reads it
-            target = by_model_name.get((ds.get("model") or "").lower())
+            target = find_model(ds)
             src_id = ("M:" + target) if target else ("X:" + ds["model"])
             if not target and src_id not in ext_seen:
                 ext_seen[src_id] = {
@@ -389,82 +455,3 @@ def build_items(G, models: list, reports: list) -> tuple:
             it["props"].append(["Reads other models", ", ".join(names)])
             it["line"] += " · reads " + _plural(len(names), "semantic model")
     return items, edges
-
-
-# ---------------------------------------------------------------- CSV
-
-
-def write_csv(G, folder: Path, stem: str) -> tuple:
-    """The lineage as two CSV files, nodes and edges, that Power BI can load."""
-    nodes_path = folder / f"{stem} - nodes.csv"
-    edges_path = folder / f"{stem} - edges.csv"
-
-    def owner(n):
-        return n.get("model") or n.get("extmodel") or ""
-
-    with nodes_path.open("w", newline="", encoding="utf-8-sig") as fh:
-        w = csv.writer(fh)
-        w.writerow(
-            [
-                "id",
-                "type",
-                "subtype",
-                "semantic_model",
-                "report",
-                "table",
-                "name",
-                "page",
-                "hidden",
-                "used_in_report",
-                "missing",
-            ]
-        )
-        for n in G.nodes.values():
-            w.writerow(
-                [
-                    n["id"],
-                    n["type"],
-                    n.get("sub", ""),
-                    owner(n),
-                    n.get("report") or n.get("reportname", ""),
-                    n.get("table", ""),
-                    n["label"],
-                    n.get("page", ""),
-                    bool(n.get("hidden")),
-                    n.get("used", n["type"] in ("visual", "page")),
-                    bool(n.get("broken")),
-                ]
-            )
-    with edges_path.open("w", newline="", encoding="utf-8-sig") as fh:
-        w = csv.writer(fh)
-        w.writerow(
-            [
-                "from_id",
-                "from_type",
-                "from_model",
-                "from_name",
-                "to_id",
-                "to_type",
-                "to_model",
-                "to_report",
-                "to_name",
-                "role",
-            ]
-        )
-        for (a, b), roles in G.edges.items():
-            na, nb = G.nodes[a], G.nodes[b]
-            w.writerow(
-                [
-                    a,
-                    na["type"],
-                    owner(na),
-                    na["label"],
-                    b,
-                    nb["type"],
-                    owner(nb),
-                    nb.get("report", ""),
-                    nb["label"],
-                    ", ".join(sorted(r for r in roles if r)),
-                ]
-            )
-    return nodes_path, edges_path
