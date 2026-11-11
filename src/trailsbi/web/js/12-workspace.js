@@ -641,10 +641,6 @@ function wsShowPanel(id) {
     out.push(h("div", {"class": "note"}, "Out of scope: the other views leave it out until you add it under Scope."));
   if (it.props && it.props.length)
     out.push(h("table", {"class": "kv"}, it.props.map(function (p) { return h("tr", null, [h("th", null, p[0]), h("td", null, p[1])]); })));
-  var acts = itemActions(it);
-  if (acts.length) out.push(h("div", {"class": "ws-pacts"}, acts.map(function (a) {
-    return h("button", {"class": "tbtn", "data-act": a[0], "data-item": it.id}, [icon(a[1], 15), a[2]]);
-  })));
   if (it.kind === "source") out.push(itemList("Read by semantic models", IOUT.get(id), "None"));
   if (it.kind === "model" || it.kind === "external") {
     var up = IIN.get(id) || [];
@@ -723,10 +719,6 @@ $("wsSvg").addEventListener("keydown", function (e) {
   if (a) { e.preventDefault(); wsAct(a); return; }
   var g = e.target.closest && e.target.closest("g.wi");
   if (g) { e.preventDefault(); wsFocus(g.__id, false); }
-});
-$("wsPanel").addEventListener("click", function (e) {
-  var b = e.target.closest("button[data-act]");
-  if (b) wsAct(b);
 });
 document.addEventListener("click", function (e) {
   var a = e.target.closest && e.target.closest("a[data-item]");

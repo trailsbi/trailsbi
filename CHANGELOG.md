@@ -1,6 +1,9 @@
 # Changelog
 
 All notable changes to Trails for Power BI.
+## 1.5.2 - 2026-11-12
+
+- updated detail panel for workspace view
 
 ## 1.5.1 - 2026-11-12
 

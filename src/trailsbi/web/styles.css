@@ -684,8 +684,4 @@ pre .fn:hover{color:#c8ecff;text-decoration-color:currentColor}
 #wsSvg.searching .wi:not(.match){opacity:.2}
 .wi.match .box{fill:var(--hit);stroke:var(--brand);stroke-width:1.5}
 .wi.focus.match .box{stroke:var(--c);stroke-width:3}
-.ws-pacts{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
-.ws-pacts .tbtn{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
-.ws-pacts .tbtn .ic{color:var(--muted)}
-.ws-pacts .tbtn:hover{border-color:var(--brand)}
 a.fcard[data-item],a.fcard[data-item]:hover{text-decoration:none}

@@ -29,7 +29,7 @@ async function check(browser, file) {
       await page.click("#scopeAll");
       await page.press("#scopeFind", "Escape");
     });
-    await step("open in lineage", () => page.click('#wsPanel button[data-act="lineage"]'));
+    await step("open in lineage", () => page.click('#wsSvg g.wi.focus g.act[data-act="lineage"]'));
     await step("select all again", async () => { await page.click("#scopeBtn"); await page.click("#scopeAll"); await page.click("body"); });
     await step("open lineage", () => page.click('.rail button[data-tab="graph"]'));
   }
