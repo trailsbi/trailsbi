@@ -1,6 +1,11 @@
 # Changelog
 
 All notable changes to Trails for Power BI.
+
+## 1.6.0 - 2026-11-13
+
+- `--split` writes one page per semantic model, with every report that uses it, into one folder, so each model's owner gets a page of their own. Reports on models the folders don't hold get a page per published model. It works with several workspaces and with `--model`, `--report`, `--workspace` and `--include`.
+
 ## 1.5.2 - 2026-11-12
 
 - updated detail panel for workspace view
@@ -12,7 +17,7 @@ All notable changes to Trails for Power BI.
 - **Scope** groups models and reports by workspace, with an option to pick a whole workspace.
 - `-w/--workspace NAME` builds the reports and models of one workspace.
 
-## 1.5.0 - 2026-11-12
+## 1.5.0 - 2026-11-11
 
 - **Workspace lineage.** Point TrailsBI at a folder with several reports and semantic models, such as the Git folder a Power BI or Fabric workspace syncs to, and it builds one report for all of them.
 - **Scope** in the toolbar picks the semantic models and reports that the lineage, the model, the report pages and the findings show.

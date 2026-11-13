@@ -86,7 +86,7 @@ Options:
 
 ```
 trailsbi [PROJECT ...] [-o OUTPUT] [--open] [--embed]
-         [--list] [-w NAME] [-m NAME] [-r NAME] [--with-reports] [--include FILE]
+         [--list] [-w NAME] [-m NAME] [-r NAME] [--with-reports] [--include FILE] [--split]
 
   PROJECT       a .pbip file, the folder that holds it, a .Report folder, or a folder with several projects for a workspace page; give several folders to read several workspaces together (default: the current folder, so `trailsbi` alone works inside a project)
   -o, --output  where to write the page: a file name, or a folder for the default name (default: "TrailsBI Report - <project> - <date time>.html" here)
@@ -100,6 +100,7 @@ trailsbi [PROJECT ...] [-o OUTPUT] [--open] [--embed]
   -r, --report  build this report
   --with-reports  also build every report on the chosen semantic models
   --include     a JSON file naming what to build: the file the page's Scope menu saves
+  --split       write one page per semantic model with the reports that use it, into the folder -o names (default: a new folder in the current folder)
 ```
 
 ### Workspace lineage
@@ -133,6 +134,13 @@ trailsbi "D:\Git\*"
 
 - A report finds its model by the model's name and the workspace its connection names (`powerbi://api.powerbi.com/v1.0/myorg/Sales Datasets`), so a Dev and a Prod copy of the same model are told apart.
 - `--list` groups by workspace too, and `--workspace NAME` builds one workspace (add `--with-reports` for the reports on its models from the other workspaces).
+
+To hand each model's owner their own page, split the workspace into one page per semantic model with the reports that use it, wherever those reports live. Reports on models the folders don't
+hold get a page per published model:
+
+```
+trailsbi "D:\Git\Sales Reports" "D:\Git\Sales Datasets" --split -o "D:\Lineage pages"
+```
 
 `--embed` still works on one report at a time.
 

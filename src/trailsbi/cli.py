@@ -6,9 +6,11 @@ from __future__ import annotations
 import argparse
 import datetime as _dt
 import glob
+import re
 import sys
 import webbrowser
 from collections import defaultdict
+from dataclasses import replace
 from pathlib import Path
 
 from .ai_readiness import ai_readiness
@@ -101,6 +103,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     sel.add_argument(
         "--list", action="store_true", help="list the semantic models and reports in the folder, then stop"
+    )
+    sel.add_argument(
+        "--split",
+        action="store_true",
+        help="write one page per semantic model with the reports that use it, into the folder -o names",
     )
     return ap
 
@@ -229,6 +236,7 @@ def run(
     with_reports=False,
     list_only=False,
     workspaces=None,
+    split=False,
 ) -> Path | None:
     """Builds the page for one project and returns where it was written.
 
@@ -263,6 +271,11 @@ def run(
                 print(f"  Report:         {project.label(project.report_dir)[0]}")
             return None
         warn("--model, --report and --include choose within a workspace folder; this is one project.")
+    if split and not workspace:
+        warn("--split makes one page per semantic model in a workspace folder; this is one project.")
+        split = False
+    if split and embed_data:
+        raise ProjectError("--split and --embed do not go together: --embed works on one report at a time.")
     if workspace and embed_data:
         raise ProjectError(
             f"{project.name} holds {len(project.reports)} reports and "
@@ -276,6 +289,71 @@ def run(
         except PageError as exc:
             no_page = str(exc)
         adopt(project.model_dir)  # an unmarked TrailsBI table from the preview: leave it out from now on
+    if split:
+        return _split(project, chosen, started, output, open_page)
+    return _build(project, workspace, chosen, started, output, open_page, embed_data, no_page)
+
+
+def _groups(ws: Workspace) -> list:
+    """(name, model folders, report entries) for each page --split writes: a semantic model with
+    the reports that use it, then the reports on each model the folders do not hold."""
+    out = []
+    for m in ws.models:
+        out.append((ws.label(m)[0], [m], [r for r in ws.reports if r[1] == m]))
+    published = defaultdict(list)
+    for r in ws.reports:
+        if r[1] is None:
+            published[(r[2] or {}).get("label") or "Unknown semantic model"].append(r)
+    for label, rs in sorted(published.items()):
+        out.append((f"{label} (published)", [], rs))
+    return out
+
+
+def _split(project: Workspace, chosen, started, output, open_page) -> Path:
+    """Writes one page per semantic model and its reports, into one folder; returns the folder."""
+    if output and Path(output).suffix.lower() in (".html", ".htm"):
+        raise ProjectError("With --split, -o is the folder to write the pages into, not an .html file.")
+    folder = (
+        Path(output).expanduser() if output else Path.cwd() / default_file_name(project.name, started)[:-5]
+    )
+    folder.mkdir(parents=True, exist_ok=True)
+    groups = _groups(project)
+    print(
+        f"Splitting {project.name} into {len(groups)} pages, one per semantic model with its reports"
+        + (" (as chosen)" if chosen else "")
+    )
+    for note in project.notes:
+        warn(note)
+    used = set()
+    for name, ms, rs in groups:
+        dirs = ms + [r[0] for r in rs]
+        spaces = [sp for sp in project.spaces if any(project.space_of(d) == sp[0] for d in dirs)]
+        sub = replace(project, name=name, models=ms, reports=rs, notes=[], spaces=spaces)
+        stem = _safe_name(name)
+        n = 2
+        while stem.lower() in used:
+            stem = f"{_safe_name(name)} ({n})"
+            n += 1
+        used.add(stem.lower())
+        print("\n" + "-" * 60)
+        several = len(ms) + len(rs) > 2 or len(rs) > 1  # else an ordinary one-report page
+        _build(sub, several, chosen, started, folder / f"{stem}.html", False, False, None, scope_all=True)
+    print(f"\nWrote {len(groups)} pages to {folder}")
+    if open_page:
+        webbrowser.open(folder.resolve().as_uri())
+    return folder
+
+
+def _safe_name(name: str) -> str:
+    """A page name as a file name Windows accepts."""
+    return re.sub(r'[\\/:*?"<>|]+', "-", name).strip(" .-") or "page"
+
+
+def _build(
+    project, workspace, chosen, started, output, open_page, embed_data, no_page, scope_all=False
+) -> Path | None:
+    """Reads the chosen reports and models and writes the page (or, with embed_data, the table)."""
+    WARNINGS.clear()
     if workspace:
         print(
             f"Scanning workspace: {project.name} "
@@ -334,7 +412,7 @@ def run(
     }
     extra = None
     if workspace:
-        meta["scope"] = default_scope(graph, models, reports, chosen)
+        meta["scope"] = default_scope(graph, models, reports, chosen or scope_all)
         items, item_edges = build_items(graph, models, reports)
         extra = {"items": items, "itemEdges": item_edges}
 
@@ -404,6 +482,7 @@ def main(argv=None) -> int:
             include=args.include,
             with_reports=args.with_reports,
             workspaces=args.workspace,
+            split=args.split,
             list_only=args.list,
         )
     except (ProjectError, EmbedError, PageError) as exc:

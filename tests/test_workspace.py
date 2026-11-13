@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 
 import pytest
@@ -310,3 +311,48 @@ def test_file_among_several_folders_is_refused(fixtures, tmp_path, capsys):
     pbir = reports / "Dev View.Report" / "definition.pbir"
     assert main([str(datasets), str(pbir), "-o", str(tmp_path / "x.html")]) == 2
     assert "is not a folder" in capsys.readouterr().err
+
+
+# ---------------------------------------------------------------- one page per semantic model
+
+
+def _page_meta(path):
+    text = path.read_text(encoding="utf-8")
+    return json.loads(
+        re.search(r'<script id="data" type="application/json">(.*?)</script>', text, re.S).group(1)
+    )["meta"]
+
+
+def test_split_writes_one_page_per_model(fixtures, tmp_path):
+    out = tmp_path / "pages"
+    assert main([str(_workspace(fixtures, tmp_path)), "--split", "-o", str(out)]) == 0
+    files = sorted(p.name for p in out.glob("*.html"))
+    assert files == ["Finance Model (published).html", "Shop.html", "Spare.html"]
+    shop = _page_meta(out / "Shop.html")
+    assert shop["workspace"] is True and shop["scope"]["all"] is True
+    assert sorted(r["name"] for r in shop["reports"]) == ["Margin Check", "Sales Review", "Shop"]
+    spare = _page_meta(out / "Spare.html")
+    assert spare["workspace"] is False and [m["name"] for m in spare["models"]] == ["Spare"]
+    finance = _page_meta(out / "Finance Model (published).html")
+    assert [r["name"] for r in finance["reports"]] == ["Finance"] and finance["models"] == []
+
+
+def test_split_follows_the_selection(fixtures, tmp_path):
+    out = tmp_path / "pages"
+    ws = str(_workspace(fixtures, tmp_path))
+    assert main([ws, "--split", "-m", "Shop", "--with-reports", "-o", str(out)]) == 0
+    assert [p.name for p in out.glob("*.html")] == ["Shop.html"]
+
+
+def test_split_refuses_a_file_and_embed(fixtures, tmp_path, capsys):
+    ws = str(_workspace(fixtures, tmp_path))
+    assert main([ws, "--split", "-o", str(tmp_path / "x.html")]) == 2
+    assert "folder" in capsys.readouterr().err
+    assert main([ws, "--split", "--embed"]) == 2
+    assert "do not go together" in capsys.readouterr().err
+
+
+def test_safe_page_names():
+    from trailsbi.cli import _safe_name
+
+    assert _safe_name('Finance/Monthly: "Q1"') == "Finance-Monthly- -Q1"
